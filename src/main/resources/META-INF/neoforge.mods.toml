@@ -6,6 +6,8 @@ license = "MIT"
 modId = "elixir"
 version = "${version}"
 displayName = "丹"
+displayURL="https://www.mcmod.cn/class/26865.html"
+logoFile="logo.png"
 authors = "PepperMR"
 description = '''一个炼丹Mod'''
 
