@@ -1,0 +1,9 @@
+{
+  "item": "minecraft:magma_cream",
+  "effect": "elixir:fire_resistance",
+  "pharm": 3,
+  "stability": -5,
+  "colors": [
+    4294937653
+  ]
+}

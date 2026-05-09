@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "level=0": {
+      "model": "elixir:block/alchemical_vessel"
+    },
+    "level=1": {
+      "model": "elixir:block/alchemical_vessel_level1"
+    },
+    "level=2": {
+      "model": "elixir:block/alchemical_vessel_level2"
+    },
+    "level=3": {
+      "model": "elixir:block/alchemical_vessel_full"
+    }
+  }
+}

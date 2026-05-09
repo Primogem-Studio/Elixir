@@ -1,0 +1,9 @@
+{
+  "item": "minecraft:golden_carrot",
+  "effect": "elixir:night_vision_blindness",
+  "pharm": 8,
+  "stability": 5,
+  "colors": [
+    4293000960
+  ]
+}

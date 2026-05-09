@@ -1,0 +1,7 @@
+{
+  "item": "minecraft:blaze_powder",
+  "calc": "elixir:plus",
+  "pharm": 10,
+  "base": 20,
+  "stability": 7
+}

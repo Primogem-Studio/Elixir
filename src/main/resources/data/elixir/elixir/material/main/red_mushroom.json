@@ -1,0 +1,9 @@
+{
+  "item": "minecraft:red_mushroom",
+  "effect": "elixir:lightning",
+  "pharm": 5,
+  "stability": 1,
+  "colors": [
+    4285368575
+  ]
+}

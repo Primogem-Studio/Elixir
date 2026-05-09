@@ -1,0 +1,9 @@
+{
+  "item": "minecraft:rabbit_foot",
+  "effect": "elixir:jump_boost",
+  "pharm": 6,
+  "stability": -9,
+  "colors": [
+    4294963609
+  ]
+}

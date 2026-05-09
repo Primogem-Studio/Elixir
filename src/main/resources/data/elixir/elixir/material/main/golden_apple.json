@@ -1,0 +1,9 @@
+{
+  "item": "minecraft:golden_apple",
+  "effect": "elixir:damage_resistance",
+  "pharm": 1,
+  "stability": 10,
+  "colors": [
+    4294757923
+  ]
+}

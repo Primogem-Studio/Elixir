@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "B B",
+    "B B",
+    "BBB"
+  ],
+  "key": {
+    "B": {
+      "item": "elixir:elixir_furnace_brick"
+    }
+  },
+  "result": {
+    "id": "elixir:alchemical_vessel",
+    "count": 1
+  }
+}

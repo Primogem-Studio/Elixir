@@ -1,0 +1,9 @@
+{
+  "parent": "item/generated",
+  "textures": {
+    "layer0": "elixir:item/elixir_layer_1",
+    "layer1": "elixir:item/elixir_layer_2",
+    "layer2": "elixir:item/elixir_layer_3",
+    "layer3": "elixir:item/elixir_layer_4"
+  }
+}

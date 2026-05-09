@@ -1,0 +1,9 @@
+{
+  "item": "minecraft:blaze_powder",
+  "effect": "elixir:strength",
+  "pharm": 7,
+  "stability": 7,
+  "colors": [
+    4294952704
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "item": "minecraft:tnt",
+  "effect": "elixir:stereo_explode",
+  "pharm": 1,
+  "stability": -30,
+  "colors": [
+    4294901760
+  ]
+}

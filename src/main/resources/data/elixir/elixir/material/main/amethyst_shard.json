@@ -1,0 +1,9 @@
+{
+  "item": "minecraft:amethyst_shard",
+  "effect": "elixir:true_lightning",
+  "pharm": -20,
+  "stability": -50,
+  "colors": [
+    4284904191
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "item": "minecraft:ghast_tear",
+  "effect": "elixir:regeneration_poison",
+  "pharm": 20,
+  "stability": -20,
+  "colors": [
+    4294902493
+  ]
+}

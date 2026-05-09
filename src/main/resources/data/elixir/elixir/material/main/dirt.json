@@ -1,0 +1,9 @@
+{
+  "item": "minecraft:dirt",
+  "effect": "elixir:poison_wither",
+  "pharm": 1,
+  "stability": 1,
+  "colors": [
+    4282493475
+  ]
+}

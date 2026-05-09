@@ -1,0 +1,9 @@
+{
+  "item": "minecraft:gunpowder",
+  "effect": "elixir:explode",
+  "pharm": 1,
+  "stability": 5,
+  "colors": [
+    4294932576
+  ]
+}

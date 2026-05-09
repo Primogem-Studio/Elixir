@@ -1,0 +1,47 @@
+{
+  "multipart": [
+    {
+      "when": {
+        "facing": "east"
+      },
+      "apply": {
+        "model": "elixir:block/elixir_furnace",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "north"
+      },
+      "apply": {
+        "model": "elixir:block/elixir_furnace",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south"
+      },
+      "apply": {
+        "model": "elixir:block/elixir_furnace"
+      }
+    },
+    {
+      "when": {
+        "facing": "west"
+      },
+      "apply": {
+        "model": "elixir:block/elixir_furnace",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "active": true
+      },
+      "apply": {
+        "model": "elixir:block/elixir_furnace_mask"
+      }
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "item": "minecraft:pufferfish",
+  "effect": "elixir:water_breathing",
+  "pharm": 4,
+  "stability": -3,
+  "colors": [
+    4278255568
+  ]
+}

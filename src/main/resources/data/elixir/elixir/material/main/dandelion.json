@@ -1,0 +1,9 @@
+{
+  "item": "minecraft:dandelion",
+  "effect": "elixir:dig_speed_slowdown",
+  "pharm": 0,
+  "stability": -10,
+  "colors": [
+    4280709695
+  ]
+}

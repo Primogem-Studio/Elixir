@@ -1,0 +1,9 @@
+{
+  "item": "minecraft:glistering_melon_slice",
+  "effect": "elixir:instant_health_damage",
+  "pharm": 10,
+  "stability": -10,
+  "colors": [
+    4294901760
+  ]
+}

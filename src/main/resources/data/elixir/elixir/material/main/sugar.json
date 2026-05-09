@@ -1,0 +1,9 @@
+{
+  "item": "minecraft:sugar",
+  "effect": "elixir:speed_slowdown",
+  "pharm": 1,
+  "stability": -10,
+  "colors": [
+    4280720895
+  ]
+}

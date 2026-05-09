@@ -1,0 +1,9 @@
+{
+  "item": "minecraft:feather",
+  "effect": "elixir:slow_falling",
+  "pharm": 0,
+  "stability": -1,
+  "colors": [
+    4294967295
+  ]
+}

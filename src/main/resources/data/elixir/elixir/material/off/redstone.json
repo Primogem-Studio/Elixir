@@ -1,0 +1,7 @@
+{
+  "item": "minecraft:redstone",
+  "calc": "elixir:plus",
+  "pharm": 0,
+  "base": 75,
+  "stability": 100
+}
