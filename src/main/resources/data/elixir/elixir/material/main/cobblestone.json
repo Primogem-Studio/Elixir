@@ -1,0 +1,9 @@
+{
+  "item": "minecraft:cobblestone",
+  "effect": "elixir:infested",
+  "pharm": 2,
+  "stability": -4,
+  "colors": [
+    4286611584
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "item": "minecraft:slime_ball",
+  "effect": "elixir:oozing",
+  "pharm": 4,
+  "stability": -1,
+  "colors": [
+    4284032374
+  ]
+}

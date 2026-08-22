@@ -1,0 +1,9 @@
+{
+  "item": "minecraft:anvil",
+  "effect": "elixir:gravity",
+  "pharm": 5,
+  "stability": -8,
+  "colors": [
+    4285877362
+  ]
+}

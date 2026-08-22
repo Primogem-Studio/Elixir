@@ -1,0 +1,9 @@
+{
+  "item": "minecraft:ender_eye",
+  "effect": "elixir:entity_interaction_range",
+  "pharm": 6,
+  "stability": 1,
+  "colors": [
+    4286880168
+  ]
+}

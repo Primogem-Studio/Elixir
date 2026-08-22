@@ -1,0 +1,9 @@
+{
+  "item": "minecraft:wind_charge",
+  "effect": "elixir:wind_charged",
+  "pharm": 4,
+  "stability": -2,
+  "colors": [
+    4293578992
+  ]
+}

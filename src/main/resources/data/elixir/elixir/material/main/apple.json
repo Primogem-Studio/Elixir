@@ -1,0 +1,9 @@
+{
+  "item": "minecraft:apple",
+  "effect": "elixir:health_boost",
+  "pharm": 3,
+  "stability": 6,
+  "colors": [
+    4289983537
+  ]
+}

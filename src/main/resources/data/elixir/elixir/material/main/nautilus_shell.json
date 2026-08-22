@@ -1,0 +1,9 @@
+{
+  "item": "minecraft:nautilus_shell",
+  "effect": "elixir:conduit_power",
+  "pharm": 7,
+  "stability": 3,
+  "colors": [
+    4293773219
+  ]
+}

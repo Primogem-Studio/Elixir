@@ -1,0 +1,9 @@
+{
+  "item": "minecraft:dead_bush",
+  "effect": "elixir:unluck",
+  "pharm": 2,
+  "stability": -6,
+  "colors": [
+    4288364373
+  ]
+}

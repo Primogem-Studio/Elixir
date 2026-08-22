@@ -1,0 +1,9 @@
+{
+  "item": "minecraft:cobweb",
+  "effect": "elixir:weaving",
+  "pharm": 3,
+  "stability": -2,
+  "colors": [
+    4287658936
+  ]
+}

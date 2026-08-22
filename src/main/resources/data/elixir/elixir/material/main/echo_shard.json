@@ -1,0 +1,9 @@
+{
+  "item": "minecraft:echo_shard",
+  "effect": "elixir:darkness",
+  "pharm": 5,
+  "stability": -7,
+  "colors": [
+    4282879582
+  ]
+}

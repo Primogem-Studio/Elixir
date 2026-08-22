@@ -1,592 +1,592 @@
 {
-    "type":  "minecraft:loot_table",
-    "pools":  [
-                  {
-                      "name":  "common",
-                      "rolls":  1.0,
-                      "entries":  [
-                                      {
-                                          "type":  "minecraft:empty",
-                                          "weight":  6
-                                      },
-                                      {
-                                          "type":  "minecraft:item",
-                                          "name":  "minecraft:paper",
-                                          "weight":  2,
-                                          "functions":  [
-                                                            {
-                                                                "function":  "minecraft:set_components",
-                                                                "components":  {
-                                                                                   "minecraft:item_name":  "{\"translate\":\"item.elixir.dan_fang.light_feather\"}",
-                                                                                   "elixir:alchemical_formula":  {
-                                                                                                                     "main":  [
-                                                                                                                                  {
-                                                                                                                                      "material":  "elixir:main/feather",
-                                                                                                                                      "count":  1
-                                                                                                                                  }
-                                                                                                                              ],
-                                                                                                                     "off":  [
-                                                                                                                                 {
-                                                                                                                                     "material":  "elixir:off/blaze_powder",
-                                                                                                                                     "count":  1
-                                                                                                                                 }
-                                                                                                                             ]
-                                                                                                                 }
-                                                                               }
-                                                            }
-                                                        ]
-                                      },
-                                      {
-                                          "type":  "minecraft:item",
-                                          "name":  "minecraft:paper",
-                                          "weight":  2,
-                                          "functions":  [
-                                                            {
-                                                                "function":  "minecraft:set_components",
-                                                                "components":  {
-                                                                                   "minecraft:item_name":  "{\"translate\":\"item.elixir.dan_fang.gale\"}",
-                                                                                   "elixir:alchemical_formula":  {
-                                                                                                                     "main":  [
-                                                                                                                                  {
-                                                                                                                                      "material":  "elixir:main/sugar",
-                                                                                                                                      "count":  1
-                                                                                                                                  }
-                                                                                                                              ],
-                                                                                                                     "off":  [
-                                                                                                                                 {
-                                                                                                                                     "material":  "elixir:off/blaze_powder",
-                                                                                                                                     "count":  1
-                                                                                                                                 }
-                                                                                                                             ]
-                                                                                                                 }
-                                                                               }
-                                                            }
-                                                        ]
-                                      },
-                                      {
-                                          "type":  "minecraft:item",
-                                          "name":  "minecraft:paper",
-                                          "weight":  2,
-                                          "functions":  [
-                                                            {
-                                                                "function":  "minecraft:set_components",
-                                                                "components":  {
-                                                                                   "minecraft:item_name":  "{\"translate\":\"item.elixir.dan_fang.iron_turtle\"}",
-                                                                                   "elixir:alchemical_formula":  {
-                                                                                                                     "main":  [
-                                                                                                                                  {
-                                                                                                                                      "material":  "elixir:main/golden_apple",
-                                                                                                                                      "count":  2
-                                                                                                                                  }
-                                                                                                                              ],
-                                                                                                                     "off":  [
-                                                                                                                                 {
-                                                                                                                                     "material":  "elixir:off/redstone",
-                                                                                                                                     "count":  1
-                                                                                                                                 }
-                                                                                                                             ]
-                                                                                                                 }
-                                                                               }
-                                                            }
-                                                        ]
-                                      },
-                                      {
-                                          "type":  "minecraft:item",
-                                          "name":  "minecraft:paper",
-                                          "weight":  2,
-                                          "functions":  [
-                                                            {
-                                                                "function":  "minecraft:set_components",
-                                                                "components":  {
-                                                                                   "minecraft:item_name":  "{\"translate\":\"item.elixir.dan_fang.water_breath\"}",
-                                                                                   "elixir:alchemical_formula":  {
-                                                                                                                     "main":  [
-                                                                                                                                  {
-                                                                                                                                      "material":  "elixir:main/pufferfish",
-                                                                                                                                      "count":  1
-                                                                                                                                  }
-                                                                                                                              ],
-                                                                                                                     "off":  [
-                                                                                                                                 {
-                                                                                                                                     "material":  "elixir:off/blaze_powder",
-                                                                                                                                     "count":  1
-                                                                                                                                 }
-                                                                                                                             ]
-                                                                                                                 }
-                                                                               }
-                                                            }
-                                                        ]
-                                      },
-                                      {
-                                          "type":  "minecraft:item",
-                                          "name":  "minecraft:paper",
-                                          "weight":  2,
-                                          "functions":  [
-                                                            {
-                                                                "function":  "minecraft:set_components",
-                                                                "components":  {
-                                                                                   "minecraft:item_name":  "{\"translate\":\"item.elixir.dan_fang.excavate\"}",
-                                                                                   "elixir:alchemical_formula":  {
-                                                                                                                     "main":  [
-                                                                                                                                  {
-                                                                                                                                      "material":  "elixir:main/dandelion",
-                                                                                                                                      "count":  1
-                                                                                                                                  }
-                                                                                                                              ],
-                                                                                                                     "off":  [
-                                                                                                                                 {
-                                                                                                                                     "material":  "elixir:off/dirt",
-                                                                                                                                     "count":  1
-                                                                                                                                 }
-                                                                                                                             ]
-                                                                                                                 }
-                                                                               }
-                                                            }
-                                                        ]
-                                      }
-                                  ]
-                  },
-                  {
-                      "name":  "rare",
-                      "rolls":  1.0,
-                      "entries":  [
-                                      {
-                                          "type":  "minecraft:empty",
-                                          "weight":  8
-                                      },
-                                      {
-                                          "type":  "minecraft:item",
-                                          "name":  "minecraft:paper",
-                                          "weight":  1,
-                                          "functions":  [
-                                                            {
-                                                                "function":  "minecraft:set_components",
-                                                                "components":  {
-                                                                                   "minecraft:item_name":  "{\"translate\":\"item.elixir.dan_fang.strength_pill\"}",
-                                                                                   "elixir:alchemical_formula":  {
-                                                                                                                     "main":  [
-                                                                                                                                  {
-                                                                                                                                      "material":  "elixir:main/blaze_powder",
-                                                                                                                                      "count":  2
-                                                                                                                                  }
-                                                                                                                              ],
-                                                                                                                     "off":  [
-                                                                                                                                 {
-                                                                                                                                     "material":  "elixir:off/blaze_powder",
-                                                                                                                                     "count":  1
-                                                                                                                                 }
-                                                                                                                             ]
-                                                                                                                 }
-                                                                               }
-                                                            }
-                                                        ]
-                                      },
-                                      {
-                                          "type":  "minecraft:item",
-                                          "name":  "minecraft:paper",
-                                          "weight":  1,
-                                          "functions":  [
-                                                            {
-                                                                "function":  "minecraft:set_components",
-                                                                "components":  {
-                                                                                   "minecraft:item_name":  "{\"translate\":\"item.elixir.dan_fang.fire_resist\"}",
-                                                                                   "elixir:alchemical_formula":  {
-                                                                                                                     "main":  [
-                                                                                                                                  {
-                                                                                                                                      "material":  "elixir:main/magma_cream",
-                                                                                                                                      "count":  1
-                                                                                                                                  }
-                                                                                                                              ],
-                                                                                                                     "off":  [
-                                                                                                                                 {
-                                                                                                                                     "material":  "elixir:off/redstone",
-                                                                                                                                     "count":  1
-                                                                                                                                 }
-                                                                                                                             ]
-                                                                                                                 }
-                                                                               }
-                                                            }
-                                                        ]
-                                      },
-                                      {
-                                          "type":  "minecraft:item",
-                                          "name":  "minecraft:paper",
-                                          "weight":  1,
-                                          "functions":  [
-                                                            {
-                                                                "function":  "minecraft:set_components",
-                                                                "components":  {
-                                                                                   "minecraft:item_name":  "{\"translate\":\"item.elixir.dan_fang.shadow\"}",
-                                                                                   "elixir:alchemical_formula":  {
-                                                                                                                     "main":  [
-                                                                                                                                  {
-                                                                                                                                      "material":  "elixir:main/ender_pearl",
-                                                                                                                                      "count":  1
-                                                                                                                                  }
-                                                                                                                              ],
-                                                                                                                     "off":  [
-                                                                                                                                 {
-                                                                                                                                     "material":  "elixir:off/redstone",
-                                                                                                                                     "count":  1
-                                                                                                                                 }
-                                                                                                                             ]
-                                                                                                                 }
-                                                                               }
-                                                            }
-                                                        ]
-                                      },
-                                      {
-                                          "type":  "minecraft:item",
-                                          "name":  "minecraft:paper",
-                                          "weight":  1,
-                                          "functions":  [
-                                                            {
-                                                                "function":  "minecraft:set_components",
-                                                                "components":  {
-                                                                                   "minecraft:item_name":  "{\"translate\":\"item.elixir.dan_fang.heal\"}",
-                                                                                   "elixir:alchemical_formula":  {
-                                                                                                                     "main":  [
-                                                                                                                                  {
-                                                                                                                                      "material":  "elixir:main/glistering_melon_slice",
-                                                                                                                                      "count":  1
-                                                                                                                                  }
-                                                                                                                              ],
-                                                                                                                     "off":  [
-                                                                                                                                 {
-                                                                                                                                     "material":  "elixir:off/redstone",
-                                                                                                                                     "count":  1
-                                                                                                                                 }
-                                                                                                                             ]
-                                                                                                                 }
-                                                                               }
-                                                            }
-                                                        ]
-                                      },
-                                      {
-                                          "type":  "minecraft:item",
-                                          "name":  "minecraft:paper",
-                                          "weight":  1,
-                                          "functions":  [
-                                                            {
-                                                                "function":  "minecraft:set_components",
-                                                                "components":  {
-                                                                                   "minecraft:item_name":  "{\"translate\":\"item.elixir.dan_fang.thunder\"}",
-                                                                                   "elixir:alchemical_formula":  {
-                                                                                                                     "main":  [
-                                                                                                                                  {
-                                                                                                                                      "material":  "elixir:main/red_mushroom",
-                                                                                                                                      "count":  1
-                                                                                                                                  }
-                                                                                                                              ],
-                                                                                                                     "off":  [
-                                                                                                                                 {
-                                                                                                                                     "material":  "elixir:off/redstone",
-                                                                                                                                     "count":  1
-                                                                                                                                 }
-                                                                                                                             ]
-                                                                                                                 }
-                                                                               }
-                                                            }
-                                                        ]
-                                      }
-                                  ]
-                  },
-                  {
-                      "name":  "legendary",
-                      "rolls":  1.0,
-                      "entries":  [
-                                      {
-                                          "type":  "minecraft:empty",
-                                          "weight":  10
-                                      },
-                                      {
-                                          "type":  "minecraft:item",
-                                          "name":  "minecraft:paper",
-                                          "weight":  1,
-                                          "functions":  [
-                                                            {
-                                                                "function":  "minecraft:set_components",
-                                                                "components":  {
-                                                                                   "minecraft:item_name":  "{\"translate\":\"item.elixir.dan_fang.rebirth\"}",
-                                                                                   "elixir:alchemical_formula":  {
-                                                                                                                     "main":  [
-                                                                                                                                  {
-                                                                                                                                      "material":  "elixir:main/ghast_tear",
-                                                                                                                                      "count":  1
-                                                                                                                                  },
-                                                                                                                                  {
-                                                                                                                                      "material":  "elixir:main/golden_apple",
-                                                                                                                                      "count":  1
-                                                                                                                                  }
-                                                                                                                              ],
-                                                                                                                     "off":  [
-                                                                                                                                 {
-                                                                                                                                     "material":  "elixir:off/redstone",
-                                                                                                                                     "count":  1
-                                                                                                                                 }
-                                                                                                                             ]
-                                                                                                                 }
-                                                                               }
-                                                            }
-                                                        ]
-                                      },
-                                      {
-                                          "type":  "minecraft:item",
-                                          "name":  "minecraft:paper",
-                                          "weight":  1,
-                                          "functions":  [
-                                                            {
-                                                                "function":  "minecraft:set_components",
-                                                                "components":  {
-                                                                                   "minecraft:item_name":  "{\"translate\":\"item.elixir.dan_fang.night_vision\"}",
-                                                                                   "elixir:alchemical_formula":  {
-                                                                                                                     "main":  [
-                                                                                                                                  {
-                                                                                                                                      "material":  "elixir:main/golden_carrot",
-                                                                                                                                      "count":  1
-                                                                                                                                  }
-                                                                                                                              ],
-                                                                                                                     "off":  [
-                                                                                                                                 {
-                                                                                                                                     "material":  "elixir:off/blaze_powder",
-                                                                                                                                     "count":  1
-                                                                                                                                 }
-                                                                                                                             ]
-                                                                                                                 }
-                                                                               }
-                                                            }
-                                                        ]
-                                      },
-                                      {
-                                          "type":  "minecraft:item",
-                                          "name":  "minecraft:paper",
-                                          "weight":  1,
-                                          "functions":  [
-                                                            {
-                                                                "function":  "minecraft:set_components",
-                                                                "components":  {
-                                                                                   "minecraft:item_name":  "{\"translate\":\"item.elixir.dan_fang.rabbit_leap\"}",
-                                                                                   "elixir:alchemical_formula":  {
-                                                                                                                     "main":  [
-                                                                                                                                  {
-                                                                                                                                      "material":  "elixir:main/rabbit_foot",
-                                                                                                                                      "count":  1
-                                                                                                                                  }
-                                                                                                                              ],
-                                                                                                                     "off":  [
-                                                                                                                                 {
-                                                                                                                                     "material":  "elixir:off/blaze_powder",
-                                                                                                                                     "count":  1
-                                                                                                                                 }
-                                                                                                                             ]
-                                                                                                                 }
-                                                                               }
-                                                            }
-                                                        ]
-                                      },
-                                      {
-                                          "type":  "minecraft:item",
-                                          "name":  "minecraft:paper",
-                                          "weight":  1,
-                                          "functions":  [
-                                                            {
-                                                                "function":  "minecraft:set_components",
-                                                                "components":  {
-                                                                                   "minecraft:item_name":  "{\"translate\":\"item.elixir.dan_fang.true_lightning\"}",
-                                                                                   "elixir:alchemical_formula":  {
-                                                                                                                     "main":  [
-                                                                                                                                  {
-                                                                                                                                      "material":  "elixir:main/amethyst_shard",
-                                                                                                                                      "count":  1
-                                                                                                                                  }
-                                                                                                                              ],
-                                                                                                                     "off":  [
-                                                                                                                                 {
-                                                                                                                                     "material":  "elixir:off/redstone",
-                                                                                                                                     "count":  1
-                                                                                                                                 }
-                                                                                                                             ]
-                                                                                                                 }
-                                                                               }
-                                                            }
-                                                        ]
-                                      },
-                                      {
-                                          "type":  "minecraft:item",
-                                          "name":  "minecraft:paper",
-                                          "weight":  1,
-                                          "functions":  [
-                                                            {
-                                                                "function":  "minecraft:set_components",
-                                                                "components":  {
-                                                                                   "minecraft:item_name":  "{\"translate\":\"item.elixir.dan_fang.explosive\"}",
-                                                                                   "elixir:alchemical_formula":  {
-                                                                                                                     "main":  [
-                                                                                                                                  {
-                                                                                                                                      "material":  "elixir:main/gunpowder",
-                                                                                                                                      "count":  2
-                                                                                                                                  }
-                                                                                                                              ],
-                                                                                                                     "off":  [
-                                                                                                                                 {
-                                                                                                                                     "material":  "elixir:off/blaze_powder",
-                                                                                                                                     "count":  1
-                                                                                                                                 }
-                                                                                                                             ]
-                                                                                                                 }
-                                                                               }
-                                                            }
-                                                        ]
-                                      },
-                                      {
-                                          "type":  "minecraft:item",
-                                          "name":  "minecraft:paper",
-                                          "weight":  1,
-                                          "functions":  [
-                                                            {
-                                                                "function":  "minecraft:set_components",
-                                                                "components":  {
-                                                                                   "minecraft:item_name":  "{\"translate\":\"item.elixir.dan_fang.massive_blast\"}",
-                                                                                   "elixir:alchemical_formula":  {
-                                                                                                                     "main":  [
-                                                                                                                                  {
-                                                                                                                                      "material":  "elixir:main/tnt",
-                                                                                                                                      "count":  1
-                                                                                                                                  }
-                                                                                                                              ],
-                                                                                                                     "off":  [
-                                                                                                                                 {
-                                                                                                                                     "material":  "elixir:off/blaze_powder",
-                                                                                                                                     "count":  1
-                                                                                                                                 }
-                                                                                                                             ]
-                                                                                                                 }
-                                                                               }
-                                                            }
-                                                        ]
-                                      },
-                                      {
-                                          "type":  "minecraft:item",
-                                          "name":  "minecraft:paper",
-                                          "weight":  1,
-                                          "functions":  [
-                                                            {
-                                                                "function":  "minecraft:set_components",
-                                                                "components":  {
-                                                                                   "minecraft:item_name":  "{\"translate\":\"item.elixir.dan_fang.virulent\"}",
-                                                                                   "elixir:alchemical_formula":  {
-                                                                                                                     "main":  [
-                                                                                                                                  {
-                                                                                                                                      "material":  "elixir:main/dirt",
-                                                                                                                                      "count":  2
-                                                                                                                                  }
-                                                                                                                              ],
-                                                                                                                     "off":  [
-                                                                                                                                 {
-                                                                                                                                     "material":  "elixir:off/dirt",
-                                                                                                                                     "count":  1
-                                                                                                                                 }
-                                                                                                                             ]
-                                                                                                                 }
-                                                                               }
-                                                            }
-                                                        ]
-                                      },
-                                      {
-                                          "type":  "minecraft:item",
-                                          "name":  "minecraft:paper",
-                                          "weight":  1,
-                                          "functions":  [
-                                                            {
-                                                                "function":  "minecraft:set_components",
-                                                                "components":  {
-                                                                                   "minecraft:item_name":  "{\"translate\":\"item.elixir.dan_fang.storm_fire\"}",
-                                                                                   "elixir:alchemical_formula":  {
-                                                                                                                     "main":  [
-                                                                                                                                  {
-                                                                                                                                      "material":  "elixir:main/red_mushroom",
-                                                                                                                                      "count":  1
-                                                                                                                                  },
-                                                                                                                                  {
-                                                                                                                                      "material":  "elixir:main/gunpowder",
-                                                                                                                                      "count":  1
-                                                                                                                                  }
-                                                                                                                              ],
-                                                                                                                     "off":  [
-                                                                                                                                 {
-                                                                                                                                     "material":  "elixir:off/redstone",
-                                                                                                                                     "count":  1
-                                                                                                                                 }
-                                                                                                                             ]
-                                                                                                                 }
-                                                                               }
-                                                            }
-                                                        ]
-                                      },
-                                      {
-                                          "type":  "minecraft:item",
-                                          "name":  "minecraft:paper",
-                                          "weight":  1,
-                                          "functions":  [
-                                                            {
-                                                                "function":  "minecraft:set_components",
-                                                                "components":  {
-                                                                                   "minecraft:item_name":  "{\"translate\":\"item.elixir.dan_fang.nether_shadow\"}",
-                                                                                   "elixir:alchemical_formula":  {
-                                                                                                                     "main":  [
-                                                                                                                                  {
-                                                                                                                                      "material":  "elixir:main/ender_pearl",
-                                                                                                                                      "count":  1
-                                                                                                                                  },
-                                                                                                                                  {
-                                                                                                                                      "material":  "elixir:main/ghast_tear",
-                                                                                                                                      "count":  1
-                                                                                                                                  }
-                                                                                                                              ],
-                                                                                                                     "off":  [
-                                                                                                                                 {
-                                                                                                                                     "material":  "elixir:off/redstone",
-                                                                                                                                     "count":  1
-                                                                                                                                 }
-                                                                                                                             ]
-                                                                                                                 }
-                                                                               }
-                                                            }
-                                                        ]
-                                      },
-                                      {
-                                          "type":  "minecraft:item",
-                                          "name":  "minecraft:paper",
-                                          "weight":  1,
-                                          "functions":  [
-                                                            {
-                                                                "function":  "minecraft:set_components",
-                                                                "components":  {
-                                                                                   "minecraft:item_name":  "{\"translate\":\"item.elixir.dan_fang.supreme\"}",
-                                                                                   "elixir:alchemical_formula":  {
-                                                                                                                     "main":  [
-                                                                                                                                  {
-                                                                                                                                      "material":  "elixir:main/blaze_powder",
-                                                                                                                                      "count":  1
-                                                                                                                                  },
-                                                                                                                                  {
-                                                                                                                                      "material":  "elixir:main/golden_apple",
-                                                                                                                                      "count":  1
-                                                                                                                                  }
-                                                                                                                              ],
-                                                                                                                     "off":  [
-                                                                                                                                 {
-                                                                                                                                     "material":  "elixir:off/redstone",
-                                                                                                                                     "count":  1
-                                                                                                                                 }
-                                                                                                                             ]
-                                                                                                                 }
-                                                                               }
-                                                            }
-                                                        ]
-                                      }
-                                  ]
-                  }
-              ],
-    "random_sequence":  "elixir:chests/dan_fang"
+  "type": "minecraft:loot_table",
+  "pools": [
+    {
+      "name": "common",
+      "rolls": 1.0,
+      "entries": [
+        {
+          "type": "minecraft:empty",
+          "weight": 6
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:paper",
+          "weight": 2,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:item_name": "{\"translate\":\"item.elixir.dan_fang.light_feather\"}",
+                "elixir:alchemical_formula": {
+                  "main": [
+                    {
+                      "material": "elixir:main/feather",
+                      "count": 1
+                    }
+                  ],
+                  "off": [
+                    {
+                      "material": "elixir:off/blaze_powder",
+                      "count": 1
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:paper",
+          "weight": 2,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:item_name": "{\"translate\":\"item.elixir.dan_fang.gale\"}",
+                "elixir:alchemical_formula": {
+                  "main": [
+                    {
+                      "material": "elixir:main/sugar",
+                      "count": 1
+                    }
+                  ],
+                  "off": [
+                    {
+                      "material": "elixir:off/blaze_powder",
+                      "count": 1
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:paper",
+          "weight": 2,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:item_name": "{\"translate\":\"item.elixir.dan_fang.iron_turtle\"}",
+                "elixir:alchemical_formula": {
+                  "main": [
+                    {
+                      "material": "elixir:main/golden_apple",
+                      "count": 2
+                    }
+                  ],
+                  "off": [
+                    {
+                      "material": "elixir:off/redstone",
+                      "count": 1
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:paper",
+          "weight": 2,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:item_name": "{\"translate\":\"item.elixir.dan_fang.water_breath\"}",
+                "elixir:alchemical_formula": {
+                  "main": [
+                    {
+                      "material": "elixir:main/pufferfish",
+                      "count": 1
+                    }
+                  ],
+                  "off": [
+                    {
+                      "material": "elixir:off/blaze_powder",
+                      "count": 1
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:paper",
+          "weight": 2,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:item_name": "{\"translate\":\"item.elixir.dan_fang.excavate\"}",
+                "elixir:alchemical_formula": {
+                  "main": [
+                    {
+                      "material": "elixir:main/dandelion",
+                      "count": 1
+                    }
+                  ],
+                  "off": [
+                    {
+                      "material": "elixir:off/dirt",
+                      "count": 1
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rare",
+      "rolls": 1.0,
+      "entries": [
+        {
+          "type": "minecraft:empty",
+          "weight": 8
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:paper",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:item_name": "{\"translate\":\"item.elixir.dan_fang.strength_pill\"}",
+                "elixir:alchemical_formula": {
+                  "main": [
+                    {
+                      "material": "elixir:main/blaze_powder",
+                      "count": 2
+                    }
+                  ],
+                  "off": [
+                    {
+                      "material": "elixir:off/redstone",
+                      "count": 1
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:paper",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:item_name": "{\"translate\":\"item.elixir.dan_fang.fire_resist\"}",
+                "elixir:alchemical_formula": {
+                  "main": [
+                    {
+                      "material": "elixir:main/magma_cream",
+                      "count": 1
+                    }
+                  ],
+                  "off": [
+                    {
+                      "material": "elixir:off/redstone",
+                      "count": 1
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:paper",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:item_name": "{\"translate\":\"item.elixir.dan_fang.shadow\"}",
+                "elixir:alchemical_formula": {
+                  "main": [
+                    {
+                      "material": "elixir:main/ender_pearl",
+                      "count": 1
+                    }
+                  ],
+                  "off": [
+                    {
+                      "material": "elixir:off/redstone",
+                      "count": 1
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:paper",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:item_name": "{\"translate\":\"item.elixir.dan_fang.heal\"}",
+                "elixir:alchemical_formula": {
+                  "main": [
+                    {
+                      "material": "elixir:main/glistering_melon_slice",
+                      "count": 1
+                    }
+                  ],
+                  "off": [
+                    {
+                      "material": "elixir:off/redstone",
+                      "count": 1
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:paper",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:item_name": "{\"translate\":\"item.elixir.dan_fang.thunder\"}",
+                "elixir:alchemical_formula": {
+                  "main": [
+                    {
+                      "material": "elixir:main/red_mushroom",
+                      "count": 1
+                    }
+                  ],
+                  "off": [
+                    {
+                      "material": "elixir:off/redstone",
+                      "count": 1
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "legendary",
+      "rolls": 1.0,
+      "entries": [
+        {
+          "type": "minecraft:empty",
+          "weight": 10
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:paper",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:item_name": "{\"translate\":\"item.elixir.dan_fang.rebirth\"}",
+                "elixir:alchemical_formula": {
+                  "main": [
+                    {
+                      "material": "elixir:main/ghast_tear",
+                      "count": 1
+                    },
+                    {
+                      "material": "elixir:main/golden_apple",
+                      "count": 1
+                    }
+                  ],
+                  "off": [
+                    {
+                      "material": "elixir:off/redstone",
+                      "count": 1
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:paper",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:item_name": "{\"translate\":\"item.elixir.dan_fang.night_vision\"}",
+                "elixir:alchemical_formula": {
+                  "main": [
+                    {
+                      "material": "elixir:main/golden_carrot",
+                      "count": 1
+                    }
+                  ],
+                  "off": [
+                    {
+                      "material": "elixir:off/blaze_powder",
+                      "count": 1
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:paper",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:item_name": "{\"translate\":\"item.elixir.dan_fang.rabbit_leap\"}",
+                "elixir:alchemical_formula": {
+                  "main": [
+                    {
+                      "material": "elixir:main/rabbit_foot",
+                      "count": 1
+                    }
+                  ],
+                  "off": [
+                    {
+                      "material": "elixir:off/blaze_powder",
+                      "count": 1
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:paper",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:item_name": "{\"translate\":\"item.elixir.dan_fang.true_lightning\"}",
+                "elixir:alchemical_formula": {
+                  "main": [
+                    {
+                      "material": "elixir:main/amethyst_shard",
+                      "count": 1
+                    }
+                  ],
+                  "off": [
+                    {
+                      "material": "elixir:off/redstone",
+                      "count": 1
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:paper",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:item_name": "{\"translate\":\"item.elixir.dan_fang.explosive\"}",
+                "elixir:alchemical_formula": {
+                  "main": [
+                    {
+                      "material": "elixir:main/gunpowder",
+                      "count": 2
+                    }
+                  ],
+                  "off": [
+                    {
+                      "material": "elixir:off/blaze_powder",
+                      "count": 1
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:paper",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:item_name": "{\"translate\":\"item.elixir.dan_fang.massive_blast\"}",
+                "elixir:alchemical_formula": {
+                  "main": [
+                    {
+                      "material": "elixir:main/tnt",
+                      "count": 1
+                    }
+                  ],
+                  "off": [
+                    {
+                      "material": "elixir:off/blaze_powder",
+                      "count": 1
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:paper",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:item_name": "{\"translate\":\"item.elixir.dan_fang.virulent\"}",
+                "elixir:alchemical_formula": {
+                  "main": [
+                    {
+                      "material": "elixir:main/dirt",
+                      "count": 2
+                    }
+                  ],
+                  "off": [
+                    {
+                      "material": "elixir:off/redstone",
+                      "count": 1
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:paper",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:item_name": "{\"translate\":\"item.elixir.dan_fang.storm_fire\"}",
+                "elixir:alchemical_formula": {
+                  "main": [
+                    {
+                      "material": "elixir:main/red_mushroom",
+                      "count": 1
+                    },
+                    {
+                      "material": "elixir:main/gunpowder",
+                      "count": 1
+                    }
+                  ],
+                  "off": [
+                    {
+                      "material": "elixir:off/redstone",
+                      "count": 1
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:paper",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:item_name": "{\"translate\":\"item.elixir.dan_fang.nether_shadow\"}",
+                "elixir:alchemical_formula": {
+                  "main": [
+                    {
+                      "material": "elixir:main/ender_pearl",
+                      "count": 1
+                    },
+                    {
+                      "material": "elixir:main/ghast_tear",
+                      "count": 1
+                    }
+                  ],
+                  "off": [
+                    {
+                      "material": "elixir:off/redstone",
+                      "count": 1
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:paper",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:item_name": "{\"translate\":\"item.elixir.dan_fang.supreme\"}",
+                "elixir:alchemical_formula": {
+                  "main": [
+                    {
+                      "material": "elixir:main/blaze_powder",
+                      "count": 1
+                    },
+                    {
+                      "material": "elixir:main/golden_apple",
+                      "count": 1
+                    }
+                  ],
+                  "off": [
+                    {
+                      "material": "elixir:off/redstone",
+                      "count": 1
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "random_sequence": "elixir:chests/dan_fang"
 }

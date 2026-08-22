@@ -1,0 +1,12 @@
+{
+  "item": "minecraft:lapis_lazuli",
+  "effect": "elixir:lucks",
+  "pharm": 5,
+  "stability": 3,
+  "colors": [
+    4291357695,
+    4284921087,
+    4280250326,
+    4279447155
+  ]
+}

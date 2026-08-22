@@ -1,0 +1,9 @@
+{
+  "item": "minecraft:rotten_flesh",
+  "effect": "elixir:hunger",
+  "pharm": 3,
+  "stability": -8,
+  "colors": [
+    4288906061
+  ]
+}
