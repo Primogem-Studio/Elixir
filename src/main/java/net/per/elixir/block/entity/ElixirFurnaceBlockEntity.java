@@ -237,6 +237,8 @@ public class ElixirFurnaceBlockEntity extends BaseContainerBlockEntity {
                         it.set(ElixirDataComponents.MaterialPropertySwitching, false);
                     }
                 }
+            } else if (o != null) {
+                it.set(ElixirDataComponents.MaterialPropertySwitching, true);
             }
             if (m != null) {
                 ms.computeIntIfPresent(it.getItem(), (k, v) -> v + it.getCount());

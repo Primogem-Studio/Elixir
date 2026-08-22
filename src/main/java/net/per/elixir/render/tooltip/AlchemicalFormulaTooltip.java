@@ -26,7 +26,7 @@ public class AlchemicalFormulaTooltip implements TooltipComponent, ClientTooltip
 
     @Override
     public int getHeight() {
-        return mainHeight() + data.off().size() / 5 * 16 + 10 + 18;
+        return mainHeight() + (data.off().isEmpty() ? 0 : data.off().size() / 5 * 16 + 10 + 18);
     }
 
     @Override
@@ -41,7 +41,9 @@ public class AlchemicalFormulaTooltip implements TooltipComponent, ClientTooltip
     @Override
     public void renderText(Font font, int mouseX, int mouseY, Matrix4f matrix, MultiBufferSource.BufferSource bufferSource) {
         font.drawInBatch(title1, mouseX, mouseY, 0xB4FF59, false, matrix, bufferSource, Font.DisplayMode.POLYGON_OFFSET, 0, 0xf000f0);
-        font.drawInBatch(title2, mouseX, mouseY + 2 + mainHeight(), 0xB4FF59, false, matrix, bufferSource, Font.DisplayMode.POLYGON_OFFSET, 0, 0xf000f0);
+        if (!data.off().isEmpty()) {
+            font.drawInBatch(title2, mouseX, mouseY + 2 + mainHeight(), 0xB4FF59, false, matrix, bufferSource, Font.DisplayMode.POLYGON_OFFSET, 0, 0xf000f0);
+        }
     }
 
     private static void renderContents(List<AlchemicalFormulaComponent.Content> contents, Font font, int x, int y, int bound, GuiGraphics graphics) {
@@ -61,6 +63,8 @@ public class AlchemicalFormulaTooltip implements TooltipComponent, ClientTooltip
     @Override
     public void renderImage(Font font, int mouseX, int mouseY, GuiGraphics graphics) {
         renderContents(data.main(), font, mouseX - 1, mouseY + 10, mouseX + 64, graphics);
-        renderContents(data.off(), font, mouseX - 1, mouseY + 10 + mainHeight(), mouseX + 64, graphics);
+        if (!data.off().isEmpty()) {
+            renderContents(data.off(), font, mouseX - 1, mouseY + 10 + mainHeight(), mouseX + 64, graphics);
+        }
     }
 }
