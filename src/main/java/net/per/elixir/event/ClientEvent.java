@@ -113,22 +113,24 @@ public class ClientEvent {
         var com = stack.get(ElixirDataComponents.Elixir);
         if (com == null) return -1;
         int color = -1;
+        int i = 1;
+        int textureLayer = 3 - layer;
         for (var m : com.main()) {
             var colors = m.value().colors();
             if (colors == null || colors.length == 0) return -1;
-            var c = colors.length >= layer + 1 ? colors[layer] : adjustColor(colors[0], layer);
-            if (layer == 0 && colors.length == 1) c = adjustColor(c, layer);
-            color = blend(color, c, 0.5f);
+            var c = colors.length == 1 ? adjustColor(colors[0], textureLayer) : colors[Math.min(textureLayer, colors.length - 1)];
+            color = color == -1 ? c : blend(color, c, 1.0f / i);
+            i++;
         }
         return color;
     }
 
     private static int adjustColor(int color, int layer) {
         return switch (layer) {
-            case 1 -> adjustColor(color, 0, 0.7f, 0.15f);
-            case 2 -> adjustColor(color, -3, 0.5f, -0.2f);
-            case 3 -> adjustColor(color, 1, 1f, -0.6f);
-            default -> adjustColor(color, 0, 1f, 0.5f);
+            case 0 -> adjustColor(color, 30, 0.5f, 1.2f);
+            case 1 -> adjustColor(color, 10, 0.85f, 1.08f);
+            case 2 -> adjustColor(color, -35, 1f, 0.65f);
+            default -> adjustColor(color, -2, 0.96f, 1.03f);
         };
     }
 
@@ -142,8 +144,8 @@ public class ClientEvent {
         }
         h = (h + dH) % 360;
         if (h < 0) h += 360;
-        s = Math.clamp(s + dS, 0, 1);
-        v = Math.clamp(v + dV, 0, 1);
+        s = Math.clamp(s * dS, 0, 1);
+        v = Math.clamp(v * dV, 0.12, 1);
         double c = v * s, x = c * (1 - Math.abs((h / 60) % 2 - 1)), m = v - c;
         int sec = (int) (h / 60);
         double r1 = 0, g1 = 0, b1 = 0;
