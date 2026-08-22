@@ -27,7 +27,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
@@ -54,11 +53,13 @@ import static net.per.elixir.block.ElixirFurnaceBlock.ACTIVE;
 import static net.per.elixir.registry.ElixirDataAttachments.ELIXIR_EXP;
 
 public class ElixirFurnaceBlockEntity extends BaseContainerBlockEntity {
+    @SuppressWarnings("DataFlowIssue")
     public static final BlockEntityType<ElixirFurnaceBlockEntity> Type = BlockEntityType.Builder.of(ElixirFurnaceBlockEntity::new, ElixirBlocks.elixir_furnace.get()).build(null);
     private final NonNullList<ItemStack> items = NonNullList.withSize(6, ItemStack.EMPTY);
     private boolean started;
     private int progress;
     public float temperature;
+    public int tempRange;
     private double stability, tempStability;
     private int explodeProgress, failedProgress;
     private Set<Holder<Material>> main, off;
@@ -76,6 +77,10 @@ public class ElixirFurnaceBlockEntity extends BaseContainerBlockEntity {
         super.saveAdditional(tag, provider);
         ContainerHelper.saveAllItems(tag, items, provider);
         tag.putFloat("temperature", temperature);
+        tag.putInt("pharma", pharma);
+        tag.putInt("tempRange", tempRange);
+        tag.putDouble("stability", stability);
+        tag.putDouble("tempStability", tempStability);
     }
 
     @Override
@@ -83,12 +88,24 @@ public class ElixirFurnaceBlockEntity extends BaseContainerBlockEntity {
         super.loadAdditional(tag, provider);
         ContainerHelper.loadAllItems(tag, items, provider);
         temperature = tag.getFloat("temperature");
+        pharma = tag.getInt("pharma");
+        tempRange = tag.getInt("tempRange");
+        progress = tag.getInt("progress");
+        started = tag.getBoolean("started");
+        stability = tag.getDouble("stability");
+        tempStability = tag.getDouble("tempStability");
     }
 
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         var tag = new CompoundTag();
         tag.putFloat("temperature", temperature);
+        tag.putInt("pharma", pharma);
+        tag.putInt("tempRange", tempRange);
+        tag.putInt("progress", progress);
+        tag.putBoolean("started", started);
+        tag.putDouble("stability", stability);
+        tag.putDouble("tempStability", tempStability);
         return tag;
     }
 
@@ -99,12 +116,18 @@ public class ElixirFurnaceBlockEntity extends BaseContainerBlockEntity {
 
     public void tick(Level level, BlockPos pos, BlockState state) {
         if (level instanceof ServerLevel sl && started) {
+            if (trigger == null) {
+                started = false;
+                level.setBlockAndUpdate(pos, state.setValue(ACTIVE, false));
+                return;
+            }
             progress++;
-            temperature -= 0.5f;
+            temperature -= 1.5f;
             temperature = Math.clamp(temperature, 0, 500);
             var t = (int) ((pharma / (float) pharmaLimited + 1) / 2f * 500);
+            tempRange = Math.min(extremeTemperatureRange, (int) Math.max(6, 12 + trigger.getData(ELIXIR_EXP) * 3));
             if (temperature < t) {
-                if (temperature < t - Math.max(0, extremeTemperatureRange)) {
+                if (temperature < t - tempRange) {
                     failedProgress++;
                     sl.sendParticles(ParticleTypes.SNOWFLAKE, pos.getX() + 0.5, pos.getY() + 0.8, pos.getZ() + 0.5, 1, 0, 0, 0, 0.1);
                     if (failedProgress == 140) {
@@ -117,7 +140,7 @@ public class ElixirFurnaceBlockEntity extends BaseContainerBlockEntity {
                 }
                 tempStability -= 2.5;
             } else {
-                if (temperature > t + extremeTemperatureRange) {
+                if (temperature > t + tempRange) {
                     explodeProgress++;
                     sl.sendParticles(ParticleTypes.SMOKE, pos.getX() + 0.5, pos.getY() + 0.8, pos.getZ() + 0.5, Math.min(explodeProgress, 100), 0, 0, 0, 0.1);
                     if (explodeProgress >= 100 + trigger.getData(ELIXIR_EXP))
@@ -310,7 +333,23 @@ public class ElixirFurnaceBlockEntity extends BaseContainerBlockEntity {
         return started;
     }
 
-    private static double calcStability(Level level, BlockPos pos) {
+    public int pharma() {
+        return pharma;
+    }
+
+    public int progress() {
+        return progress;
+    }
+
+    public double stability() {
+        return stability;
+    }
+
+    public double tempStability() {
+        return tempStability;
+    }
+
+    public static double calcStability(Level level, BlockPos pos) {
         var point = new BlockPos(pos.getX() - 2, pos.getY() + 2, pos.getZ() - 2);
         var result = 0.0;
         for (int i = 0; i < 4; i++) {
@@ -344,6 +383,7 @@ public class ElixirFurnaceBlockEntity extends BaseContainerBlockEntity {
     }
 
     @Override
+    @SuppressWarnings("DataFlowIssue")
     protected AbstractContainerMenu createMenu(int containerId, Inventory inventory) {
         return new ElixirFurnaceMenu(containerId, inventory, this, ContainerLevelAccess.create(level, getBlockPos()));
     }

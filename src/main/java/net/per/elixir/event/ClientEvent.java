@@ -1,7 +1,6 @@
 package net.per.elixir.event;
 
 import com.mojang.datafixers.util.Either;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.entity.ThrownItemRenderer;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
@@ -43,7 +42,6 @@ public class ClientEvent {
     @SubscribeEvent
     private static void onRegisterRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerEntityRenderer(ElixirEntityTypes.elixir.get(), ThrownItemRenderer::new);
-//        event.registerBlockEntityRenderer(ElixirFurnaceBlockEntity.Type, ElixirFurnaceRenderer::new);
     }
 
     @SubscribeEvent
@@ -65,10 +63,6 @@ public class ClientEvent {
     private static void onGatherComponents(RenderTooltipEvent.GatherComponents event) {
         var item = event.getItemStack();
         if (!item.has(ElixirDataComponents.AlchemicalFormula)) return;
-//        if (!Screen.hasShiftDown()) {
-//            event.getTooltipElements().add(Either.left(Component.translatable("tooltip.alchemical_formula.shift").withColor(0xB4FF59)));
-//            return;
-//        }
         event.getTooltipElements().add(1, Either.right(new AlchemicalFormulaTooltip(item.get(ElixirDataComponents.AlchemicalFormula))));
     }
 
