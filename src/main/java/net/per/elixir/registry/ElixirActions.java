@@ -34,7 +34,7 @@ public class ElixirActions {
         ACTIONS.register("jump_boost", () -> effect(MobEffects.JUMP));
         ACTIONS.register("confusion", () -> effect(MobEffects.CONFUSION));
         ACTIONS.register("regeneration", () -> effect(MobEffects.REGENERATION));
-        ACTIONS.register("damage_resistance", () -> effect(MobEffects.DAMAGE_RESISTANCE));
+        ACTIONS.register("damage_resistance", () -> cappedEffect(MobEffects.DAMAGE_RESISTANCE, MobEffects.ABSORPTION, 3));
         ACTIONS.register("fire_resistance", () -> effect(MobEffects.FIRE_RESISTANCE));
         ACTIONS.register("water_breathing", () -> effect(MobEffects.WATER_BREATHING));
         ACTIONS.register("invisibility", () -> effect(MobEffects.INVISIBILITY));
@@ -144,6 +144,20 @@ public class ElixirActions {
         return (pharm, time, stack, level, entity) -> {
             boolean p = pharm > 0;
             entity.addEffect(new MobEffectInstance(p ? ef : ef2, Math.max(time, 200), (int) ((p ? pharm : -pharm) / effectDilute)));
+        };
+    }
+
+    private static IElixirAction cappedEffect(Holder<MobEffect> effect, Holder<MobEffect> overflow, int cap) {
+        return (pharm, time, stack, level, entity) -> {
+            if (pharm < 0) {
+                var et = entity.getEffect(effect);
+                entity.addEffect(new MobEffectInstance(MobEffects.HARM, 1, 0));
+                if (et != null && time * 1.5 >= et.getDuration()) entity.removeEffect(effect);
+                return;
+            }
+            var amp = (int) (pharm / effectDilute);
+            entity.addEffect(new MobEffectInstance(effect, Math.max(time, 200), Math.min(amp, cap)));
+            if (amp > cap) entity.addEffect(new MobEffectInstance(overflow, Math.max(time, 200), amp - cap));
         };
     }
 

@@ -4,6 +4,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
@@ -38,6 +39,13 @@ public class ElixirFurnaceHud {
     private static final int COLOR_YELLOW = 0xFFFFD60A;
     private static final int COLOR_GREEN = 0xFF59D60A;
     private static final int COLOR_BLUE = 0xFF30A7FF;
+    /** 指针弹簧刚度：越大响应越快（延迟越小），临界阻尼保证无过冲且运动丝滑 */
+    private static final float SPRING_STIFFNESS = 324f;
+    /** 弹簧状态：[0]=当前位置 [1]=当前速度 */
+    private static final float[] tempState = {Float.NaN, 0f};
+    private static final float[] stabilityState = {Float.NaN, 0f};
+    private static BlockPos smoothPos = null;
+    private static long smoothNanos = Long.MIN_VALUE;
 
     private record SpriteRect(int u, int v, int w, int h) {
     }
@@ -53,6 +61,15 @@ public class ElixirFurnaceHud {
         var hit = player.pick(8.0, 1.0f, false);
         if (hit.getType() != HitResult.Type.BLOCK) return;
         if (!(player.level().getBlockEntity(((BlockHitResult) hit).getBlockPos()) instanceof ElixirFurnaceBlockEntity furnace)) return;
+        var now = System.nanoTime();
+        float dt;
+        if (smoothPos == null || !smoothPos.equals(furnace.getBlockPos())) {
+            dt = -1f;
+            smoothPos = furnace.getBlockPos().immutable();
+        } else {
+            dt = (now - smoothNanos) / 1e9f;
+        }
+        smoothNanos = now;
         var g = event.getGuiGraphics();
         var pose = g.pose();
         pose.pushPose();
@@ -72,16 +89,21 @@ public class ElixirFurnaceHud {
         var explode = t + range;
         var low = Mth.clamp(t - range, 0, 500);
         var upperTemp = Math.max(1, explode + ElixirConfig.tempSafeMargin);
-        var temp = Mth.clamp(furnace.temperature, 0, upperTemp);
+        var temp = spring(dt, tempState, Mth.clamp(furnace.temperature, 0, upperTemp));
         var scale = ph / upperTemp;
         var ey = top + (int) ((upperTemp - explode) * scale);
         var ly = top + (int) ((upperTemp - low) * scale);
-        var ty = Mth.clamp(top + (int) ((upperTemp - temp) * scale), top + 2, top + ph - 5);
+        var tyf = Mth.clamp(top + (upperTemp - temp) * scale, top + 2f, top + ph - 5f);
+        var ty = Mth.floor(tyf);
+        var tyFrac = tyf - ty;
         blitSprite(g, TEMP_BAR, left, top);
         blitScaled(g, left + 2, ey, 16, 2);
         blitScaled(g, left + 2, ly, 16, 2);
+        pose.pushPose();
+        pose.translate(0, tyFrac, 0);
         blitScaledTinted(g, left + 2, ty + 1, 12, 1, COLOR_YELLOW);
         blitMarker(g, left + 14, ty - 1, COLOR_YELLOW);
+        pose.popPose();
         var font = mc.font;
         var explodeLabelY = ey - 8;
         if (explodeLabelY < top + 2) explodeLabelY = ey + 4;
@@ -109,8 +131,9 @@ public class ElixirFurnaceHud {
                 var barH = STABILITY_BAR.h();
                 var barLeft = left - barW - 10;
                 var barTop = top + (ph - barH) / 2;
-                var s = (ElixirFurnaceBlockEntity.calcStability(level, furnace.getBlockPos()) + furnace.stability())
+                var rawS = (ElixirFurnaceBlockEntity.calcStability(level, furnace.getBlockPos()) + furnace.stability())
                         * (1 + furnace.tempStability() / (Math.abs(furnace.tempStability()) + 50));
+                var s = spring(dt, stabilityState, (float) rawS);
                 var lim = Math.max(1, furnace.pharmaLimit);
                 var covered = level.getBlockState(furnace.getBlockPos().above()).is(ElixirBlocks.elixir_furnace_cover);
                 var threshold = covered ? -lim : -lim * 2f;
@@ -122,9 +145,11 @@ public class ElixirFurnaceHud {
                         : ElixirMath.findPharmZero(offMat, Math.max(1, furnace.pharma()), furnace.exp, threshold - lim * 3f - 100f, threshold + lim * 3f + 100f, covered);
                 var minS = Math.min(threshold - lim * 1.5f, pharmZero - lim * 0.5f);
                 var maxS = Math.max(threshold + lim * 1.5f, pharmZero + lim * 0.5f);
-                var ok = s > threshold;
+                var ok = rawS > threshold;
                 var ratio = Mth.clamp((float) ((s - minS) / (maxS - minS)), 0, 1);
-                var sy = Mth.clamp(barTop + (int) (barH * (1 - ratio)), barTop + 2, barTop + barH - 5);
+                var syf = Mth.clamp(barTop + barH * (1 - ratio), barTop + 2f, barTop + barH - 5f);
+                var sy = Mth.floor(syf);
+                var syFrac = syf - sy;
                 var thY = Mth.clamp(barTop + (int) (barH * (1 - (threshold - minS) / (maxS - minS))), barTop + 1, barTop + barH - 1);
                 blitSprite(g, STABILITY_BAR, barLeft, barTop);
                 blitScaled(g, barLeft + 1, thY, 10, 1);
@@ -132,8 +157,11 @@ public class ElixirFurnaceHud {
                 var pzY = Mth.clamp(barTop + (int) (barH * (1 - pzRatio)), barTop + 1, barTop + barH - 1);
                 blitScaled(g, barLeft + 1, pzY, 10, 1);
                 var sColor = ok ? COLOR_GREEN : COLOR_RED;
+                pose.pushPose();
+                pose.translate(0, syFrac, 0);
                 blitScaledTinted(g, barLeft + 1, sy + 1, 7, 1, sColor);
                 blitMarker(g, barLeft + 8, sy - 1, sColor);
+                pose.popPose();
                 var stateText = ok ? Component.translatable("hud.elixir.stable") : Component.translatable("hud.elixir.unstable");
                 drawSmall(g, font, stateText, barLeft + barW - font.width(stateText) / 2, barTop + barH + 2, ok ? COLOR_GREEN : COLOR_RED);
                 var barY = top + ph + 6;
@@ -146,6 +174,21 @@ public class ElixirFurnaceHud {
             }
         }
         pose.popPose();
+    }
+
+    /** 临界阻尼弹簧插值：state[0]=位置 state[1]=速度；起步速度为 0、无过冲、收敛干脆 */
+    private static float spring(float dt, float[] state, float target) {
+        if (dt < 0f || Float.isNaN(state[0]) || dt > 0.5f) {
+            state[0] = target;
+            state[1] = 0f;
+            return target;
+        }
+        var omega = (float) Math.sqrt(SPRING_STIFFNESS);
+        var damping = 2f * omega;
+        var a = SPRING_STIFFNESS * (target - state[0]) - damping * state[1];
+        state[1] += a * dt;
+        state[0] += state[1] * dt;
+        return state[0];
     }
 
     private static void blitSprite(GuiGraphics g, SpriteRect s, int x, int y) {
