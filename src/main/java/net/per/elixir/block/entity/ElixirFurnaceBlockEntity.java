@@ -20,6 +20,8 @@ import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Container;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.entity.player.Inventory;
@@ -216,6 +218,7 @@ public class ElixirFurnaceBlockEntity extends BaseContainerBlockEntity {
         elixir.set(DataComponents.ITEM_NAME, Component.translatable("item.elixir.failed").withColor(ElixirItem.getColor(elixir.get(ElixirDataComponents.Elixir))));
         items.set(4, elixir);
         trigger.setData(ELIXIR_EXP, trigger.getData(ELIXIR_EXP) + expFailureGain);
+        level.playSound(null, worldPosition, SoundEvents.GLASS_BREAK, SoundSource.BLOCKS, 1.0f, 1.0f);
     }
 
     private void process(Level level, BlockPos pos) {
@@ -231,6 +234,7 @@ public class ElixirFurnaceBlockEntity extends BaseContainerBlockEntity {
             items.set(4, elixir);
             outputRecipe();
             trigger.setData(ELIXIR_EXP, exp + expSuccessGain);
+            level.playSound(null, worldPosition, SoundEvents.END_PORTAL_SPAWN, SoundSource.BLOCKS, 1.0f, 1.0f);
             return;
         }
         failed(level);

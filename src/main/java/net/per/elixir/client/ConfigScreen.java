@@ -24,7 +24,7 @@ public class ConfigScreen {
                 .setSaveConsumer(v -> pharmaConversionRate = v)
                 .build());
         general.addEntry(entryBuilder.startIntField(Component.translatable("config.elixir.option.extreme_temperature_range"), extremeTemperatureRange)
-                .setDefaultValue(100)
+                .setDefaultValue(30)
                 .setTooltip(Component.translatable("config.elixir.option.extreme_temperature_range.tooltip"))
                 .setSaveConsumer(v -> extremeTemperatureRange = v)
                 .build());

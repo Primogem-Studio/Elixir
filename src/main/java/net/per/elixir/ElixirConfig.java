@@ -68,7 +68,7 @@ public class ElixirConfig {
         timeConversionRate = c.getOrElse("time_conversion_rate", 100);
         attributeModifierDilute = c.getOrElse("attribute_modifier_dilute", 100.0);
         effectDilute = c.getOrElse("effect_dilute", 10.0);
-        extremeTemperatureRange = c.getOrElse("extreme_temperature_range", 100);
+        extremeTemperatureRange = Math.max(6, ((Number) c.getOrElse("extreme_temperature_range", 30)).intValue());
         badElixirCompensation = c.getOrElse("bad_elixir_compensation", 0.3);
         stabilityLossRate = c.getOrElse("stability_loss_rate", 10.0);
         refineTicks = c.getOrElse("refine_ticks", 20);

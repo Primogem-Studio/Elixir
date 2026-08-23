@@ -4,6 +4,8 @@ import com.mojang.serialization.MapCodec;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -45,6 +47,7 @@ public class ElixirFurnaceBlock extends BaseEntityBlock {
     private static final MapCodec<ElixirFurnaceBlock> CODEC = simpleCodec(ElixirFurnaceBlock::new);
     private static final VoxelShape SHAPE = Shapes.box(0.1, 0, 0.1, 0.9, 0.9, 0.9);
     public static final BooleanProperty ACTIVE = BooleanProperty.create("active");
+    private static final int FAN_WEAK_MAX = 24;
 
     private ElixirFurnaceBlock(Properties properties) {
         super(properties);
@@ -81,16 +84,23 @@ public class ElixirFurnaceBlock extends BaseEntityBlock {
                     if (be.start(level, player)) {
                         level.setBlockAndUpdate(pos, state.setValue(ACTIVE, true));
                         player.setData(ELIXIR_EXP, player.getData(ELIXIR_EXP) + Math.min(level.random.nextFloat(), 0.05f));
+                        level.playSound(null, pos, SoundEvents.FLINTANDSTEEL_USE, SoundSource.BLOCKS, 1.0f, 1.0f);
                         return ItemInteractionResult.SUCCESS;
                     }
                     player.sendSystemMessage(Component.translatable("message.elixir_furnace.failed").withStyle(ChatFormatting.DARK_RED));
                     return ItemInteractionResult.SUCCESS;
                 } else if (stack.is(ElixirItems.handheld_fan)) {
-                    if (be.started()) be.temperature += level.random.nextInt(1, 50);
+                    int delta;
+                    if (be.started()) delta = level.random.nextInt(1, 50);
                     else {
-                        be.temperature -= 3;
+                        delta = -3;
                         level.sendBlockUpdated(pos, state, state, UPDATE_CLIENTS);
                     }
+                    be.temperature += delta;
+                    if (delta <= FAN_WEAK_MAX)
+                        level.playSound(null, pos, SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS, 0.8f, 1.0f);
+                    else
+                        level.playSound(null, pos, SoundEvents.BLAZE_SHOOT, SoundSource.BLOCKS, 0.8f, 0.9f + level.random.nextFloat() * 0.2f);
                     return ItemInteractionResult.SUCCESS;
                 }
             }

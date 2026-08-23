@@ -39,9 +39,7 @@ public class ElixirFurnaceHud {
     private static final int COLOR_YELLOW = 0xFFFFD60A;
     private static final int COLOR_GREEN = 0xFF59D60A;
     private static final int COLOR_BLUE = 0xFF30A7FF;
-    /** 指针弹簧刚度：越大响应越快（延迟越小），临界阻尼保证无过冲且运动丝滑 */
     private static final float SPRING_STIFFNESS = 324f;
-    /** 弹簧状态：[0]=当前位置 [1]=当前速度 */
     private static final float[] tempState = {Float.NaN, 0f};
     private static final float[] stabilityState = {Float.NaN, 0f};
     private static BlockPos smoothPos = null;
@@ -121,9 +119,9 @@ public class ElixirFurnaceHud {
         explodeLabelY = Mth.clamp(explodeLabelY, top, top + ph);
         lowLabelY = Mth.clamp(lowLabelY, top, top + ph);
         tempLabelY = Mth.clamp(tempLabelY, top, top + ph);
-        drawSmall(g, font, String.valueOf(Math.round(explode)) + "℃", right + 4, explodeLabelY, COLOR_RED);
-        drawSmall(g, font, String.valueOf(Math.round(low)) + "℃", right + 4, lowLabelY, COLOR_BLUE);
-        drawSmall(g, font, String.valueOf(Math.round(temp)) + "℃", right + 4, tempLabelY, COLOR_YELLOW);
+        drawSmall(g, font, Math.round(explode) + "℃", right + 4, explodeLabelY, COLOR_RED);
+        drawSmall(g, font, Math.round(low) + "℃", right + 4, lowLabelY, COLOR_BLUE);
+        drawSmall(g, font, Math.round(temp) + "℃", right + 4, tempLabelY, COLOR_YELLOW);
         if (furnace.started()) {
             var level = furnace.getLevel();
             if (level != null) {
@@ -153,9 +151,11 @@ public class ElixirFurnaceHud {
                 var thY = Mth.clamp(barTop + (int) (barH * (1 - (threshold - minS) / (maxS - minS))), barTop + 1, barTop + barH - 1);
                 blitSprite(g, STABILITY_BAR, barLeft, barTop);
                 blitScaled(g, barLeft + 1, thY, 10, 1);
+                blitScaledTinted(g, barLeft + 5, thY, 2, 1, COLOR_RED);
                 var pzRatio = Mth.clamp((float) ((pharmZero - minS) / (maxS - minS)), 0, 1);
                 var pzY = Mth.clamp(barTop + (int) (barH * (1 - pzRatio)), barTop + 1, barTop + barH - 1);
                 blitScaled(g, barLeft + 1, pzY, 10, 1);
+                blitScaledTinted(g, barLeft + 5, pzY, 2, 1, COLOR_YELLOW);
                 var sColor = ok ? COLOR_GREEN : COLOR_RED;
                 pose.pushPose();
                 pose.translate(0, syFrac, 0);
@@ -176,7 +176,6 @@ public class ElixirFurnaceHud {
         pose.popPose();
     }
 
-    /** 临界阻尼弹簧插值：state[0]=位置 state[1]=速度；起步速度为 0、无过冲、收敛干脆 */
     private static float spring(float dt, float[] state, float target) {
         if (dt < 0f || Float.isNaN(state[0]) || dt > 0.5f) {
             state[0] = target;
