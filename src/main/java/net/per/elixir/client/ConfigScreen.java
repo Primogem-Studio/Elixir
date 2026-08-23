@@ -28,6 +28,19 @@ public class ConfigScreen {
                 .setTooltip(Component.translatable("config.elixir.option.extreme_temperature_range.tooltip"))
                 .setSaveConsumer(v -> extremeTemperatureRange = v)
                 .build());
+        general.addEntry(entryBuilder.startIntField(Component.translatable("config.elixir.option.temp_target_margin"), tempTargetMargin)
+                .setDefaultValue(5)
+                .setMin(0)
+                .setMax(250)
+                .setTooltip(Component.translatable("config.elixir.option.temp_target_margin.tooltip"))
+                .setSaveConsumer(v -> tempTargetMargin = v)
+                .build());
+        general.addEntry(entryBuilder.startIntField(Component.translatable("config.elixir.option.temp_safe_margin"), tempSafeMargin)
+                .setDefaultValue(100)
+                .setMin(1)
+                .setTooltip(Component.translatable("config.elixir.option.temp_safe_margin.tooltip"))
+                .setSaveConsumer(v -> tempSafeMargin = v)
+                .build());
         general.addEntry(entryBuilder.startDoubleField(Component.translatable("config.elixir.option.bad_elixir_compensation"), badElixirCompensation)
                 .setDefaultValue(0.3)
                 .setTooltip(Component.translatable("config.elixir.option.bad_elixir_compensation.tooltip"))
@@ -41,6 +54,13 @@ public class ConfigScreen {
         general.addEntry(entryBuilder.startIntField(Component.translatable("config.elixir.option.refine_ticks"), refineTicks)
                 .setDefaultValue(20)
                 .setSaveConsumer(v -> refineTicks = v)
+                .build());
+        general.addEntry(entryBuilder.startDoubleField(Component.translatable("config.elixir.option.hud_scale"), hudScale)
+                .setDefaultValue(1.5)
+                .setMin(1.0)
+                .setMax(4.0)
+                .setTooltip(Component.translatable("config.elixir.option.hud_scale.tooltip"))
+                .setSaveConsumer(v -> hudScale = v)
                 .build());
         var pharma = builder.getOrCreateCategory(Component.translatable("config.elixir.category.pharma"));
         pharma.addEntry(entryBuilder.startIntField(Component.translatable("config.elixir.option.highest_pharma_limited"), highestPharmaLimited)
@@ -59,6 +79,55 @@ public class ConfigScreen {
         pharma.addEntry(entryBuilder.startDoubleField(Component.translatable("config.elixir.option.effect_dilute"), effectDilute)
                 .setDefaultValue(10.0f)
                 .setSaveConsumer(v -> effectDilute = v)
+                .build());
+        var exp = builder.getOrCreateCategory(Component.translatable("config.elixir.category.exp"));
+        exp.addEntry(entryBuilder.startIntField(Component.translatable("config.elixir.option.exp_success_gain"), expSuccessGain)
+                .setDefaultValue(3)
+                .setMin(0)
+                .setTooltip(Component.translatable("config.elixir.option.exp_success_gain.tooltip"))
+                .setSaveConsumer(v -> expSuccessGain = v)
+                .build());
+        exp.addEntry(entryBuilder.startIntField(Component.translatable("config.elixir.option.exp_failure_gain"), expFailureGain)
+                .setDefaultValue(1)
+                .setMin(0)
+                .setTooltip(Component.translatable("config.elixir.option.exp_failure_gain.tooltip"))
+                .setSaveConsumer(v -> expFailureGain = v)
+                .build());
+        exp.addEntry(entryBuilder.startIntField(Component.translatable("config.elixir.option.exp_growth_rate"), expGrowthRate)
+                .setDefaultValue(200)
+                .setMin(1)
+                .setTooltip(Component.translatable("config.elixir.option.exp_growth_rate.tooltip"))
+                .setSaveConsumer(v -> expGrowthRate = v)
+                .build());
+        exp.addEntry(entryBuilder.startIntField(Component.translatable("config.elixir.option.temp_range_base"), tempRangeBase)
+                .setDefaultValue(40)
+                .setMin(0)
+                .setTooltip(Component.translatable("config.elixir.option.temp_range_base.tooltip"))
+                .setSaveConsumer(v -> tempRangeBase = v)
+                .build());
+        exp.addEntry(entryBuilder.startIntField(Component.translatable("config.elixir.option.explode_delay_base"), explodeDelayBase)
+                .setDefaultValue(100)
+                .setMin(1)
+                .setTooltip(Component.translatable("config.elixir.option.explode_delay_base.tooltip"))
+                .setSaveConsumer(v -> explodeDelayBase = v)
+                .build());
+        exp.addEntry(entryBuilder.startIntField(Component.translatable("config.elixir.option.explode_delay_gain"), explodeDelayGain)
+                .setDefaultValue(100)
+                .setMin(0)
+                .setTooltip(Component.translatable("config.elixir.option.explode_delay_gain.tooltip"))
+                .setSaveConsumer(v -> explodeDelayGain = v)
+                .build());
+        exp.addEntry(entryBuilder.startIntField(Component.translatable("config.elixir.option.failed_delay_base"), failedDelayBase)
+                .setDefaultValue(140)
+                .setMin(1)
+                .setTooltip(Component.translatable("config.elixir.option.failed_delay_base.tooltip"))
+                .setSaveConsumer(v -> failedDelayBase = v)
+                .build());
+        exp.addEntry(entryBuilder.startIntField(Component.translatable("config.elixir.option.failed_delay_gain"), failedDelayGain)
+                .setDefaultValue(60)
+                .setMin(0)
+                .setTooltip(Component.translatable("config.elixir.option.failed_delay_gain.tooltip"))
+                .setSaveConsumer(v -> failedDelayGain = v)
                 .build());
         builder.setSavingRunnable(ElixirConfig::save);
         return builder.build();

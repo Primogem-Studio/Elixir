@@ -18,6 +18,7 @@ import net.per.elixir.data.ElixirComponent;
 import net.per.elixir.entity.ElixirProjectile;
 import net.per.elixir.registry.ElixirDataComponents;
 import net.per.elixir.util.ElixirHelper;
+import net.per.elixir.util.ElixirMath;
 
 import java.util.List;
 
@@ -87,7 +88,7 @@ public class ElixirItem extends Item {
     }
 
     private static int getPharma(ElixirComponent com) {
-        return Mth.clamp(ElixirHelper.calc(com.off().value(), com.pharm(), com.off().value().base()), -pharmaLimited, pharmaLimited);
+        return ElixirMath.finalPharm(com.off(), com.pharm());
     }
 
     private static int getLevel(ElixirComponent com) {

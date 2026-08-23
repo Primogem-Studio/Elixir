@@ -10,6 +10,9 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.StringTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
@@ -41,6 +44,7 @@ import net.per.elixir.registry.ElixirItems;
 import net.per.elixir.registry.ElixirRegistries;
 import net.per.elixir.registry.data.Material;
 import net.per.elixir.util.ElixirHelper;
+import net.per.elixir.util.ElixirMath;
 
 import java.util.HashSet;
 import java.util.List;
@@ -60,6 +64,10 @@ public class ElixirFurnaceBlockEntity extends BaseContainerBlockEntity {
     private int progress;
     public float temperature;
     public int tempRange;
+    public float targetTemp = 250f;
+    public int totalTicks = 200;
+    public int pharmaLimit = 1000;
+    public float exp;
     private double stability, tempStability;
     private int explodeProgress, failedProgress;
     private Set<Holder<Material>> main, off;
@@ -77,8 +85,11 @@ public class ElixirFurnaceBlockEntity extends BaseContainerBlockEntity {
         super.saveAdditional(tag, provider);
         ContainerHelper.saveAllItems(tag, items, provider);
         tag.putFloat("temperature", temperature);
+        tag.putFloat("exp", exp);
         tag.putInt("pharma", pharma);
         tag.putInt("tempRange", tempRange);
+        tag.putFloat("targetTemp", targetTemp);
+        tag.putInt("totalTicks", totalTicks);
         tag.putDouble("stability", stability);
         tag.putDouble("tempStability", tempStability);
     }
@@ -88,12 +99,27 @@ public class ElixirFurnaceBlockEntity extends BaseContainerBlockEntity {
         super.loadAdditional(tag, provider);
         ContainerHelper.loadAllItems(tag, items, provider);
         temperature = tag.getFloat("temperature");
+        exp = tag.getFloat("exp");
         pharma = tag.getInt("pharma");
         tempRange = tag.getInt("tempRange");
         progress = tag.getInt("progress");
         started = tag.getBoolean("started");
         stability = tag.getDouble("stability");
         tempStability = tag.getDouble("tempStability");
+        pharmaLimit = tag.getInt("pharmaLimit");
+        if (pharmaLimit <= 0) pharmaLimit = pharmaLimited;
+        targetTemp = tag.getFloat("targetTemp");
+        if (targetTemp <= 0) targetTemp = calcTargetTemp(pharma);
+        totalTicks = tag.getInt("totalTicks");
+        if (totalTicks <= 0) totalTicks = (int) Math.clamp((long) pharma * refineTicks, 200, 1200);
+        if (tag.contains("offs", Tag.TAG_LIST)) {
+            var set = new HashSet<Holder<Material>>();
+            var reg = provider.lookupOrThrow(ElixirRegistries.MATERIAL);
+            for (var t : tag.getList("offs", Tag.TAG_STRING)) {
+                reg.get(ResourceKey.create(ElixirRegistries.MATERIAL, ResourceLocation.parse(t.getAsString()))).ifPresent(set::add);
+            }
+            off = set;
+        }
     }
 
     @Override
@@ -102,10 +128,17 @@ public class ElixirFurnaceBlockEntity extends BaseContainerBlockEntity {
         tag.putFloat("temperature", temperature);
         tag.putInt("pharma", pharma);
         tag.putInt("tempRange", tempRange);
+        tag.putFloat("targetTemp", targetTemp);
+        tag.putInt("totalTicks", totalTicks);
+        tag.putInt("pharmaLimit", pharmaLimit);
+        tag.putFloat("exp", exp);
         tag.putInt("progress", progress);
         tag.putBoolean("started", started);
         tag.putDouble("stability", stability);
         tag.putDouble("tempStability", tempStability);
+        var offs = new ListTag();
+        if (off != null) for (var h : off) h.unwrapKey().ifPresent(k -> offs.add(StringTag.valueOf(k.location().toString())));
+        if (!offs.isEmpty()) tag.put("offs", offs);
         return tag;
     }
 
@@ -121,16 +154,21 @@ public class ElixirFurnaceBlockEntity extends BaseContainerBlockEntity {
                 level.setBlockAndUpdate(pos, state.setValue(ACTIVE, false));
                 return;
             }
+            var exp = Math.max(0f, trigger.getData(ELIXIR_EXP));
+            this.exp = exp;
+            var expFactor = exp / (exp + expGrowthRate);
             progress++;
             temperature -= 1.5f;
-            temperature = Math.clamp(temperature, 0, 500);
-            var t = (int) ((pharma / (float) pharmaLimited + 1) / 2f * 500);
-            tempRange = Math.min(extremeTemperatureRange, (int) Math.max(6, 12 + trigger.getData(ELIXIR_EXP) * 3));
+            pharmaLimit = pharmaLimited;
+            var t = calcTargetTemp(pharma);
+            targetTemp = t;
+            tempRange = (int) Math.clamp(tempRangeBase + (extremeTemperatureRange - tempRangeBase) * expFactor, 6, extremeTemperatureRange);
+            temperature = Math.clamp(temperature, 0, t + tempRange + tempSafeMargin);
             if (temperature < t) {
                 if (temperature < t - tempRange) {
                     failedProgress++;
                     sl.sendParticles(ParticleTypes.SNOWFLAKE, pos.getX() + 0.5, pos.getY() + 0.8, pos.getZ() + 0.5, 1, 0, 0, 0, 0.1);
-                    if (failedProgress == 140) {
+                    if (failedProgress >= failedDelayBase + failedDelayGain * expFactor) {
                         started = false;
                         level.setBlockAndUpdate(pos, state.setValue(ACTIVE, false));
                         if (empty) return;
@@ -142,13 +180,15 @@ public class ElixirFurnaceBlockEntity extends BaseContainerBlockEntity {
             } else {
                 if (temperature > t + tempRange) {
                     explodeProgress++;
-                    sl.sendParticles(ParticleTypes.SMOKE, pos.getX() + 0.5, pos.getY() + 0.8, pos.getZ() + 0.5, Math.min(explodeProgress, 100), 0, 0, 0, 0.1);
-                    if (explodeProgress >= 100 + trigger.getData(ELIXIR_EXP))
+                    if (explodeProgress % 2 == 0)
+                        sl.sendParticles(ParticleTypes.SMOKE, pos.getX() + 0.5, pos.getY() + 0.8, pos.getZ() + 0.5, Math.min(explodeProgress / 2, 50), 0, 0, 0, 0.1);
+                    if (explodeProgress >= explodeDelayBase + explodeDelayGain * expFactor)
                         level.explode(null, pos.getX(), pos.getY() + 1, pos.getZ(), 2, Level.ExplosionInteraction.TNT);
                 }
                 tempStability += 2.5;
             }
-            if (progress >= Math.clamp((long) pharma * refineTicks, 200, 1200)) {
+            totalTicks = (int) Math.clamp((long) pharma * refineTicks, 200, 1200);
+            if (progress >= totalTicks) {
                 started = false;
                 level.setBlockAndUpdate(pos, state.setValue(ACTIVE, false));
                 if (empty) return;
@@ -175,7 +215,7 @@ public class ElixirFurnaceBlockEntity extends BaseContainerBlockEntity {
         elixir.set(ElixirDataComponents.Elixir, new ElixirComponent(off.iterator().next(), pharma, List.copyOf(main)));
         elixir.set(DataComponents.ITEM_NAME, Component.translatable("item.elixir.failed").withColor(ElixirItem.getColor(elixir.get(ElixirDataComponents.Elixir))));
         items.set(4, elixir);
-        trigger.setData(ELIXIR_EXP, trigger.getData(ELIXIR_EXP) + 1);
+        trigger.setData(ELIXIR_EXP, trigger.getData(ELIXIR_EXP) + expFailureGain);
     }
 
     private void process(Level level, BlockPos pos) {
@@ -183,13 +223,14 @@ public class ElixirFurnaceBlockEntity extends BaseContainerBlockEntity {
             off.add(level.registryAccess().holderOrThrow(ResourceKey.create(ElixirRegistries.MATERIAL, ResourceLocation.fromNamespaceAndPath(MOD_ID, "off/empty"))));
         var elixir = new ItemStack(ElixirItems.elixir.get());
         var s = (calcStability(level, pos) + stability) * (1 + tempStability / (Math.abs(tempStability) + 50));
-        Elixir.LOGGER.debug("[E]稳定性 {} 药理 {} 经验{} ", s, pharma, trigger.getData(ELIXIR_EXP));
+        var exp = trigger.getData(ELIXIR_EXP);
+        Elixir.LOGGER.debug("[E]稳定性 {} 药理 {} 经验{} ", s, pharma, exp);
         if (!level.getBlockState(pos.above()).is(ElixirBlocks.elixir_furnace_cover)) s /= 2;
         if (s > -pharmaLimited) {
-            elixir.set(ElixirDataComponents.Elixir, new ElixirComponent(List.copyOf(off).get(level.random.nextInt(off.size())), (int) (pharma + ((trigger.getData(ELIXIR_EXP) * 0.01) * pharma) + (pharma * (Math.min(s * 0.01, 2)))), List.copyOf(main)));
+            elixir.set(ElixirDataComponents.Elixir, new ElixirComponent(List.copyOf(off).get(level.random.nextInt(off.size())), ElixirMath.rawPharm(pharma, exp, s), List.copyOf(main)));
             items.set(4, elixir);
             outputRecipe();
-            trigger.setData(ELIXIR_EXP, trigger.getData(ELIXIR_EXP) + 5);
+            trigger.setData(ELIXIR_EXP, exp + expSuccessGain);
             return;
         }
         failed(level);
@@ -313,9 +354,19 @@ public class ElixirFurnaceBlockEntity extends BaseContainerBlockEntity {
         stability = tempStability = 0;
         progress = failedProgress = explodeProgress = 0;
         trigger = player;
+        exp = trigger.getData(ELIXIR_EXP);
         if (!items.get(5).has(ElixirDataComponents.AlchemicalFormula)) startWithoutRecipe(level);
         else startWithRecipe(level);
-        return started = true;
+        targetTemp = calcTargetTemp(pharma);
+        totalTicks = (int) Math.clamp((long) pharma * refineTicks, 200, 1200);
+        pharmaLimit = pharmaLimited;
+        started = true;
+        return true;
+    }
+
+    private int calcTargetTemp(int pharma) {
+        var margin = Math.clamp(tempTargetMargin, 0, 250);
+        return (int) Math.clamp((pharma / (float) Math.max(1, pharmaLimit) + 1) / 2f * 500, margin, 500 - margin);
     }
 
     private void calc(ItemStack it, Holder<Material> m, Set<Holder<Material>> set) {
@@ -347,6 +398,10 @@ public class ElixirFurnaceBlockEntity extends BaseContainerBlockEntity {
 
     public double tempStability() {
         return tempStability;
+    }
+
+    public Set<Holder<Material>> offs() {
+        return off;
     }
 
     public static double calcStability(Level level, BlockPos pos) {

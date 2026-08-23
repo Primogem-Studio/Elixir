@@ -7,15 +7,22 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.neoforge.event.AddPackFindersEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.per.elixir.util.ElixirHelper;
 
 import java.nio.file.Path;
 
 import static net.per.elixir.Elixir.MOD_ID;
+import static net.per.elixir.registry.ElixirDataAttachments.ELIXIR_EXP;
 
 @EventBusSubscriber(modid = MOD_ID)
 public class CommonEvent {
+    @SubscribeEvent
+    private static void onPlayerClone(PlayerEvent.Clone event) {
+        event.getEntity().setData(ELIXIR_EXP, event.getOriginal().getData(ELIXIR_EXP));
+    }
+
     @SubscribeEvent
     private static void onServerStarted(ServerStartedEvent event) {
         ElixirHelper.flush(event.getServer().registryAccess());

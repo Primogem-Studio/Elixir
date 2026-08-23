@@ -22,6 +22,17 @@ public class ElixirConfig {
     public static double badElixirCompensation;
     public static double stabilityLossRate;
     public static int refineTicks;
+    public static int expSuccessGain;
+    public static int expFailureGain;
+    public static int expGrowthRate;
+    public static int tempTargetMargin;
+    public static int tempSafeMargin;
+    public static int tempRangeBase;
+    public static int explodeDelayBase;
+    public static int explodeDelayGain;
+    public static int failedDelayBase;
+    public static int failedDelayGain;
+    public static double hudScale;
 
     public static void save() {
         var map = new HashMap<String, Object>();
@@ -33,8 +44,19 @@ public class ElixirConfig {
         map.put("effect_dilute", effectDilute);
         map.put("extreme_temperature_range", extremeTemperatureRange);
         map.put("bad_elixir_compensation", badElixirCompensation);
-        map.put("stability_loss_rate ", stabilityLossRate);
-        map.put("refine_ticks ", refineTicks);
+        map.put("stability_loss_rate", stabilityLossRate);
+        map.put("refine_ticks", refineTicks);
+        map.put("exp_success_gain", expSuccessGain);
+        map.put("exp_failure_gain", expFailureGain);
+        map.put("exp_growth_rate", expGrowthRate);
+        map.put("temp_target_margin", tempTargetMargin);
+        map.put("temp_safe_margin", tempSafeMargin);
+        map.put("temp_range_base", tempRangeBase);
+        map.put("explode_delay_base", explodeDelayBase);
+        map.put("explode_delay_gain", explodeDelayGain);
+        map.put("failed_delay_base", failedDelayBase);
+        map.put("failed_delay_gain", failedDelayGain);
+        map.put("hud_scale", hudScale);
         new TomlWriter().write(Config.of(() -> map, InMemoryFormat.defaultInstance()).unmodifiable(), CONFIG_PATH, WritingMode.REPLACE);
     }
 
@@ -48,7 +70,18 @@ public class ElixirConfig {
         effectDilute = c.getOrElse("effect_dilute", 10.0);
         extremeTemperatureRange = c.getOrElse("extreme_temperature_range", 100);
         badElixirCompensation = c.getOrElse("bad_elixir_compensation", 0.3);
-        stabilityLossRate = c.getOrElse("stability_loss_rate", 10);
+        stabilityLossRate = c.getOrElse("stability_loss_rate", 10.0);
         refineTicks = c.getOrElse("refine_ticks", 20);
+        expSuccessGain = c.getOrElse("exp_success_gain", 3);
+        expFailureGain = c.getOrElse("exp_failure_gain", 1);
+        expGrowthRate = Math.max(1, c.getOrElse("exp_growth_rate", 200));
+        tempTargetMargin = Math.clamp(c.getOrElse("temp_target_margin", 5), 0, 250);
+        tempSafeMargin = Math.max(1, c.getOrElse("temp_safe_margin", 100));
+        tempRangeBase = Math.max(0, c.getOrElse("temp_range_base", 40));
+        explodeDelayBase = Math.max(1, c.getOrElse("explode_delay_base", 100));
+        explodeDelayGain = Math.max(0, c.getOrElse("explode_delay_gain", 100));
+        failedDelayBase = Math.max(1, c.getOrElse("failed_delay_base", 140));
+        failedDelayGain = Math.max(0, c.getOrElse("failed_delay_gain", 60));
+        hudScale = Math.clamp(c.getOrElse("hud_scale", 1.5), 1.0, 4.0);
     }
 }
