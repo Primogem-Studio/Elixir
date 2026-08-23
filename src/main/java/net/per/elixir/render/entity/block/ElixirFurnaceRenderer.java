@@ -34,7 +34,7 @@ public class ElixirFurnaceRenderer implements BlockEntityRenderer<ElixirFurnaceB
         renderQuad(fill, poseStack.last(), 0, 0, 0, 0, H, D, 0xff3a3a3a);
         renderQuad(fill, poseStack.last(), W, 0, D, W, H, 0, 0xff3a3a3a);
         var t = blockEntity.targetTemp;
-        var range = blockEntity.tempRange > 0 ? blockEntity.tempRange : ElixirConfig.extremeTemperatureRange;
+        var range = blockEntity.tempRange > 0 ? blockEntity.tempRange : ElixirConfig.EXTREME_TEMP_RANGE_FALLBACK;
         var upperTemp = Math.max(1, t + range + ElixirConfig.tempSafeMargin);
         var explode = (t + range) / upperTemp;
         var low = Mth.clamp(t - range, 0, 500) / upperTemp;

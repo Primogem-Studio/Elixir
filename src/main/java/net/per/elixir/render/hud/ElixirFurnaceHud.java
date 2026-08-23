@@ -83,7 +83,7 @@ public class ElixirFurnaceHud {
         var top = g.guiHeight() / 2 - ph / 2;
         var right = left + pw;
         var t = furnace.targetTemp;
-        var range = furnace.tempRange > 0 ? furnace.tempRange : ElixirConfig.extremeTemperatureRange;
+        var range = furnace.tempRange > 0 ? furnace.tempRange : ElixirConfig.EXTREME_TEMP_RANGE_FALLBACK;
         var explode = t + range;
         var low = Mth.clamp(t - range, 0, 500);
         var upperTemp = Math.max(1, explode + ElixirConfig.tempSafeMargin);

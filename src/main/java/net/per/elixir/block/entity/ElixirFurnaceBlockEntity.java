@@ -113,7 +113,7 @@ public class ElixirFurnaceBlockEntity extends BaseContainerBlockEntity {
         targetTemp = tag.getFloat("targetTemp");
         if (targetTemp <= 0) targetTemp = calcTargetTemp(pharma);
         totalTicks = tag.getInt("totalTicks");
-        if (totalTicks <= 0) totalTicks = (int) Math.clamp((long) pharma * refineTicks, 200, 1200);
+        if (totalTicks <= 0) totalTicks = Math.clamp((long) pharma * refineTicks, 200, 1200);
         if (tag.contains("offs", Tag.TAG_LIST)) {
             var set = new HashSet<Holder<Material>>();
             var reg = provider.lookupOrThrow(ElixirRegistries.MATERIAL);
@@ -139,7 +139,8 @@ public class ElixirFurnaceBlockEntity extends BaseContainerBlockEntity {
         tag.putDouble("stability", stability);
         tag.putDouble("tempStability", tempStability);
         var offs = new ListTag();
-        if (off != null) for (var h : off) h.unwrapKey().ifPresent(k -> offs.add(StringTag.valueOf(k.location().toString())));
+        if (off != null)
+            for (var h : off) h.unwrapKey().ifPresent(k -> offs.add(StringTag.valueOf(k.location().toString())));
         if (!offs.isEmpty()) tag.put("offs", offs);
         return tag;
     }
@@ -164,7 +165,7 @@ public class ElixirFurnaceBlockEntity extends BaseContainerBlockEntity {
             pharmaLimit = pharmaLimited;
             var t = calcTargetTemp(pharma);
             targetTemp = t;
-            tempRange = (int) Math.clamp(tempRangeBase + (extremeTemperatureRange - tempRangeBase) * expFactor, 6, extremeTemperatureRange);
+            tempRange = (int) Math.clamp(tempRangeBase + (tempRangeMax - tempRangeBase) * expFactor, 6, tempRangeMax);
             temperature = Math.clamp(temperature, 0, t + tempRange + tempSafeMargin);
             if (temperature < t) {
                 if (temperature < t - tempRange) {
@@ -362,7 +363,7 @@ public class ElixirFurnaceBlockEntity extends BaseContainerBlockEntity {
         if (!items.get(5).has(ElixirDataComponents.AlchemicalFormula)) startWithoutRecipe(level);
         else startWithRecipe(level);
         targetTemp = calcTargetTemp(pharma);
-        totalTicks = (int) Math.clamp((long) pharma * refineTicks, 200, 1200);
+        totalTicks = Math.clamp((long) pharma * refineTicks, 200, 1200);
         pharmaLimit = pharmaLimited;
         started = true;
         return true;
