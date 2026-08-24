@@ -5,6 +5,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -44,17 +45,28 @@ public class ElixirItem extends Item {
     }
 
     @Override
+    public InteractionResult interactLivingEntity(ItemStack stack, Player player, LivingEntity interactionTarget, InteractionHand usedHand) {
+        if (player.isShiftKeyDown()) {
+            return InteractionResult.SUCCESS;
+        }
+        return super.interactLivingEntity(stack, player, interactionTarget, usedHand);
+    }
+
+    public static void launch(Player player, ItemStack stack) {
+        if (player.level().isClientSide) return;
+        var pe = new ElixirProjectile(player);
+        pe.setOwner(player);
+        pe.setItem(stack);
+        pe.shootFromRotation(player, player.getXRot(), player.getYRot(), 0.0f, 1.5f, 1.0f);
+        player.level().addFreshEntity(pe);
+        player.level().playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.SPLASH_POTION_BREAK, SoundSource.NEUTRAL, 0.5f, 0.5f);
+        if (!player.getAbilities().instabuild) stack.shrink(1);
+    }
+
+    @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         if (player.isShiftKeyDown()) {
-            if (!level.isClientSide) {
-                var pe = new ElixirProjectile(player);
-                pe.setOwner(player);
-                pe.setItem(player.getItemInHand(hand));
-                pe.shootFromRotation(player, player.getXRot(), player.getYRot(), 0.0f, 1.5f, 1.0f);
-                level.addFreshEntity(pe);
-                level.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.SPLASH_POTION_BREAK, SoundSource.NEUTRAL, 0.5f, 0.5f);
-                if (!player.getAbilities().instabuild) player.getItemInHand(hand).shrink(1);
-            }
+            launch(player, player.getItemInHand(hand));
             return InteractionResultHolder.sidedSuccess(player.getItemInHand(hand), true);
         }
         return super.use(level, player, hand);

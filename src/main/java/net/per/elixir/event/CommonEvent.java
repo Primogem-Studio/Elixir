@@ -8,7 +8,9 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.neoforge.event.AddPackFindersEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
+import net.per.elixir.item.ElixirItem;
 import net.per.elixir.util.ElixirHelper;
 
 import java.nio.file.Path;
@@ -21,6 +23,17 @@ public class CommonEvent {
     @SubscribeEvent
     private static void onPlayerClone(PlayerEvent.Clone event) {
         event.getEntity().setData(ELIXIR_EXP, event.getOriginal().getData(ELIXIR_EXP));
+    }
+
+    @SubscribeEvent
+    private static void onEntityInteract(PlayerInteractEvent.EntityInteract event) {
+        var player = event.getEntity();
+        if (!player.isShiftKeyDown()) return;
+        var stack = player.getItemInHand(event.getHand());
+        if (stack.getItem() instanceof ElixirItem) {
+            ElixirItem.launch(player, stack);
+            event.setCanceled(true);
+        }
     }
 
     @SubscribeEvent

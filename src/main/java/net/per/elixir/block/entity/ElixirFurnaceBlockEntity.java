@@ -52,6 +52,7 @@ import net.per.elixir.util.ElixirMath;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Predicate;
 
 import static net.per.elixir.Elixir.MOD_ID;
@@ -79,6 +80,7 @@ public class ElixirFurnaceBlockEntity extends BaseContainerBlockEntity {
     private boolean empty;
     private Object2IntMap<Holder<Material>> counter;
     private LivingEntity trigger;
+    private UUID triggerUUID;
 
     public ElixirFurnaceBlockEntity(BlockPos pos, BlockState state) {
         super(Type, pos, state);
@@ -96,6 +98,43 @@ public class ElixirFurnaceBlockEntity extends BaseContainerBlockEntity {
         tag.putInt("totalTicks", totalTicks);
         tag.putDouble("stability", stability);
         tag.putDouble("tempStability", tempStability);
+        tag.putInt("progress", progress);
+        tag.putBoolean("started", started);
+        tag.putInt("explodeProgress", explodeProgress);
+        tag.putInt("failedProgress", failedProgress);
+        tag.putBoolean("empty", empty);
+        tag.put("mains", saveMaterials(main));
+        tag.put("offs", saveMaterials(off));
+        if (counter != null && !counter.isEmpty()) {
+            var counters = new ListTag();
+            for (var e : counter.object2IntEntrySet()) {
+                var ct = new CompoundTag();
+                e.getKey().unwrapKey().ifPresent(k -> ct.putString("mat", k.location().toString()));
+                ct.putInt("count", e.getIntValue());
+                counters.add(ct);
+            }
+            tag.put("counter", counters);
+        }
+        if (trigger != null) tag.putUUID("trigger", trigger.getUUID());
+    }
+
+    private static ListTag saveMaterials(Set<Holder<Material>> materials) {
+        var tag = new ListTag();
+        if (materials != null) {
+            for (var h : materials) h.unwrapKey().ifPresent(k -> tag.add(StringTag.valueOf(k.location().toString())));
+        }
+        return tag;
+    }
+
+    private static Set<Holder<Material>> loadMaterials(CompoundTag tag, String key, HolderLookup.Provider provider) {
+        var set = new HashSet<Holder<Material>>();
+        if (tag.contains(key, Tag.TAG_LIST)) {
+            var reg = provider.lookupOrThrow(ElixirRegistries.MATERIAL);
+            for (var t : tag.getList(key, Tag.TAG_STRING)) {
+                reg.get(ResourceKey.create(ElixirRegistries.MATERIAL, ResourceLocation.parse(t.getAsString()))).ifPresent(set::add);
+            }
+        }
+        return set;
     }
 
     @Override
@@ -117,13 +156,19 @@ public class ElixirFurnaceBlockEntity extends BaseContainerBlockEntity {
         if (targetTemp <= 0) targetTemp = calcTargetTemp(pharma);
         totalTicks = tag.getInt("totalTicks");
         if (totalTicks <= 0) totalTicks = Math.clamp((long) pharma * refineTicks, 200, 1200);
-        if (tag.contains("offs", Tag.TAG_LIST)) {
-            var set = new HashSet<Holder<Material>>();
+        if (tag.contains("trigger")) triggerUUID = tag.getUUID("trigger");
+        empty = tag.getBoolean("empty");
+        main = loadMaterials(tag, "mains", provider);
+        off = loadMaterials(tag, "offs", provider);
+        if (tag.contains("counter", Tag.TAG_LIST)) {
+            var c = new Object2IntOpenHashMap<Holder<Material>>();
             var reg = provider.lookupOrThrow(ElixirRegistries.MATERIAL);
-            for (var t : tag.getList("offs", Tag.TAG_STRING)) {
-                reg.get(ResourceKey.create(ElixirRegistries.MATERIAL, ResourceLocation.parse(t.getAsString()))).ifPresent(set::add);
+            for (var t : tag.getList("counter", Tag.TAG_COMPOUND)) {
+                var ct = (CompoundTag) t;
+                if (!ct.contains("mat")) continue;
+                reg.get(ResourceKey.create(ElixirRegistries.MATERIAL, ResourceLocation.parse(ct.getString("mat")))).ifPresent(h -> c.put(h, ct.getInt("count")));
             }
-            off = set;
+            counter = c;
         }
     }
 
@@ -155,12 +200,16 @@ public class ElixirFurnaceBlockEntity extends BaseContainerBlockEntity {
 
     public void tick(Level level, BlockPos pos, BlockState state) {
         if (level instanceof ServerLevel sl && started) {
-            if (trigger == null) {
-                started = false;
-                level.setBlockAndUpdate(pos, state.setValue(ACTIVE, false));
-                return;
+            if (trigger == null && triggerUUID != null
+                    && sl.getEntity(triggerUUID) instanceof LivingEntity le && le.isAlive()) {
+                trigger = le;
             }
-            this.exp = Math.max(0f, trigger.getData(ELIXIR_EXP));
+            if (trigger != null) {
+                this.exp = Math.max(0f, trigger.getData(ELIXIR_EXP));
+            }
+            if (!state.getValue(ACTIVE)) {
+                level.setBlockAndUpdate(pos, state.setValue(ACTIVE, true));
+            }
             progress++;
             temperature -= 1.5f;
             temperature = Math.clamp(temperature, 0, targetTemp + tempRange + tempSafeMargin);
@@ -216,16 +265,19 @@ public class ElixirFurnaceBlockEntity extends BaseContainerBlockEntity {
         elixir.set(DataComponents.ITEM_NAME, Component.translatable("item.elixir.failed").withColor(ElixirItem.getColor(elixir.get(ElixirDataComponents.Elixir))));
         items.set(4, elixir);
         if (trigger instanceof Player) trigger.setData(ELIXIR_EXP, trigger.getData(ELIXIR_EXP) + expFailureGain);
-        else trigger.setData(ELIXIR_EXP, trigger.getData(ELIXIR_EXP) + (float) maidExpFailureGain);
+        else if (trigger != null) trigger.setData(ELIXIR_EXP, trigger.getData(ELIXIR_EXP) + (float) maidExpFailureGain);
         level.playSound(null, worldPosition, SoundEvents.GLASS_BREAK, SoundSource.BLOCKS, 1.0f, 1.0f);
     }
 
     private void process(Level level, BlockPos pos) {
-        if (off.isEmpty())
+        if (main == null) main = new HashSet<>();
+        if (off == null || off.isEmpty()) {
+            if (off == null) off = new HashSet<>();
             off.add(level.registryAccess().holderOrThrow(ResourceKey.create(ElixirRegistries.MATERIAL, ResourceLocation.fromNamespaceAndPath(MOD_ID, "off/empty"))));
+        }
         var elixir = new ItemStack(ElixirItems.elixir.get());
         var s = (calcStability(level, pos) + stability) * (1 + tempStability / (Math.abs(tempStability) + 50));
-        var exp = trigger.getData(ELIXIR_EXP);
+        var exp = trigger != null ? trigger.getData(ELIXIR_EXP) : this.exp;
         Elixir.LOGGER.debug("[E]稳定性 {} 药理 {} 经验{} ", s, pharma, exp);
         if (!level.getBlockState(pos.above()).is(ElixirBlocks.elixir_furnace_cover)) s /= 2;
         if (s > -pharmaLimited) {
@@ -233,7 +285,7 @@ public class ElixirFurnaceBlockEntity extends BaseContainerBlockEntity {
             items.set(4, elixir);
             outputRecipe();
             if (trigger instanceof Player) trigger.setData(ELIXIR_EXP, exp + expSuccessGain);
-            else trigger.setData(ELIXIR_EXP, exp + (float) maidExpSuccessGain);
+            else if (trigger != null) trigger.setData(ELIXIR_EXP, exp + (float) maidExpSuccessGain);
             level.playSound(null, worldPosition, SoundEvents.END_PORTAL_SPAWN, SoundSource.BLOCKS, 1.0f, 1.0f);
             return;
         }
@@ -242,7 +294,7 @@ public class ElixirFurnaceBlockEntity extends BaseContainerBlockEntity {
 
     private void outputRecipe() {
         var it = items.get(5);
-        if (it.isEmpty() || it.has(ElixirDataComponents.AlchemicalFormula)) return;
+        if (it.isEmpty() || it.has(ElixirDataComponents.AlchemicalFormula) || counter == null) return;
         var main = ImmutableList.<AlchemicalFormulaComponent.Content>builder();
         var off = ImmutableList.<AlchemicalFormulaComponent.Content>builder();
         for (var e : counter.object2IntEntrySet()) {
@@ -390,6 +442,7 @@ public class ElixirFurnaceBlockEntity extends BaseContainerBlockEntity {
         stability = tempStability = 0;
         progress = failedProgress = explodeProgress = 0;
         trigger = entity;
+        triggerUUID = entity.getUUID();
         exp = trigger.getData(ELIXIR_EXP);
         if (!items.get(5).has(ElixirDataComponents.AlchemicalFormula)) startWithoutRecipe(level);
         else startWithRecipe(level);
