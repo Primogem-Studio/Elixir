@@ -34,6 +34,9 @@ public class ElixirConfig {
     public static int failedDelayBase;
     public static int failedDelayGain;
     public static double hudScale;
+    public static double maidExpSuccessGain;
+    public static double maidExpFailureGain;
+    public static double maidNegligenceChance;
 
     public static void save() {
         var map = new HashMap<String, Object>();
@@ -58,6 +61,9 @@ public class ElixirConfig {
         map.put("failed_delay_base", failedDelayBase);
         map.put("failed_delay_gain", failedDelayGain);
         map.put("hud_scale", hudScale);
+        map.put("maid_exp_success_gain", maidExpSuccessGain);
+        map.put("maid_exp_failure_gain", maidExpFailureGain);
+        map.put("maid_negligence_chance", maidNegligenceChance);
         new TomlWriter().write(Config.of(() -> map, InMemoryFormat.defaultInstance()).unmodifiable(), CONFIG_PATH, WritingMode.REPLACE);
     }
 
@@ -84,5 +90,8 @@ public class ElixirConfig {
         failedDelayBase = Math.max(1, c.getOrElse("failed_delay_base", 140));
         failedDelayGain = Math.max(0, c.getOrElse("failed_delay_gain", 60));
         hudScale = Math.clamp(c.getOrElse("hud_scale", 1.5), 1.0, 4.0);
+        maidExpSuccessGain = Math.max(0, c.getOrElse("maid_exp_success_gain", 0.1));
+        maidExpFailureGain = Math.max(0, c.getOrElse("maid_exp_failure_gain", 0.1));
+        maidNegligenceChance = Math.clamp(c.getOrElse("maid_negligence_chance", 0.25), 0.0, 1.0);
     }
 }

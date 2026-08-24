@@ -156,5 +156,20 @@
   "config.elixir.option.failed_delay_base": "Base Cold Failure Delay",
   "config.elixir.option.failed_delay_base.tooltip": "Ticks before low temperature fails at zero experience",
   "config.elixir.option.failed_delay_gain": "Cold Failure Delay Gain Cap",
-  "config.elixir.option.failed_delay_gain.tooltip": "Extra ticks experience can add to the cold failure delay; approaches this cap as experience grows"
+  "config.elixir.option.failed_delay_gain.tooltip": "Extra ticks experience can add to the cold failure delay; approaches this cap as experience grows",
+  "config.elixir.option.maid_exp_success_gain": "Maid Experience per Success",
+  "config.elixir.option.maid_exp_success_gain.tooltip": "Base experience a maid gains for each successful batch (separate from player experience, default 0.1)",
+  "config.elixir.option.maid_exp_failure_gain": "Maid Experience per Failure",
+  "config.elixir.option.maid_exp_failure_gain.tooltip": "Base experience a maid gains for each failed batch (default 0.1)",
+  "config.elixir.option.maid_negligence_chance": "Maid Negligence Chance",
+  "config.elixir.option.maid_negligence_chance.tooltip": "Chance (0~1) that the maid spaces out instead of acting on the furnace; higher means less reliable refining",
+  "task.elixir.alchemy": "Alchemy",
+  "task.elixir.alchemy.desc": "With a handheld fan in the main hand, the maid will tend nearby Four-Aspect Furnaces: ignite them (skipping flint & steel), fan the heat, take the finished pill, and start the next batch, until the materials run out or the backpack is full.",
+  "task.elixir.alchemy.condition.has_fan": "Mainhand holds a handheld fan",
+  "chat_bubble.elixir.alchemy.start": "Lighting up the furnace!",
+  "chat_bubble.elixir.alchemy.collect": "The pill is ready!",
+  "chat_bubble.elixir.alchemy.backpack_full": "Backpack full, no room for pills...",
+  "chat_bubble.elixir.alchemy.wait_player": "No formula yet, waiting for you to light it~",
+  "chat_bubble.elixir.alchemy.formula_mismatch": "Materials don't match the formula, checking elsewhere",
+  "chat_bubble.elixir.alchemy.empty": "Nothing to refine here, looking for another furnace"
 }

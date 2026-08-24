@@ -156,5 +156,20 @@
   "config.elixir.option.failed_delay_base": "基础低温失败延迟",
   "config.elixir.option.failed_delay_base.tooltip": "零经验时低温失败所需的 tick 数",
   "config.elixir.option.failed_delay_gain": "低温失败延迟经验加成上限",
-  "config.elixir.option.failed_delay_gain.tooltip": "经验带来的低温失败延迟额外 tick 上限，经验越高越接近该值"
+  "config.elixir.option.failed_delay_gain.tooltip": "经验带来的低温失败延迟额外 tick 上限，经验越高越接近该值",
+  "config.elixir.option.maid_exp_success_gain": "女仆成功炼丹经验",
+  "config.elixir.option.maid_exp_success_gain.tooltip": "女仆代炼成功一炉获得的基础经验（独立于玩家经验，默认 0.1）",
+  "config.elixir.option.maid_exp_failure_gain": "女仆失败炼丹经验",
+  "config.elixir.option.maid_exp_failure_gain.tooltip": "女仆炼丹失败获得的基础经验（默认 0.1）",
+  "config.elixir.option.maid_negligence_chance": "女仆疏忽概率",
+  "config.elixir.option.maid_negligence_chance.tooltip": "女仆执行炼丹动作时发呆走神的概率（0~1），越高炼丹越不稳定、越容易失败",
+  "task.elixir.alchemy": "炼丹",
+  "task.elixir.alchemy.desc": "女仆主手持葵扇时，会自动前往附近四象炉起炉炼丹（跳过打火石）、扇风调温、收取丹药并续开下一炉，直到炉中材料耗尽或背包满格。",
+  "task.elixir.alchemy.condition.has_fan": "主手持葵扇",
+  "chat_bubble.elixir.alchemy.start": "开炉炼丹咯！",
+  "chat_bubble.elixir.alchemy.collect": "丹药出炉啦！",
+  "chat_bubble.elixir.alchemy.backpack_full": "背包满了，装不下丹药…",
+  "chat_bubble.elixir.alchemy.wait_player": "没有丹方，等主人点火~",
+  "chat_bubble.elixir.alchemy.formula_mismatch": "材料和丹方对不上，我先去别处看看",
+  "chat_bubble.elixir.alchemy.empty": "炉子里没有可炼的东西，我找找别的炉子"
 }

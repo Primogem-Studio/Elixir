@@ -1,0 +1,396 @@
+package net.per.elixir.compat.tlm;
+
+import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
+import com.google.common.collect.ImmutableMap;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.ai.behavior.Behavior;
+import net.minecraft.world.entity.ai.behavior.BehaviorUtils;
+import net.minecraft.world.entity.ai.memory.MemoryModuleType;
+import net.minecraft.world.entity.ai.memory.WalkTarget;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
+import net.per.elixir.block.ElixirFurnaceBlock;
+import net.per.elixir.block.entity.ElixirFurnaceBlockEntity;
+import net.per.elixir.data.ElixirFurnaceMenu;
+import net.per.elixir.registry.ElixirBlocks;
+import net.per.elixir.registry.ElixirDataComponents;
+import net.per.elixir.registry.ElixirItems;
+import org.jetbrains.annotations.Nullable;
+
+import static net.per.elixir.ElixirConfig.maidNegligenceChance;
+
+public class MaidAlchemyTask extends Behavior<EntityMaid> {
+    private static final int SEARCH_INTERVAL = 100;
+    private static final int VERIFY_INTERVAL = 40;
+    private static final int ACTION_INTERVAL = 10;
+    private static final double REACH_DISTANCE = 2.0;
+    private static final int MIN_SEARCH_RADIUS = 4;
+    private static final int MAX_STAND_DIST = 1;
+    private static final int STAND_RETRY_INTERVAL = 20;
+    private static final int WALK_TIMEOUT = 400;
+    private static final int IGNORE_INTERVAL = 300;
+    private static final int BUBBLE_INTERVAL = 600;
+    private static final float FAN_WEAK_MAX = 24f;
+
+    private static final String BUBBLE_START = "chat_bubble.elixir.alchemy.start";
+    private static final String BUBBLE_COLLECT = "chat_bubble.elixir.alchemy.collect";
+    private static final String BUBBLE_BACKPACK_FULL = "chat_bubble.elixir.alchemy.backpack_full";
+    private static final String BUBBLE_WAIT_PLAYER = "chat_bubble.elixir.alchemy.wait_player";
+    private static final String BUBBLE_FORMULA_MISMATCH = "chat_bubble.elixir.alchemy.formula_mismatch";
+    private static final String BUBBLE_EMPTY = "chat_bubble.elixir.alchemy.empty";
+
+    @Nullable
+    private BlockPos furnacePos;
+    @Nullable
+    private BlockPos standPos;
+    @Nullable
+    private BlockPos pendingPos;
+    @Nullable
+    private BlockPos ignoredPos;
+    private int searchCooldown;
+    private int verifyCooldown;
+    private int relocateCooldown;
+    private int actionCooldown;
+    private int standRetryCooldown;
+    private int walkTicks;
+    private int ignoreCooldown;
+    private int bubbleCooldown;
+    private boolean waitingForPlayer;
+    private long bubbleKey = -1;
+
+    public MaidAlchemyTask() {
+        super(ImmutableMap.of());
+    }
+
+    @Override
+    protected void start(ServerLevel level, EntityMaid maid, long gameTime) {
+        if (this.bubbleKey >= 0) {
+            maid.getChatBubbleManager().removeChatBubble(this.bubbleKey);
+        }
+        this.furnacePos = null;
+        this.standPos = null;
+        this.pendingPos = null;
+        this.ignoredPos = null;
+        this.searchCooldown = 0;
+        this.verifyCooldown = 0;
+        this.relocateCooldown = 0;
+        this.actionCooldown = 0;
+        this.standRetryCooldown = 0;
+        this.walkTicks = 0;
+        this.ignoreCooldown = 0;
+        this.bubbleCooldown = 0;
+        this.waitingForPlayer = false;
+        this.bubbleKey = -1;
+    }
+
+    @Override
+    protected boolean canStillUse(ServerLevel level, EntityMaid maid, long gameTime) {
+        return maid.getMainHandItem().is(ElixirItems.handheld_fan.get());
+    }
+
+    @Override
+    protected void tick(ServerLevel level, EntityMaid maid, long gameTime) {
+        if (this.bubbleCooldown > 0) {
+            this.bubbleCooldown--;
+        }
+        if (this.furnacePos == null) {
+            if (this.ignoreCooldown > 0 && --this.ignoreCooldown <= 0) {
+                this.ignoredPos = null;
+            }
+            if (--this.searchCooldown > 0) {
+                return;
+            }
+            this.searchCooldown = SEARCH_INTERVAL;
+            BlockPos found = findFurnace(level, maid);
+            if (found != null) {
+                this.furnacePos = found;
+                this.standPos = findStandPos(level, found, maid);
+                this.verifyCooldown = 0;
+            }
+            return;
+        }
+
+        if (--this.verifyCooldown <= 0) {
+            this.verifyCooldown = VERIFY_INTERVAL;
+            if (!(level.getBlockEntity(this.furnacePos) instanceof ElixirFurnaceBlockEntity)
+                    || (maid.hasRestriction() && !maid.isWithinRestriction(this.furnacePos))) {
+                clearTarget(maid);
+                return;
+            }
+        }
+
+        if (--this.relocateCooldown <= 0) {
+            this.relocateCooldown = SEARCH_INTERVAL;
+            ElixirFurnaceBlockEntity curBe = level.getBlockEntity(this.furnacePos) instanceof ElixirFurnaceBlockEntity b ? b : null;
+            int curScore = curBe != null ? scoreFurnace(curBe) : 0;
+            boolean curBusy = curBe != null && (curBe.started() || !curBe.getItem(4).isEmpty());
+            BlockPos better = findFurnace(level, maid);
+            if (better != null && !better.equals(this.furnacePos)
+                    && level.getBlockEntity(better) instanceof ElixirFurnaceBlockEntity betterBe
+                    && scoreFurnace(betterBe) > curScore) {
+                if (curBusy) {
+                    this.pendingPos = better;
+                } else {
+                    switchTo(level, maid, better);
+                }
+            }
+        }
+        if (this.pendingPos != null) {
+            boolean curBusy = level.getBlockEntity(this.furnacePos) instanceof ElixirFurnaceBlockEntity cBe
+                    && (cBe.started() || !cBe.getItem(4).isEmpty());
+            if (!curBusy) {
+                BlockPos target = this.pendingPos;
+                this.pendingPos = null;
+                if (level.getBlockEntity(target) instanceof ElixirFurnaceBlockEntity pBe && scoreFurnace(pBe) > 0) {
+                    switchTo(level, maid, target);
+                }
+            }
+        }
+
+        if (this.standPos == null) {
+            if (--this.standRetryCooldown > 0) {
+                return;
+            }
+            this.standRetryCooldown = STAND_RETRY_INTERVAL;
+            this.standPos = findStandPos(level, this.furnacePos, maid);
+            if (this.standPos == null) {
+                return;
+            }
+        }
+
+        WalkTarget currentTarget = maid.getBrain().getMemory(MemoryModuleType.WALK_TARGET).orElse(null);
+        boolean targetIsStandPos = currentTarget != null && currentTarget.getTarget().currentBlockPosition().equals(this.standPos);
+        if (!maid.blockPosition().closerThan(this.standPos, REACH_DISTANCE)) {
+            if (!targetIsStandPos) {
+                BehaviorUtils.setWalkAndLookTargetMemories(maid, this.standPos, 0.7f, 2);
+            }
+            if (++this.walkTicks > WALK_TIMEOUT) {
+                clearTarget(maid);
+                return;
+            }
+            return;
+        }
+        this.walkTicks = 0;
+        if (!targetIsStandPos) {
+            BehaviorUtils.setWalkAndLookTargetMemories(maid, this.standPos, 0.7f, 2);
+        }
+
+        maid.getLookControl().setLookAt(Vec3.atCenterOf(this.furnacePos));
+        if (--this.actionCooldown > 0) {
+            return;
+        }
+        this.actionCooldown = ACTION_INTERVAL;
+        interact(level, maid);
+    }
+
+    private void interact(ServerLevel level, EntityMaid maid) {
+        if (level.random.nextFloat() < maidNegligenceChance) {
+            return;
+        }
+        if (this.furnacePos == null) {
+            return;
+        }
+        if (maid.distanceToSqr(Vec3.atCenterOf(this.furnacePos)) > 16) {
+            return;
+        }
+        if (!(level.getBlockEntity(this.furnacePos) instanceof ElixirFurnaceBlockEntity be)) {
+            clearTarget(maid);
+            return;
+        }
+        if (be.started()) {
+            if (be.temperature < be.targetTemp - 5f) {
+                float gap = be.targetTemp - be.temperature;
+                float gain = Math.min(gap + level.random.nextInt(-5, 16), 55f);
+                be.temperature += Math.max(gain, 10f);
+                if (gain <= FAN_WEAK_MAX) {
+                    level.playSound(null, this.furnacePos, SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS, 0.8f, 1.0f);
+                } else {
+                    level.playSound(null, this.furnacePos, SoundEvents.BLAZE_SHOOT, SoundSource.BLOCKS, 0.8f, 0.9f + level.random.nextFloat() * 0.2f);
+                }
+                maid.swing(InteractionHand.MAIN_HAND);
+            }
+            return;
+        }
+        ItemStack output = be.getItem(4);
+        if (!output.isEmpty()) {
+            ItemStack rest = ItemHandlerHelper.insertItemStacked(maid.getAvailableBackpackInv(), output, false);
+            be.setItem(4, rest);
+            if (rest.isEmpty()) {
+                this.waitingForPlayer = false;
+                sayBubble(maid, BUBBLE_COLLECT);
+            } else {
+                this.waitingForPlayer = false;
+                sayBubble(maid, BUBBLE_BACKPACK_FULL);
+                forgetFurnace(maid);
+            }
+            return;
+        }
+        if (isMenuOpenByOwner(level, maid, be)) {
+            return;
+        }
+        if (!hasMaterial(be)) {
+            this.waitingForPlayer = false;
+            sayBubble(maid, BUBBLE_EMPTY);
+            forgetFurnace(maid);
+            return;
+        }
+        if (hasFormula(be)) {
+            if (!be.isFormulaSatisfied()) {
+                this.waitingForPlayer = false;
+                sayBubble(maid, BUBBLE_FORMULA_MISMATCH);
+                forgetFurnace(maid);
+                return;
+            }
+            if (be.start(level, maid)) {
+                level.setBlockAndUpdate(this.furnacePos, level.getBlockState(this.furnacePos).setValue(ElixirFurnaceBlock.ACTIVE, true));
+                level.playSound(null, this.furnacePos, SoundEvents.FLINTANDSTEEL_USE, SoundSource.BLOCKS, 1.0f, 1.0f);
+                this.waitingForPlayer = false;
+                sayBubble(maid, BUBBLE_START);
+            }
+            return;
+        }
+        if (!this.waitingForPlayer) {
+            sayBubble(maid, BUBBLE_WAIT_PLAYER);
+            this.waitingForPlayer = true;
+        }
+    }
+
+    private void sayBubble(EntityMaid maid, String textKey) {
+        if (this.bubbleCooldown > 0) {
+            return;
+        }
+        var manager = maid.getChatBubbleManager();
+        if (this.bubbleKey >= 0) {
+            manager.removeChatBubble(this.bubbleKey);
+        }
+        this.bubbleKey = manager.addTextChatBubble(textKey);
+        this.bubbleCooldown = BUBBLE_INTERVAL;
+    }
+
+    private void switchTo(ServerLevel level, EntityMaid maid, BlockPos target) {
+        this.furnacePos = target;
+        this.standPos = findStandPos(level, target, maid);
+        this.verifyCooldown = 0;
+        this.walkTicks = 0;
+        this.waitingForPlayer = false;
+        this.pendingPos = null;
+    }
+
+    private void forgetFurnace(EntityMaid maid) {
+        this.ignoredPos = this.furnacePos;
+        this.ignoreCooldown = IGNORE_INTERVAL;
+        clearTarget(maid);
+    }
+
+    private boolean isMenuOpenByOwner(ServerLevel level, EntityMaid maid, ElixirFurnaceBlockEntity be) {
+        if (!(maid.getOwner() instanceof Player owner)) {
+            return false;
+        }
+        return owner.containerMenu instanceof ElixirFurnaceMenu menu && menu.getSlot(0).container == be;
+    }
+
+    private int scoreFurnace(ElixirFurnaceBlockEntity be) {
+        if (be.started()) {
+            return be.isPlayerTriggered() ? 4 : 3;
+        }
+        if (hasFormula(be)) {
+            return hasMaterial(be) && be.isFormulaSatisfied() ? 2 : 0;
+        }
+        return hasMaterial(be) ? 1 : 0;
+    }
+
+    private boolean hasMaterial(ElixirFurnaceBlockEntity be) {
+        for (int i = 0; i < 4; i++) {
+            if (!be.getItem(i).isEmpty()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean hasFormula(ElixirFurnaceBlockEntity be) {
+        ItemStack formula = be.getItem(5);
+        return !formula.isEmpty() && formula.has(ElixirDataComponents.AlchemicalFormula);
+    }
+
+    private void clearTarget(EntityMaid maid) {
+        maid.getBrain().eraseMemory(MemoryModuleType.WALK_TARGET);
+        this.furnacePos = null;
+        this.standPos = null;
+        this.pendingPos = null;
+        this.waitingForPlayer = false;
+        this.walkTicks = 0;
+    }
+
+    @Nullable
+    private BlockPos findFurnace(ServerLevel level, EntityMaid maid) {
+        BlockPos center = maid.blockPosition();
+        int radius = Math.max((int) (maid.getRestrictRadius() / 2), MIN_SEARCH_RADIUS);
+        BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
+        BlockPos best = null;
+        int bestScore = 0;
+        double bestDistSqr = Double.MAX_VALUE;
+        for (int x = -radius; x <= radius; x++) {
+            for (int z = -radius; z <= radius; z++) {
+                for (int y = -2; y <= 2; y++) {
+                    pos.set(center.getX() + x, center.getY() + y, center.getZ() + z);
+                    if (pos.equals(this.ignoredPos)) {
+                        continue;
+                    }
+                    if (maid.hasRestriction() && !maid.isWithinRestriction(pos)) {
+                        continue;
+                    }
+                    if (!level.getBlockState(pos).is(ElixirBlocks.elixir_furnace)) {
+                        continue;
+                    }
+                    if (level.getBlockEntity(pos) instanceof ElixirFurnaceBlockEntity be) {
+                        int score = scoreFurnace(be);
+                        if (score <= 0) {
+                            continue;
+                        }
+                        double d = pos.distToCenterSqr(maid.getX(), maid.getY(), maid.getZ());
+                        if (score > bestScore || (score == bestScore && d < bestDistSqr)) {
+                            bestScore = score;
+                            bestDistSqr = d;
+                            best = pos.immutable();
+                        }
+                    }
+                }
+            }
+        }
+        return best;
+    }
+
+    @Nullable
+    private BlockPos findStandPos(ServerLevel level, BlockPos furnacePos, EntityMaid maid) {
+        BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
+        BlockPos best = null;
+        double bestDistSqr = Double.MAX_VALUE;
+        for (int dx = -MAX_STAND_DIST; dx <= MAX_STAND_DIST; dx++) {
+            for (int dz = -MAX_STAND_DIST; dz <= MAX_STAND_DIST; dz++) {
+                if (dx == 0 && dz == 0) {
+                    continue;
+                }
+                int d2 = dx * dx + dz * dz;
+                if (d2 > MAX_STAND_DIST * MAX_STAND_DIST) {
+                    continue;
+                }
+                pos.set(furnacePos.getX() + dx, furnacePos.getY(), furnacePos.getZ() + dz);
+                if (level.getBlockState(pos).isAir() && level.getBlockState(pos.below()).isSolid()) {
+                    double d = pos.distToCenterSqr(maid.getX(), maid.getY(), maid.getZ());
+                    if (d < bestDistSqr) {
+                        bestDistSqr = d;
+                        best = pos.immutable();
+                    }
+                }
+            }
+        }
+        return best;
+    }
+}

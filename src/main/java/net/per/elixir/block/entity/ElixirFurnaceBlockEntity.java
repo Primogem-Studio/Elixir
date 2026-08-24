@@ -24,6 +24,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Container;
 import net.minecraft.world.ContainerHelper;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -70,13 +71,14 @@ public class ElixirFurnaceBlockEntity extends BaseContainerBlockEntity {
     public int totalTicks = 200;
     public int pharmaLimit = 1000;
     public float exp;
+    private float expFactor;
     private double stability, tempStability;
     private int explodeProgress, failedProgress;
     private Set<Holder<Material>> main, off;
     private int pharma;
     private boolean empty;
     private Object2IntMap<Holder<Material>> counter;
-    private Player trigger;
+    private LivingEntity trigger;
 
     public ElixirFurnaceBlockEntity(BlockPos pos, BlockState state) {
         super(Type, pos, state);
@@ -102,6 +104,7 @@ public class ElixirFurnaceBlockEntity extends BaseContainerBlockEntity {
         ContainerHelper.loadAllItems(tag, items, provider);
         temperature = tag.getFloat("temperature");
         exp = tag.getFloat("exp");
+        expFactor = exp / (exp + expGrowthRate);
         pharma = tag.getInt("pharma");
         tempRange = tag.getInt("tempRange");
         progress = tag.getInt("progress");
@@ -157,18 +160,12 @@ public class ElixirFurnaceBlockEntity extends BaseContainerBlockEntity {
                 level.setBlockAndUpdate(pos, state.setValue(ACTIVE, false));
                 return;
             }
-            var exp = Math.max(0f, trigger.getData(ELIXIR_EXP));
-            this.exp = exp;
-            var expFactor = exp / (exp + expGrowthRate);
+            this.exp = Math.max(0f, trigger.getData(ELIXIR_EXP));
             progress++;
             temperature -= 1.5f;
-            pharmaLimit = pharmaLimited;
-            var t = calcTargetTemp(pharma);
-            targetTemp = t;
-            tempRange = (int) Math.clamp(tempRangeBase + (tempRangeMax - tempRangeBase) * expFactor, 6, tempRangeMax);
-            temperature = Math.clamp(temperature, 0, t + tempRange + tempSafeMargin);
-            if (temperature < t) {
-                if (temperature < t - tempRange) {
+            temperature = Math.clamp(temperature, 0, targetTemp + tempRange + tempSafeMargin);
+            if (temperature < targetTemp) {
+                if (temperature < targetTemp - tempRange) {
                     failedProgress++;
                     sl.sendParticles(ParticleTypes.SNOWFLAKE, pos.getX() + 0.5, pos.getY() + 0.8, pos.getZ() + 0.5, 1, 0, 0, 0, 0.1);
                     if (failedProgress >= failedDelayBase + failedDelayGain * expFactor) {
@@ -181,7 +178,7 @@ public class ElixirFurnaceBlockEntity extends BaseContainerBlockEntity {
                 }
                 tempStability -= 2.5;
             } else {
-                if (temperature > t + tempRange) {
+                if (temperature > targetTemp + tempRange) {
                     explodeProgress++;
                     if (explodeProgress % 2 == 0)
                         sl.sendParticles(ParticleTypes.SMOKE, pos.getX() + 0.5, pos.getY() + 0.8, pos.getZ() + 0.5, Math.min(explodeProgress / 2, 50), 0, 0, 0, 0.1);
@@ -190,12 +187,12 @@ public class ElixirFurnaceBlockEntity extends BaseContainerBlockEntity {
                 }
                 tempStability += 2.5;
             }
-            totalTicks = (int) Math.clamp((long) pharma * refineTicks, 200, 1200);
             if (progress >= totalTicks) {
                 started = false;
                 level.setBlockAndUpdate(pos, state.setValue(ACTIVE, false));
                 if (empty) return;
                 process(level, pos);
+                return;
             }
             level.sendBlockUpdated(pos, state, state, Block.UPDATE_CLIENTS);
         }
@@ -208,7 +205,7 @@ public class ElixirFurnaceBlockEntity extends BaseContainerBlockEntity {
         var reg = level.registryAccess().registryOrThrow(ElixirRegistries.MATERIAL);
         var main = new HashSet<Holder<Material>>();
         var off = new HashSet<Holder<Material>>();
-        while (off.isEmpty() || main.isEmpty()) {
+        for (int attempts = 0; (off.isEmpty() || main.isEmpty()) && attempts < 100; attempts++) {
             reg.getRandom(level.random).ifPresent(m -> {
                 if (m.value().main()) main.add(m);
                 else off.add(m);
@@ -218,7 +215,8 @@ public class ElixirFurnaceBlockEntity extends BaseContainerBlockEntity {
         elixir.set(ElixirDataComponents.Elixir, new ElixirComponent(off.iterator().next(), pharma, List.copyOf(main)));
         elixir.set(DataComponents.ITEM_NAME, Component.translatable("item.elixir.failed").withColor(ElixirItem.getColor(elixir.get(ElixirDataComponents.Elixir))));
         items.set(4, elixir);
-        trigger.setData(ELIXIR_EXP, trigger.getData(ELIXIR_EXP) + expFailureGain);
+        if (trigger instanceof Player) trigger.setData(ELIXIR_EXP, trigger.getData(ELIXIR_EXP) + expFailureGain);
+        else trigger.setData(ELIXIR_EXP, trigger.getData(ELIXIR_EXP) + (float) maidExpFailureGain);
         level.playSound(null, worldPosition, SoundEvents.GLASS_BREAK, SoundSource.BLOCKS, 1.0f, 1.0f);
     }
 
@@ -234,7 +232,8 @@ public class ElixirFurnaceBlockEntity extends BaseContainerBlockEntity {
             elixir.set(ElixirDataComponents.Elixir, new ElixirComponent(List.copyOf(off).get(level.random.nextInt(off.size())), ElixirMath.rawPharm(pharma, exp, s), List.copyOf(main)));
             items.set(4, elixir);
             outputRecipe();
-            trigger.setData(ELIXIR_EXP, exp + expSuccessGain);
+            if (trigger instanceof Player) trigger.setData(ELIXIR_EXP, exp + expSuccessGain);
+            else trigger.setData(ELIXIR_EXP, exp + (float) maidExpSuccessGain);
             level.playSound(null, worldPosition, SoundEvents.END_PORTAL_SPAWN, SoundSource.BLOCKS, 1.0f, 1.0f);
             return;
         }
@@ -310,12 +309,10 @@ public class ElixirFurnaceBlockEntity extends BaseContainerBlockEntity {
                 it.set(ElixirDataComponents.MaterialPropertySwitching, true);
             }
             if (m != null) {
-                ms.computeIntIfPresent(it.getItem(), (k, v) -> v + it.getCount());
-                ms.putIfAbsent(it.getItem(), it.getCount());
+                ms.put(it.getItem(), ms.getInt(it.getItem()) + it.getCount());
             }
             if (o != null) {
-                os.computeIntIfPresent(it.getItem(), (k, v) -> v + it.getCount());
-                os.putIfAbsent(it.getItem(), it.getCount());
+                os.put(it.getItem(), os.getInt(it.getItem()) + it.getCount());
             }
         }
         var recipe = items.get(5).get(ElixirDataComponents.AlchemicalFormula);
@@ -326,6 +323,40 @@ public class ElixirFurnaceBlockEntity extends BaseContainerBlockEntity {
         empty = false;
         consume(recipe.main(), it -> !it.getOrDefault(ElixirDataComponents.MaterialPropertySwitching, false), main);
         consume(recipe.off(), it -> it.getOrDefault(ElixirDataComponents.MaterialPropertySwitching, false), off);
+    }
+    public boolean isFormulaSatisfied() {
+        var formula = items.get(5);
+        if (formula.isEmpty() || !formula.has(ElixirDataComponents.AlchemicalFormula)) {
+            return true;
+        }
+        var ms = new Object2IntOpenHashMap<Item>();
+        var os = new Object2IntOpenHashMap<Item>();
+        for (var i = 0; i < 4; i++) {
+            var it = items.get(i);
+            if (it.isEmpty()) continue;
+            var m = ElixirHelper.findMain(it.getItem());
+            var o = ElixirHelper.findOff(it.getItem());
+            if (m != null && o != null) {
+                if (it.has(ElixirDataComponents.MaterialPropertySwitching)) {
+                    if (it.getOrDefault(ElixirDataComponents.MaterialPropertySwitching, false)) m = null;
+                    else o = null;
+                } else {
+                    continue;
+                }
+            }
+            if (m != null) {
+                ms.put(it.getItem(), ms.getInt(it.getItem()) + it.getCount());
+            }
+            if (o != null) {
+                os.put(it.getItem(), os.getInt(it.getItem()) + it.getCount());
+            }
+        }
+        var recipe = formula.get(ElixirDataComponents.AlchemicalFormula);
+        assert recipe != null;
+        if (ms.size() < recipe.main().size() || os.size() < recipe.off().size()) {
+            return false;
+        }
+        return !check(recipe.main(), ms) && !check(recipe.off(), os);
     }
 
     private void consume(List<AlchemicalFormulaComponent.Content> cs, Predicate<ItemStack> addition, Set<Holder<Material>> ms) {
@@ -353,15 +384,17 @@ public class ElixirFurnaceBlockEntity extends BaseContainerBlockEntity {
         return false;
     }
 
-    public boolean start(Level level, Player player) {
+    public boolean start(Level level, LivingEntity entity) {
         if (started) return true;
         if (!items.get(4).isEmpty()) return false;
         stability = tempStability = 0;
         progress = failedProgress = explodeProgress = 0;
-        trigger = player;
+        trigger = entity;
         exp = trigger.getData(ELIXIR_EXP);
         if (!items.get(5).has(ElixirDataComponents.AlchemicalFormula)) startWithoutRecipe(level);
         else startWithRecipe(level);
+        expFactor = exp / (exp + expGrowthRate);
+        tempRange = (int) Math.clamp(tempRangeBase + (tempRangeMax - tempRangeBase) * expFactor, 6, tempRangeMax);
         targetTemp = calcTargetTemp(pharma);
         totalTicks = Math.clamp((long) pharma * refineTicks, 200, 1200);
         pharmaLimit = pharmaLimited;
@@ -379,14 +412,17 @@ public class ElixirFurnaceBlockEntity extends BaseContainerBlockEntity {
             set.add(m);
             pharma += m.value().pharm() * it.getCount();
             stability += m.value().stability() * it.getCount() - it.getCount() * (it.getCount() * stabilityLossRate);
-            counter.computeIntIfPresent(m, (k, v) -> v + it.getCount());
-            counter.putIfAbsent(m, it.getCount());
+            counter.put(m, counter.getInt(m) + it.getCount());
             it.setCount(0);
         }
     }
 
     public boolean started() {
         return started;
+    }
+
+    public boolean isPlayerTriggered() {
+        return trigger instanceof Player;
     }
 
     public int pharma() {

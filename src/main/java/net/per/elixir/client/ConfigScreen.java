@@ -130,6 +130,25 @@ public class ConfigScreen {
                 .setTooltip(Component.translatable("config.elixir.option.failed_delay_gain.tooltip"))
                 .setSaveConsumer(v -> failedDelayGain = v)
                 .build());
+        exp.addEntry(entryBuilder.startDoubleField(Component.translatable("config.elixir.option.maid_exp_success_gain"), maidExpSuccessGain)
+                .setDefaultValue(0.1)
+                .setMin(0)
+                .setTooltip(Component.translatable("config.elixir.option.maid_exp_success_gain.tooltip"))
+                .setSaveConsumer(v -> maidExpSuccessGain = v)
+                .build());
+        exp.addEntry(entryBuilder.startDoubleField(Component.translatable("config.elixir.option.maid_exp_failure_gain"), maidExpFailureGain)
+                .setDefaultValue(0.1)
+                .setMin(0)
+                .setTooltip(Component.translatable("config.elixir.option.maid_exp_failure_gain.tooltip"))
+                .setSaveConsumer(v -> maidExpFailureGain = v)
+                .build());
+        exp.addEntry(entryBuilder.startDoubleField(Component.translatable("config.elixir.option.maid_negligence_chance"), maidNegligenceChance)
+                .setDefaultValue(0.25)
+                .setMin(0)
+                .setMax(1)
+                .setTooltip(Component.translatable("config.elixir.option.maid_negligence_chance.tooltip"))
+                .setSaveConsumer(v -> maidNegligenceChance = v)
+                .build());
         builder.setSavingRunnable(ElixirConfig::save);
         return builder.build();
     }
