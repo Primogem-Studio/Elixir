@@ -4,6 +4,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.ChatScreen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -13,12 +14,15 @@ import net.minecraft.world.phys.HitResult;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.event.RenderGuiEvent;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.client.event.RenderGuiLayerEvent;
+import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 import net.per.elixir.ElixirConfig;
 import net.per.elixir.block.entity.ElixirFurnaceBlockEntity;
 import net.per.elixir.item.HandheldFanItem;
 import net.per.elixir.registry.ElixirBlocks;
 import net.per.elixir.util.ElixirMath;
+import org.lwjgl.glfw.GLFW;
 
 import java.util.Comparator;
 
@@ -50,14 +54,21 @@ public class ElixirFurnaceHud {
 
     @SubscribeEvent
     @SuppressWarnings("resource")
-    private static void onRenderGui(RenderGuiEvent.Post event) {
+    private static void onRenderGui(RenderGuiLayerEvent.Pre event) {
+        if (!isHudActive(Minecraft.getInstance())) return;
+        if (event.getName().equals(VanillaGuiLayers.CROSSHAIR)) {
+            event.setCanceled(true);
+        } else if (event.getName().equals(VanillaGuiLayers.CHAT)) {
+            renderHud(event.getGuiGraphics());
+        }
+    }
+
+    @SuppressWarnings("resource")
+    private static void renderHud(GuiGraphics g) {
         var mc = Minecraft.getInstance();
+        if (!isHudActive(mc)) return;
         var player = mc.player;
-        if (player == null) return;
-        if (!(player.getMainHandItem().getItem() instanceof HandheldFanItem)
-                && !(player.getOffhandItem().getItem() instanceof HandheldFanItem)) return;
         var hit = player.pick(8.0, 1.0f, false);
-        if (hit.getType() != HitResult.Type.BLOCK) return;
         if (!(player.level().getBlockEntity(((BlockHitResult) hit).getBlockPos()) instanceof ElixirFurnaceBlockEntity furnace)) return;
         var now = System.nanoTime();
         float dt;
@@ -68,7 +79,6 @@ public class ElixirFurnaceHud {
             dt = (now - smoothNanos) / 1e9f;
         }
         smoothNanos = now;
-        var g = event.getGuiGraphics();
         var pose = g.pose();
         pose.pushPose();
         var hudScale = Math.clamp((float) ElixirConfig.hudScale, 1f, 4f);
@@ -174,6 +184,24 @@ public class ElixirFurnaceHud {
             }
         }
         pose.popPose();
+    }
+
+    private static boolean isHudActive(Minecraft mc) {
+        var player = mc.player;
+        if (player == null) return false;
+        if (!(player.getMainHandItem().getItem() instanceof HandheldFanItem)
+                && !(player.getOffhandItem().getItem() instanceof HandheldFanItem)) return false;
+        var hit = player.pick(8.0, 1.0f, false);
+        if (hit.getType() != HitResult.Type.BLOCK) return false;
+        return player.level().getBlockEntity(((BlockHitResult) hit).getBlockPos()) instanceof ElixirFurnaceBlockEntity;
+    }
+
+    @SubscribeEvent
+    private static void onClientTick(ClientTickEvent.Post event) {
+        var mc = Minecraft.getInstance();
+        if (mc.player != null && isHudActive(mc) && mc.screen instanceof ChatScreen) {
+            GLFW.glfwSetInputMode(mc.getWindow().getWindow(), GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_HIDDEN);
+        }
     }
 
     private static float spring(float dt, float[] state, float target) {
