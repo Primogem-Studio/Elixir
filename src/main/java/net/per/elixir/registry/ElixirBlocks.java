@@ -15,8 +15,11 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredRegister;
+import net.per.elixir.ElixirConfig;
 import net.per.elixir.block.AlchemicalVesselBlock;
 import net.per.elixir.block.ElixirFurnaceBlock;
+import net.per.elixir.block.ElixirFurnaceBrickBlock;
+import net.per.elixir.block.ElixirFurnaceCoreBlock;
 
 import java.util.List;
 
@@ -26,13 +29,8 @@ public class ElixirBlocks {
     public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(MOD_ID);
     public static final DeferredBlock<ElixirFurnaceBlock> elixir_furnace = BLOCKS.register("elixir_furnace", ElixirFurnaceBlock::new);
     public static final DeferredBlock<AlchemicalVesselBlock> alchemical_vessel = BLOCKS.register("alchemical_vessel", AlchemicalVesselBlock::new);
-    public static final DeferredBlock<Block> elixir_furnace_brick = BLOCKS.register("elixir_furnace_brick", () -> new Block(BlockBehaviour.Properties.of().strength(2f, 2.0f).requiresCorrectToolForDrops().sound(SoundType.STONE)) {
-        @Override
-        public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
-            tooltipComponents.add(Component.translatable("item.elixir.elixir_furnace_brick.usage.1"));
-            tooltipComponents.add(Component.translatable("item.elixir.elixir_furnace_brick.usage.2"));
-        }
-    });
+    public static final DeferredBlock<ElixirFurnaceBrickBlock> elixir_furnace_brick = BLOCKS.register("elixir_furnace_brick", () -> new ElixirFurnaceBrickBlock(BlockBehaviour.Properties.of().strength(2f, 2.0f).requiresCorrectToolForDrops().sound(SoundType.STONE).noOcclusion().lightLevel(state -> state.getValue(ElixirFurnaceBrickBlock.LIT) ? ElixirConfig.multifurnaceLightLevel : 0)));
+    public static final DeferredBlock<ElixirFurnaceCoreBlock> elixir_furnace_core = BLOCKS.register("elixir_furnace_core", () -> new ElixirFurnaceCoreBlock());
     public static final DeferredBlock<Block> elixir_furnace_cover = BLOCKS.register("elixir_furnace_cover", () -> new Block(BlockBehaviour.Properties.of()) {
         private static final VoxelShape SHAPE = Shapes.box(0.2, -0.2, 0.2, 0.8, 0.5, 0.8);
 

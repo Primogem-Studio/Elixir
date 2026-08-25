@@ -1,5 +1,6 @@
 package net.per.elixir.event;
 
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.packs.repository.FolderRepositorySource;
 import net.minecraft.server.packs.repository.PackSource;
 import net.minecraft.world.level.validation.DirectoryValidator;
@@ -11,6 +12,7 @@ import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.per.elixir.item.ElixirItem;
+import net.per.elixir.network.ElixirNetwork;
 import net.per.elixir.util.ElixirHelper;
 
 import java.nio.file.Path;
@@ -23,6 +25,13 @@ public class CommonEvent {
     @SubscribeEvent
     private static void onPlayerClone(PlayerEvent.Clone event) {
         event.getEntity().setData(ELIXIR_EXP, event.getOriginal().getData(ELIXIR_EXP));
+    }
+
+    @SubscribeEvent
+    private static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
+        if (event.getEntity() instanceof ServerPlayer sp) {
+            ElixirNetwork.syncFurnaceConfigTo(sp);
+        }
     }
 
     @SubscribeEvent

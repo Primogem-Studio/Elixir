@@ -18,10 +18,10 @@ import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.RenderGuiLayerEvent;
 import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 import net.per.elixir.ElixirConfig;
-import net.per.elixir.block.entity.ElixirFurnaceBlockEntity;
+import net.per.elixir.data.IFurnaceView;
 import net.per.elixir.item.HandheldFanItem;
-import net.per.elixir.registry.ElixirBlocks;
 import net.per.elixir.util.ElixirMath;
+import net.per.elixir.util.MultiFurnaceStructure;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.Comparator;
@@ -69,12 +69,21 @@ public class ElixirFurnaceHud {
         if (!isHudActive(mc)) return;
         var player = mc.player;
         var hit = player.pick(8.0, 1.0f, false);
-        if (!(player.level().getBlockEntity(((BlockHitResult) hit).getBlockPos()) instanceof ElixirFurnaceBlockEntity furnace)) return;
+        var level = player.level();
+        var hitPos = ((BlockHitResult) hit).getBlockPos();
+        var be = level.getBlockEntity(hitPos);
+        IFurnaceView furnace = null;
+        if (be instanceof IFurnaceView v) furnace = v;
+        else {
+            var core = MultiFurnaceStructure.findCore(level, hitPos);
+            if (core != null && level.getBlockEntity(core) instanceof IFurnaceView v) furnace = v;
+        }
+        if (furnace == null) return;
         var now = System.nanoTime();
         float dt;
-        if (smoothPos == null || !smoothPos.equals(furnace.getBlockPos())) {
+        if (smoothPos == null || !smoothPos.equals(furnace.blockPos())) {
             dt = -1f;
-            smoothPos = furnace.getBlockPos().immutable();
+            smoothPos = furnace.blockPos().immutable();
         } else {
             dt = (now - smoothNanos) / 1e9f;
         }
@@ -92,12 +101,12 @@ public class ElixirFurnaceHud {
         var left = g.guiWidth() / 2 - pw / 2;
         var top = g.guiHeight() / 2 - ph / 2;
         var right = left + pw;
-        var t = furnace.targetTemp;
-        var range = furnace.tempRange > 0 ? furnace.tempRange : ElixirConfig.EXTREME_TEMP_RANGE_FALLBACK;
+        var t = furnace.targetTemp();
+        var range = furnace.tempRange() > 0 ? furnace.tempRange() : ElixirConfig.EXTREME_TEMP_RANGE_FALLBACK;
         var explode = t + range;
         var low = Mth.clamp(t - range, 0, 500);
         var upperTemp = Math.max(1, explode + ElixirConfig.tempSafeMargin);
-        var temp = spring(dt, tempState, Mth.clamp(furnace.temperature, 0, upperTemp));
+        var temp = spring(dt, tempState, Mth.clamp(furnace.temperature(), 0, upperTemp));
         var scale = ph / upperTemp;
         var ey = top + (int) ((upperTemp - explode) * scale);
         var ly = top + (int) ((upperTemp - low) * scale);
@@ -133,55 +142,52 @@ public class ElixirFurnaceHud {
         drawSmall(g, font, Math.round(low) + "℃", right + 4, lowLabelY, COLOR_BLUE);
         drawSmall(g, font, Math.round(temp) + "℃", right + 4, tempLabelY, COLOR_YELLOW);
         if (furnace.started()) {
-            var level = furnace.getLevel();
-            if (level != null) {
-                var barW = STABILITY_BAR.w();
-                var barH = STABILITY_BAR.h();
-                var barLeft = left - barW - 10;
-                var barTop = top + (ph - barH) / 2;
-                var rawS = (ElixirFurnaceBlockEntity.calcStability(level, furnace.getBlockPos()) + furnace.stability())
-                        * (1 + furnace.tempStability() / (Math.abs(furnace.tempStability()) + 50));
-                var s = spring(dt, stabilityState, (float) rawS);
-                var lim = Math.max(1, furnace.pharmaLimit);
-                var covered = level.getBlockState(furnace.getBlockPos().above()).is(ElixirBlocks.elixir_furnace_cover);
-                var threshold = covered ? -lim : -lim * 2f;
-                var offs = furnace.offs();
-                var offMat = offs == null || offs.isEmpty() ? null
-                        : offs.stream().min(Comparator.comparing(o -> o.unwrapKey().map(k -> k.location().toString()).orElse(""))).orElseThrow();
-                var pharmZero = offMat == null
-                        ? covered ? -(100 + furnace.exp) : -2 * (100 + furnace.exp)
-                        : ElixirMath.findPharmZero(offMat, Math.max(1, furnace.pharma()), furnace.exp, threshold - lim * 3f - 100f, threshold + lim * 3f + 100f, covered);
-                var minS = Math.min(threshold - lim * 1.5f, pharmZero - lim * 0.5f);
-                var maxS = Math.max(threshold + lim * 1.5f, pharmZero + lim * 0.5f);
-                var ok = rawS > threshold;
-                var ratio = Mth.clamp((float) ((s - minS) / (maxS - minS)), 0, 1);
-                var syf = Mth.clamp(barTop + barH * (1 - ratio), barTop + 2f, barTop + barH - 5f);
-                var sy = Mth.floor(syf);
-                var syFrac = syf - sy;
-                var thY = Mth.clamp(barTop + (int) (barH * (1 - (threshold - minS) / (maxS - minS))), barTop + 1, barTop + barH - 1);
-                blitSprite(g, STABILITY_BAR, barLeft, barTop);
-                blitScaled(g, barLeft + 1, thY, 10, 1);
-                blitScaledTinted(g, barLeft + 5, thY, 2, 1, COLOR_RED);
-                var pzRatio = Mth.clamp((float) ((pharmZero - minS) / (maxS - minS)), 0, 1);
-                var pzY = Mth.clamp(barTop + (int) (barH * (1 - pzRatio)), barTop + 1, barTop + barH - 1);
-                blitScaled(g, barLeft + 1, pzY, 10, 1);
-                blitScaledTinted(g, barLeft + 5, pzY, 2, 1, COLOR_YELLOW);
-                var sColor = ok ? COLOR_GREEN : COLOR_RED;
-                pose.pushPose();
-                pose.translate(0, syFrac, 0);
-                blitScaledTinted(g, barLeft + 1, sy + 1, 7, 1, sColor);
-                blitMarker(g, barLeft + 8, sy - 1, sColor);
-                pose.popPose();
-                var stateText = ok ? Component.translatable("hud.elixir.stable") : Component.translatable("hud.elixir.unstable");
-                drawSmall(g, font, stateText, barLeft + barW - font.width(stateText) / 2, barTop + barH + 2, ok ? COLOR_GREEN : COLOR_RED);
-                var barY = top + ph + 6;
-                var totalTicks = furnace.totalTicks;
-                var fill = Mth.clamp((float) furnace.progress() / Math.max(1, totalTicks), 0, 1);
-                blitSprite(g, TIME_BAR, left, barY);
-                blitScaledTinted(g, left + 1, barY + 1, (int) (fill * (pw - 2)), 2, COLOR_GREEN);
-                var timeText = String.format("%.1f", Math.max(0, totalTicks - furnace.progress()) / 20f) + "s";
-                g.drawString(font, timeText, left - font.width(timeText) - 4, barY - 2, 0xffe0e0e0, true);
-            }
+            var barW = STABILITY_BAR.w();
+            var barH = STABILITY_BAR.h();
+            var barLeft = left - barW - 10;
+            var barTop = top + (ph - barH) / 2;
+            var rawS = (furnace.stabilityBonus(level) + furnace.stability())
+                    * (1 + furnace.tempStability() / (Math.abs(furnace.tempStability()) + 50));
+            var s = spring(dt, stabilityState, (float) rawS);
+            var lim = Math.max(1, furnace.pharmaLimit());
+            var covered = furnace.isCovered(level);
+            var threshold = covered ? -lim : -lim * 2f;
+            var offs = furnace.offs();
+            var offMat = offs == null || offs.isEmpty() ? null
+                    : offs.stream().min(Comparator.comparing(o -> o.unwrapKey().map(k -> k.location().toString()).orElse(""))).orElseThrow();
+            var pharmZero = offMat == null
+                    ? covered ? -(100 + furnace.exp()) : -2 * (100 + furnace.exp())
+                    : ElixirMath.findPharmZero(offMat, Math.max(1, furnace.pharma()), furnace.exp(), threshold - lim * 3f - 100f, threshold + lim * 3f + 100f, covered);
+            var minS = Math.min(threshold - lim * 1.5f, pharmZero - lim * 0.5f);
+            var maxS = Math.max(threshold + lim * 1.5f, pharmZero + lim * 0.5f);
+            var ok = rawS > threshold;
+            var ratio = Mth.clamp((float) ((s - minS) / (maxS - minS)), 0, 1);
+            var syf = Mth.clamp(barTop + barH * (1 - ratio), barTop + 2f, barTop + barH - 5f);
+            var sy = Mth.floor(syf);
+            var syFrac = syf - sy;
+            var thY = Mth.clamp(barTop + (int) (barH * (1 - (threshold - minS) / (maxS - minS))), barTop + 1, barTop + barH - 1);
+            blitSprite(g, STABILITY_BAR, barLeft, barTop);
+            blitScaled(g, barLeft + 1, thY, 10, 1);
+            blitScaledTinted(g, barLeft + 5, thY, 2, 1, COLOR_RED);
+            var pzRatio = Mth.clamp((float) ((pharmZero - minS) / (maxS - minS)), 0, 1);
+            var pzY = Mth.clamp(barTop + (int) (barH * (1 - pzRatio)), barTop + 1, barTop + barH - 1);
+            blitScaled(g, barLeft + 1, pzY, 10, 1);
+            blitScaledTinted(g, barLeft + 5, pzY, 2, 1, COLOR_YELLOW);
+            var sColor = ok ? COLOR_GREEN : COLOR_RED;
+            pose.pushPose();
+            pose.translate(0, syFrac, 0);
+            blitScaledTinted(g, barLeft + 1, sy + 1, 7, 1, sColor);
+            blitMarker(g, barLeft + 8, sy - 1, sColor);
+            pose.popPose();
+            var stateText = ok ? Component.translatable("hud.elixir.stable") : Component.translatable("hud.elixir.unstable");
+            drawSmall(g, font, stateText, barLeft + barW - font.width(stateText) / 2, barTop + barH + 2, ok ? COLOR_GREEN : COLOR_RED);
+            var barY = top + ph + 6;
+            var totalTicks = furnace.totalTicks();
+            var fill = Mth.clamp((float) furnace.progress() / Math.max(1, totalTicks), 0, 1);
+            blitSprite(g, TIME_BAR, left, barY);
+            blitScaledTinted(g, left + 1, barY + 1, (int) (fill * (pw - 2)), 2, COLOR_GREEN);
+            var timeText = String.format("%.1f", Math.max(0, totalTicks - furnace.progress()) / 20f) + "s";
+            g.drawString(font, timeText, left - font.width(timeText) - 4, barY - 2, 0xffe0e0e0, true);
         }
         pose.popPose();
     }
@@ -193,7 +199,10 @@ public class ElixirFurnaceHud {
                 && !(player.getOffhandItem().getItem() instanceof HandheldFanItem)) return false;
         var hit = player.pick(8.0, 1.0f, false);
         if (hit.getType() != HitResult.Type.BLOCK) return false;
-        return player.level().getBlockEntity(((BlockHitResult) hit).getBlockPos()) instanceof ElixirFurnaceBlockEntity;
+        var pos = ((BlockHitResult) hit).getBlockPos();
+        var be = player.level().getBlockEntity(pos);
+        if (be instanceof IFurnaceView) return true;
+        return MultiFurnaceStructure.findCore(player.level(), pos) != null;
     }
 
     @SubscribeEvent

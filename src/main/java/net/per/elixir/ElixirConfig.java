@@ -37,6 +37,15 @@ public class ElixirConfig {
     public static double maidExpSuccessGain;
     public static double maidExpFailureGain;
     public static double maidNegligenceChance;
+    public static double multifurnaceCoolBase;
+    public static double multifurnaceCoolFactor;
+    public static int multifurnaceStabilityPenalty;
+    public static int multifurnacePharmaGain;
+    public static int maxFurnaceSize;
+    public static int multifurnaceSlotsBase;
+    public static int multifurnaceSlotsGain;
+    public static int multifurnaceSlotsCap;
+    public static int multifurnaceLightLevel;
 
     public static void save() {
         var map = new HashMap<String, Object>();
@@ -64,6 +73,15 @@ public class ElixirConfig {
         map.put("maid_exp_success_gain", maidExpSuccessGain);
         map.put("maid_exp_failure_gain", maidExpFailureGain);
         map.put("maid_negligence_chance", maidNegligenceChance);
+        map.put("multifurnace_cool_base", multifurnaceCoolBase);
+        map.put("multifurnace_cool_factor", multifurnaceCoolFactor);
+        map.put("multifurnace_stability_penalty", multifurnaceStabilityPenalty);
+        map.put("multifurnace_pharma_gain", multifurnacePharmaGain);
+        map.put("max_furnace_size", maxFurnaceSize);
+        map.put("multifurnace_slots_base", multifurnaceSlotsBase);
+        map.put("multifurnace_slots_gain", multifurnaceSlotsGain);
+        map.put("multifurnace_slots_cap", multifurnaceSlotsCap);
+        map.put("multifurnace_light_level", multifurnaceLightLevel);
         new TomlWriter().write(Config.of(() -> map, InMemoryFormat.defaultInstance()).unmodifiable(), CONFIG_PATH, WritingMode.REPLACE);
     }
 
@@ -93,5 +111,15 @@ public class ElixirConfig {
         maidExpSuccessGain = Math.max(0, c.getOrElse("maid_exp_success_gain", 0.1));
         maidExpFailureGain = Math.max(0, c.getOrElse("maid_exp_failure_gain", 0.1));
         maidNegligenceChance = Math.clamp(c.getOrElse("maid_negligence_chance", 0.25), 0.0, 1.0);
+        multifurnaceCoolBase = Math.max(0, c.getOrElse("multifurnace_cool_base", 1.5));
+        multifurnaceCoolFactor = Math.max(1.0, c.getOrElse("multifurnace_cool_factor", 1.6));
+        multifurnaceStabilityPenalty = Math.max(0, c.getOrElse("multifurnace_stability_penalty", 40));
+        multifurnacePharmaGain = Math.max(0, c.getOrElse("multifurnace_pharma_gain", 500));
+        maxFurnaceSize = Math.clamp(c.getOrElse("max_furnace_size", 7), 3, 31);
+        multifurnaceSlotsBase = Math.max(1, c.getOrElse("multifurnace_slots_base", 6));
+        multifurnaceSlotsGain = Math.max(1, c.getOrElse("multifurnace_slots_gain", 3));
+        multifurnaceSlotsCap = Math.max(multifurnaceSlotsBase, c.getOrElse("multifurnace_slots_cap", 128));
+        multifurnaceLightLevel = Math.clamp(c.getOrElse("multifurnace_light_level", 15), 0, 15);
+        save();
     }
 }

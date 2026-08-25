@@ -112,7 +112,6 @@ public class ElixirItem extends Item {
         var com = stack.get(ElixirDataComponents.Elixir);
         if (com != null) {
             list.add(Component.translatable("item.elixir.pharma").append(Component.translatable("item.elixir.pharma.level." + getLevel(com)).withColor(getColor(com))));
-//            list.add(Component.nullToEmpty(String.valueOf(getPharma(com))));
         }
     }
 

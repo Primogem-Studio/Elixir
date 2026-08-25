@@ -1,7 +1,16 @@
 {
   "variants": {
-    "": {
+    "formed=false,lit=false": {
       "model": "elixir:block/elixir_furnace_brick"
+    },
+    "formed=false,lit=true": {
+      "model": "elixir:block/elixir_furnace_brick"
+    },
+    "formed=true,lit=false": {
+      "model": "elixir:block/empty"
+    },
+    "formed=true,lit=true": {
+      "model": "elixir:block/empty"
     }
   }
 }

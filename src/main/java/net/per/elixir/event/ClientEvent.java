@@ -13,14 +13,18 @@ import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.*;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
+import net.per.elixir.block.entity.LargeFurnaceBlockEntity;
 import net.per.elixir.client.ConfigScreen;
 import net.per.elixir.client.ElixirFurnaceScreen;
+import net.per.elixir.client.LargeFurnaceScreen;
 import net.per.elixir.data.ElixirFurnaceMenu;
+import net.per.elixir.data.LargeFurnaceMenu;
 import net.per.elixir.registry.ElixirBlocks;
 import net.per.elixir.registry.ElixirDataComponents;
 import net.per.elixir.registry.ElixirEntityTypes;
 import net.per.elixir.registry.ElixirItems;
 import net.per.elixir.registry.data.Material;
+import net.per.elixir.render.entity.block.LargeFurnaceRenderer;
 import net.per.elixir.render.tooltip.AlchemicalFormulaTooltip;
 import net.per.elixir.util.ElixirHelper;
 
@@ -42,6 +46,7 @@ public class ClientEvent {
     @SubscribeEvent
     private static void onRegisterRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerEntityRenderer(ElixirEntityTypes.elixir.get(), ThrownItemRenderer::new);
+        event.registerBlockEntityRenderer(LargeFurnaceBlockEntity.Type, LargeFurnaceRenderer::new);
     }
 
     @SubscribeEvent
@@ -183,5 +188,6 @@ public class ClientEvent {
     @SubscribeEvent
     private static void onRegisterMenuScreens(RegisterMenuScreensEvent event) {
         event.register(ElixirFurnaceMenu.Type, ElixirFurnaceScreen::new);
+        event.register(LargeFurnaceMenu.Type, LargeFurnaceScreen::new);
     }
 }
