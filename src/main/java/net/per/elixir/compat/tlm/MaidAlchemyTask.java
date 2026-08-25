@@ -13,6 +13,7 @@ import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.WalkTarget;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.items.ItemHandlerHelper;
 import net.per.elixir.block.ElixirFurnaceBlock;
@@ -23,6 +24,9 @@ import net.per.elixir.registry.ElixirDataComponents;
 import net.per.elixir.registry.ElixirItems;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static net.per.elixir.ElixirConfig.maidNegligenceChance;
 
 public class MaidAlchemyTask extends Behavior<EntityMaid> {
@@ -30,6 +34,8 @@ public class MaidAlchemyTask extends Behavior<EntityMaid> {
     private static final int VERIFY_INTERVAL = 40;
     private static final int ACTION_INTERVAL = 10;
     private static final double REACH_DISTANCE = 2.0;
+    private static final double OCCUPY_DIST = 3.0;
+    private static final double MAID_SCAN_INFLATE = 4.0;
     private static final int MIN_SEARCH_RADIUS = 4;
     private static final int MAX_STAND_DIST = 1;
     private static final int STAND_RETRY_INTERVAL = 20;
@@ -121,6 +127,10 @@ public class MaidAlchemyTask extends Behavior<EntityMaid> {
             if (!(level.getBlockEntity(this.furnacePos) instanceof ElixirFurnaceBlockEntity)
                     || (maid.hasRestriction() && !maid.isWithinRestriction(this.furnacePos))) {
                 clearTarget(maid);
+                return;
+            }
+            if (isOccupiedByNearbyMaid(level, maid, this.furnacePos)) {
+                forgetFurnace(maid);
                 return;
             }
         }
@@ -332,6 +342,14 @@ public class MaidAlchemyTask extends Behavior<EntityMaid> {
     private BlockPos findFurnace(ServerLevel level, EntityMaid maid) {
         BlockPos center = maid.blockPosition();
         int radius = Math.max((int) (maid.getRestrictRadius() / 2), MIN_SEARCH_RADIUS);
+        List<EntityMaid> otherMaids = level.getEntitiesOfClass(EntityMaid.class,
+                new AABB(center).inflate(radius + MAID_SCAN_INFLATE),
+                m -> m != maid && m.getMainHandItem().is(ElixirItems.handheld_fan.get()));
+        List<BlockPos> otherTargets = new ArrayList<>();
+        for (EntityMaid other : otherMaids) {
+            other.getBrain().getMemory(MemoryModuleType.WALK_TARGET)
+                    .ifPresent(wt -> otherTargets.add(wt.getTarget().currentBlockPosition()));
+        }
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
         BlockPos best = null;
         int bestScore = 0;
@@ -354,6 +372,9 @@ public class MaidAlchemyTask extends Behavior<EntityMaid> {
                         if (score <= 0) {
                             continue;
                         }
+                        if (isOccupiedByOtherMaid(pos, otherTargets)) {
+                            continue;
+                        }
                         double d = pos.distToCenterSqr(maid.getX(), maid.getY(), maid.getZ());
                         if (score > bestScore || (score == bestScore && d < bestDistSqr)) {
                             bestScore = score;
@@ -365,6 +386,30 @@ public class MaidAlchemyTask extends Behavior<EntityMaid> {
             }
         }
         return best;
+    }
+
+    private boolean isOccupiedByOtherMaid(BlockPos furnacePos, List<BlockPos> otherTargets) {
+        for (BlockPos target : otherTargets) {
+            if (target.closerThan(furnacePos, OCCUPY_DIST)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isOccupiedByNearbyMaid(ServerLevel level, EntityMaid maid, BlockPos furnacePos) {
+        List<EntityMaid> near = level.getEntitiesOfClass(EntityMaid.class,
+                new AABB(furnacePos).inflate(OCCUPY_DIST),
+                m -> m != maid && m.getMainHandItem().is(ElixirItems.handheld_fan.get()));
+        for (EntityMaid other : near) {
+            if (other.blockPosition().closerThan(furnacePos, OCCUPY_DIST)
+                    && other.getBrain().getMemory(MemoryModuleType.WALK_TARGET)
+                    .map(wt -> wt.getTarget().currentBlockPosition().closerThan(furnacePos, OCCUPY_DIST))
+                    .orElse(false)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Nullable

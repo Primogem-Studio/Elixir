@@ -45,7 +45,7 @@ public class AlchemyMaidTask implements IMaidTask {
 
     @Override
     public boolean enableLookAndRandomWalk(EntityMaid maid) {
-        return false;
+        return true;
     }
 
     @Override
