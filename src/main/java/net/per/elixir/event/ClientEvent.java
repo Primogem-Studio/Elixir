@@ -13,6 +13,7 @@ import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.*;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
+import net.per.elixir.ElixirConfig;
 import net.per.elixir.block.entity.LargeFurnaceBlockEntity;
 import net.per.elixir.client.ConfigScreen;
 import net.per.elixir.client.ElixirFurnaceScreen;
@@ -41,6 +42,11 @@ public class ClientEvent {
         var container = ModList.get().getModContainerById(MOD_ID).orElseThrow();
         if (ModList.get().isLoaded("cloth_config"))
             container.registerExtensionPoint(IConfigScreenFactory.class, ConfigScreen::create);
+    }
+
+    @SubscribeEvent
+    private static void onLoggingOut(ClientPlayerNetworkEvent.LoggingOut event) {
+        ElixirConfig.restoreLocal();
     }
 
     @SubscribeEvent

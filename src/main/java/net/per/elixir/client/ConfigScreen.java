@@ -150,38 +150,40 @@ public class ConfigScreen {
                 .setSaveConsumer(v -> maidNegligenceChance = v)
                 .build());
         var multi = builder.getOrCreateCategory(Component.translatable("config.elixir.category.multifurnace"));
-        multi.addEntry(entryBuilder.startIntField(Component.translatable("config.elixir.option.max_furnace_size"), maxFurnaceSize)
-                .setDefaultValue(7)
-                .setMin(3)
-                .setMax(31)
-                .setTooltip(Component.translatable("config.elixir.option.max_furnace_size.tooltip"))
-                .setSaveConsumer(v -> maxFurnaceSize = v)
-                .build());
-        multi.addEntry(entryBuilder.startIntField(Component.translatable("config.elixir.option.multifurnace_slots_base"), multifurnaceSlotsBase)
-                .setDefaultValue(6)
-                .setMin(1)
-                .setTooltip(Component.translatable("config.elixir.option.multifurnace_slots_base.tooltip"))
-                .setSaveConsumer(v -> multifurnaceSlotsBase = v)
-                .build());
-        multi.addEntry(entryBuilder.startIntField(Component.translatable("config.elixir.option.multifurnace_slots_gain"), multifurnaceSlotsGain)
-                .setDefaultValue(3)
-                .setMin(1)
-                .setTooltip(Component.translatable("config.elixir.option.multifurnace_slots_gain.tooltip"))
-                .setSaveConsumer(v -> multifurnaceSlotsGain = v)
-                .build());
-        multi.addEntry(entryBuilder.startIntField(Component.translatable("config.elixir.option.multifurnace_slots_cap"), multifurnaceSlotsCap)
-                .setDefaultValue(128)
-                .setMin(6)
-                .setTooltip(Component.translatable("config.elixir.option.multifurnace_slots_cap.tooltip"))
-                .setSaveConsumer(v -> multifurnaceSlotsCap = v)
-                .build());
-        multi.addEntry(entryBuilder.startIntField(Component.translatable("config.elixir.option.multifurnace_light_level"), multifurnaceLightLevel)
-                .setDefaultValue(15)
-                .setMin(0)
-                .setMax(15)
-                .setTooltip(Component.translatable("config.elixir.option.multifurnace_light_level.tooltip"))
-                .setSaveConsumer(v -> multifurnaceLightLevel = v)
-                .build());
+        if (!ElixirConfig.serverSynced) {
+            multi.addEntry(entryBuilder.startIntField(Component.translatable("config.elixir.option.max_furnace_size"), maxFurnaceSize)
+                    .setDefaultValue(7)
+                    .setMin(3)
+                    .setMax(31)
+                    .setTooltip(Component.translatable("config.elixir.option.max_furnace_size.tooltip"))
+                    .setSaveConsumer(v -> maxFurnaceSize = v)
+                    .build());
+            multi.addEntry(entryBuilder.startIntField(Component.translatable("config.elixir.option.multifurnace_slots_base"), multifurnaceSlotsBase)
+                    .setDefaultValue(6)
+                    .setMin(1)
+                    .setTooltip(Component.translatable("config.elixir.option.multifurnace_slots_base.tooltip"))
+                    .setSaveConsumer(v -> multifurnaceSlotsBase = v)
+                    .build());
+            multi.addEntry(entryBuilder.startIntField(Component.translatable("config.elixir.option.multifurnace_slots_gain"), multifurnaceSlotsGain)
+                    .setDefaultValue(3)
+                    .setMin(1)
+                    .setTooltip(Component.translatable("config.elixir.option.multifurnace_slots_gain.tooltip"))
+                    .setSaveConsumer(v -> multifurnaceSlotsGain = v)
+                    .build());
+            multi.addEntry(entryBuilder.startIntField(Component.translatable("config.elixir.option.multifurnace_slots_cap"), multifurnaceSlotsCap)
+                    .setDefaultValue(128)
+                    .setMin(6)
+                    .setTooltip(Component.translatable("config.elixir.option.multifurnace_slots_cap.tooltip"))
+                    .setSaveConsumer(v -> multifurnaceSlotsCap = v)
+                    .build());
+            multi.addEntry(entryBuilder.startIntField(Component.translatable("config.elixir.option.multifurnace_light_level"), multifurnaceLightLevel)
+                    .setDefaultValue(15)
+                    .setMin(0)
+                    .setMax(15)
+                    .setTooltip(Component.translatable("config.elixir.option.multifurnace_light_level.tooltip"))
+                    .setSaveConsumer(v -> multifurnaceLightLevel = v)
+                    .build());
+        }
         builder.setSavingRunnable(ElixirConfig::save);
         return builder.build();
     }

@@ -18,6 +18,7 @@ public class ElixirNetwork {
     }
 
     public static void syncFurnaceConfigTo(ServerPlayer player) {
+        if (!player.server.isDedicatedServer()) return;
         PacketDistributor.sendToPlayer(player, new SyncFurnaceConfigPayload(
                 ElixirConfig.maxFurnaceSize,
                 ElixirConfig.multifurnaceSlotsBase,

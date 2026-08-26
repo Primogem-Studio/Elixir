@@ -24,6 +24,7 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.per.elixir.block.entity.LargeFurnaceBlockEntity;
+import net.per.elixir.registry.ElixirBlocks;
 import net.per.elixir.util.BlockEntityHelper;
 import net.per.elixir.util.MultiFurnaceStructure;
 import org.jetbrains.annotations.Nullable;
@@ -61,6 +62,11 @@ public class ElixirFurnaceCoreBlock extends BaseEntityBlock {
             MultiFurnaceStructure.dissolve(level, pos, pos);
         }
         super.onRemove(state, level, pos, newState, movedByPiston);
+    }
+
+    @Override
+    protected void spawnDestroyParticles(Level level, Player player, BlockPos pos, BlockState state) {
+        level.levelEvent(player, 2001, pos, Block.getId(ElixirBlocks.elixir_furnace_brick.get().defaultBlockState()));
     }
 
     @Override

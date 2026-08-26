@@ -46,8 +46,21 @@ public class ElixirConfig {
     public static int multifurnaceSlotsGain;
     public static int multifurnaceSlotsCap;
     public static int multifurnaceLightLevel;
+    public static boolean serverSynced;
+    private static int localMaxFurnaceSize;
+    private static int localMultifurnaceSlotsBase;
+    private static int localMultifurnaceSlotsGain;
+    private static int localMultifurnaceSlotsCap;
+    private static int localMultifurnaceLightLevel;
 
     public static void save() {
+        if (!serverSynced) {
+            localMaxFurnaceSize = maxFurnaceSize;
+            localMultifurnaceSlotsBase = multifurnaceSlotsBase;
+            localMultifurnaceSlotsGain = multifurnaceSlotsGain;
+            localMultifurnaceSlotsCap = multifurnaceSlotsCap;
+            localMultifurnaceLightLevel = multifurnaceLightLevel;
+        }
         var map = new HashMap<String, Object>();
         map.put("pharma_limited", pharmaLimited);
         map.put("pharma_conversion_rate", pharmaConversionRate);
@@ -77,11 +90,11 @@ public class ElixirConfig {
         map.put("multifurnace_cool_factor", multifurnaceCoolFactor);
         map.put("multifurnace_stability_penalty", multifurnaceStabilityPenalty);
         map.put("multifurnace_pharma_gain", multifurnacePharmaGain);
-        map.put("max_furnace_size", maxFurnaceSize);
-        map.put("multifurnace_slots_base", multifurnaceSlotsBase);
-        map.put("multifurnace_slots_gain", multifurnaceSlotsGain);
-        map.put("multifurnace_slots_cap", multifurnaceSlotsCap);
-        map.put("multifurnace_light_level", multifurnaceLightLevel);
+        map.put("max_furnace_size", localMaxFurnaceSize);
+        map.put("multifurnace_slots_base", localMultifurnaceSlotsBase);
+        map.put("multifurnace_slots_gain", localMultifurnaceSlotsGain);
+        map.put("multifurnace_slots_cap", localMultifurnaceSlotsCap);
+        map.put("multifurnace_light_level", localMultifurnaceLightLevel);
         new TomlWriter().write(Config.of(() -> map, InMemoryFormat.defaultInstance()).unmodifiable(), CONFIG_PATH, WritingMode.REPLACE);
     }
 
@@ -121,5 +134,14 @@ public class ElixirConfig {
         multifurnaceSlotsCap = Math.max(multifurnaceSlotsBase, c.getOrElse("multifurnace_slots_cap", 128));
         multifurnaceLightLevel = Math.clamp(c.getOrElse("multifurnace_light_level", 15), 0, 15);
         save();
+    }
+
+    public static void restoreLocal() {
+        serverSynced = false;
+        maxFurnaceSize = localMaxFurnaceSize;
+        multifurnaceSlotsBase = localMultifurnaceSlotsBase;
+        multifurnaceSlotsGain = localMultifurnaceSlotsGain;
+        multifurnaceSlotsCap = localMultifurnaceSlotsCap;
+        multifurnaceLightLevel = localMultifurnaceLightLevel;
     }
 }

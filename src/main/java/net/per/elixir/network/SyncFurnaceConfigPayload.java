@@ -39,6 +39,7 @@ public record SyncFurnaceConfigPayload(
 
     public static void handle(SyncFurnaceConfigPayload payload, IPayloadContext context) {
         context.enqueueWork(() -> {
+            ElixirConfig.serverSynced = true;
             ElixirConfig.maxFurnaceSize = Math.clamp(payload.maxSize, 3, 31);
             ElixirConfig.multifurnaceSlotsBase = Math.max(1, payload.slotsBase);
             ElixirConfig.multifurnaceSlotsGain = Math.max(1, payload.slotsGain);

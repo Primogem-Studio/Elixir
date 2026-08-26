@@ -5,6 +5,7 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.Slot;
 import net.per.elixir.data.LargeFurnaceMenu;
@@ -25,6 +26,11 @@ public class LargeFurnaceScreen extends AbstractContainerScreen<LargeFurnaceMenu
     private final int maxScroll;
     private int scrollOffset;
     private boolean dragging;
+    private int dragType;
+    private Slot clickSlot;
+    private int clickButton;
+    private boolean quickCraftHasMat;
+    private boolean skipNextRelease;
 
     public LargeFurnaceScreen(LargeFurnaceMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
@@ -70,7 +76,9 @@ public class LargeFurnaceScreen extends AbstractContainerScreen<LargeFurnaceMenu
                 graphics.renderItem(stack, leftPos + slot.x, topPos + y);
                 graphics.renderItemDecorations(font, stack, leftPos + slot.x, topPos + y);
             }
-            if (hoveredSlot == slot) {
+            if (isQuickCrafting && quickCraftSlots.contains(slot)) {
+                graphics.fill(leftPos + slot.x, topPos + y, leftPos + slot.x + 16, topPos + y + 16, 0x40FFAA00);
+            } else if (hoveredSlot == slot) {
                 graphics.fill(leftPos + slot.x, topPos + y, leftPos + slot.x + 16, topPos + y + 16, 0x80FFFFFF);
             }
             graphics.disableScissor();
@@ -109,8 +117,20 @@ public class LargeFurnaceScreen extends AbstractContainerScreen<LargeFurnaceMenu
         }
         Slot matSlot = findMatSlot(mouseX, mouseY);
         if (matSlot != null) {
-            ClickType type = hasShiftDown() ? ClickType.QUICK_MOVE : ClickType.PICKUP;
-            slotClicked(matSlot, matSlot.index, button, type);
+            if (isQuickCrafting) return true;
+            skipNextRelease = false;
+            clickSlot = matSlot;
+            clickButton = button;
+            if (menu.getCarried().isEmpty()) {
+                skipNextRelease = true;
+                ClickType type = hasShiftDown() ? ClickType.QUICK_MOVE : ClickType.PICKUP;
+                slotClicked(matSlot, matSlot.index, button, type);
+            } else {
+                isQuickCrafting = true;
+                quickCraftHasMat = true;
+                dragType = button == 0 ? 0 : button == 1 ? 1 : 2;
+                quickCraftSlots.clear();
+            }
             return true;
         }
         return super.mouseClicked(mouseX, mouseY, button);
@@ -122,12 +142,53 @@ public class LargeFurnaceScreen extends AbstractContainerScreen<LargeFurnaceMenu
             updateScrollFromMouse(mouseY);
             return true;
         }
+        if (isQuickCrafting) {
+            Slot matSlot = findMatSlot(mouseX, mouseY);
+            if (matSlot != null && !menu.getCarried().isEmpty()
+                    && (dragType == 2 || menu.getCarried().getCount() > quickCraftSlots.size())
+                    && AbstractContainerMenu.canItemQuickReplace(matSlot, menu.getCarried(), true)
+                    && matSlot.mayPlace(menu.getCarried())
+                    && menu.canDragTo(matSlot)) {
+                quickCraftSlots.add(matSlot);
+            }
+        }
         return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
     }
 
     @Override
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
         if (button == 0) dragging = false;
+        if (isQuickCrafting && quickCraftHasMat && button != clickButton) {
+            isQuickCrafting = false;
+            quickCraftHasMat = false;
+            quickCraftSlots.clear();
+            skipNextRelease = true;
+            return true;
+        }
+        if (skipNextRelease) {
+            skipNextRelease = false;
+            return true;
+        }
+        if (isQuickCrafting && quickCraftHasMat) {
+            isQuickCrafting = false;
+            quickCraftHasMat = false;
+            if (!quickCraftSlots.isEmpty()) {
+                slotClicked(null, -999, AbstractContainerMenu.getQuickcraftMask(0, dragType), ClickType.QUICK_CRAFT);
+                for (Slot slot : quickCraftSlots) {
+                    slotClicked(slot, slot.index, AbstractContainerMenu.getQuickcraftMask(1, dragType), ClickType.QUICK_CRAFT);
+                }
+                slotClicked(null, -999, AbstractContainerMenu.getQuickcraftMask(2, dragType), ClickType.QUICK_CRAFT);
+                quickCraftSlots.clear();
+                return true;
+            }
+            quickCraftSlots.clear();
+            Slot target = clickSlot != null ? clickSlot : findMatSlot(mouseX, mouseY);
+            if (target != null && !menu.getCarried().isEmpty()) {
+                ClickType type = hasShiftDown() ? ClickType.QUICK_MOVE : ClickType.PICKUP;
+                slotClicked(target, target.index, clickButton, type);
+                return true;
+            }
+        }
         return super.mouseReleased(mouseX, mouseY, button);
     }
 

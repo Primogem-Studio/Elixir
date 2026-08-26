@@ -12,19 +12,17 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.EntityBlock;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.phys.BlockHitResult;
+import net.per.elixir.registry.ElixirBlocks;
 import net.per.elixir.util.MultiFurnaceStructure;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class ElixirFurnaceBrickBlock extends Block implements EntityBlock {
+public class ElixirFurnaceBrickBlock extends Block {
     public static final BooleanProperty FORMED = BooleanProperty.create("formed");
     public static final BooleanProperty LIT = BooleanProperty.create("lit");
 
@@ -59,17 +57,21 @@ public class ElixirFurnaceBrickBlock extends Block implements EntityBlock {
     }
 
     @Override
-    public @Nullable BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-        return null;
-    }
-
-    @Override
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         if (!movedByPiston && state.getValue(FORMED) && !state.is(newState.getBlock())) {
             var core = MultiFurnaceStructure.findCoreNear(level, pos);
             if (core != null) MultiFurnaceStructure.dissolve(level, core, pos);
         }
         super.onRemove(state, level, pos, newState, movedByPiston);
+    }
+
+    @Override
+    protected void spawnDestroyParticles(Level level, Player player, BlockPos pos, BlockState state) {
+        if (state.getValue(FORMED)) {
+            level.levelEvent(player, 2001, pos, Block.getId(ElixirBlocks.elixir_furnace_brick.get().defaultBlockState()));
+            return;
+        }
+        super.spawnDestroyParticles(level, player, pos, state);
     }
 
     @Override
