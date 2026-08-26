@@ -7,7 +7,6 @@ import it.unimi.dsi.fastutil.ints.IntList;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.RegistryFixedCodec;
-import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.item.Item;
 import net.per.elixir.registry.ElixirRegistries;
 import net.per.elixir.util.IElixirAction;
@@ -17,13 +16,13 @@ import java.util.List;
 
 public record Material(Holder<Item> item, Either<Holder<IElixirAction>, Holder<IElixirCalc>> effect, int pharm,
                        double stability, double base,
-                       boolean main, int[] colors) {
+                       boolean main, int[] colors, String prefix) {
     private Material(Holder<Item> item, Holder<IElixirAction> effect, int pharm, double stability, List<Integer> colors) {
-        this(item, Either.left(effect), pharm, stability, 0, true, colors.stream().mapToInt(Integer::intValue).toArray());
+        this(item, Either.left(effect), pharm, stability, 0, true, colors.stream().mapToInt(Integer::intValue).toArray(), "");
     }
 
-    private Material(Holder<Item> item, Holder<IElixirCalc> calc, int pharm, double stability, double base) {
-        this(item, Either.right(calc), pharm, stability, base, false, null);
+    private Material(Holder<Item> item, Holder<IElixirCalc> calc, int pharm, double stability, double base, String prefix) {
+        this(item, Either.right(calc), pharm, stability, base, false, null, prefix);
     }
 
     private static final Codec<Material> MAIN_CODEC = RecordCodecBuilder.create(
@@ -42,10 +41,19 @@ public record Material(Holder<Item> item, Either<Holder<IElixirAction>, Holder<I
                     ElixirRegistries.CALCULATOR_REGISTRY.holderByNameCodec().fieldOf("calc").forGetter(m -> m.effect.right().orElseThrow()),
                     Codec.INT.fieldOf("pharm").forGetter(Material::pharm),
                     Codec.DOUBLE.fieldOf("stability").forGetter(Material::stability),
-                    Codec.DOUBLE.fieldOf("base").forGetter(Material::base)
+                    Codec.DOUBLE.fieldOf("base").forGetter(Material::base),
+                    Codec.STRING.lenientOptionalFieldOf("prefix", "").forGetter(Material::prefix)
             ).apply(instance, Material::new)
     );
 
     public static final Codec<Material> CODEC = Codec.xor(MAIN_CODEC, OFF_CODEC).xmap(Either::unwrap, m -> m.main ? Either.left(m) : Either.right(m));
     public static final Codec<Holder<Material>> HOLDER_CODEC = RegistryFixedCodec.create(ElixirRegistries.MATERIAL);
+
+    /**
+     * 辅料的本地化名称键：优先使用自定义 prefix，缺省回退到按注册名生成的旧键
+     * item.elixir.material.name.&lt;location&gt;，以兼容未配置 prefix 的旧数据。
+     */
+    public String nameKey(Holder<Material> holder) {
+        return !prefix.isEmpty() ? prefix : "item.elixir.material.name." + holder.unwrapKey().orElseThrow().location().toLanguageKey();
+    }
 }

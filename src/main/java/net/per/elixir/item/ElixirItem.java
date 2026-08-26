@@ -120,7 +120,7 @@ public class ElixirItem extends Item {
         var com = stack.get(ElixirDataComponents.Elixir);
         if (com != null) {
             var c = Component.empty().withColor(getColor(com));
-            c.append(Component.translatable("item.elixir.material.name." + com.off().unwrapKey().orElseThrow().location().toLanguageKey()));
+            c.append(Component.translatable(com.off().value().nameKey(com.off())));
             for (var m : com.main()) {
                 c.append(Component.translatable("item.elixir.action." + m.value().effect().left().orElseThrow().unwrapKey().orElseThrow().location().toLanguageKey()));
                 c.append(Component.translatable("item.elixir.data.splitter"));

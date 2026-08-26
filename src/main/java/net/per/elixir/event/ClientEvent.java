@@ -108,7 +108,7 @@ public class ClientEvent {
     }
 
     private static void addOffMaterialTips(List<Component> tips, Holder<Material> m) {
-        tips.add(Component.translatable("item.elixir.material.off").append(Component.translatable("item.elixir.material.name." + m.unwrapKey().orElseThrow().location().toLanguageKey())).withColor(0xB4FF59));
+        tips.add(Component.translatable("item.elixir.material.off").append(Component.translatable(m.value().nameKey(m))).withColor(0xB4FF59));
         tips.add(Component.translatable("item.elixir.material.pharm").withColor(0xB4FF59).append(Component.literal(String.valueOf(m.value().pharm())).withColor(0xE09EFF)));
         tips.add(Component.translatable("item.elixir.material.stability").withColor(0xB4FF59).append(Component.literal(String.valueOf(m.value().stability())).withColor(0xE09EFF)));
         tips.add(Component.translatable("item.elixir.material.base").withColor(0xB4FF59).append(Component.literal(String.valueOf(m.value().base())).withColor(0xE09EFF)));
