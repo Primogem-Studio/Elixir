@@ -49,10 +49,6 @@ public record Material(Holder<Item> item, Either<Holder<IElixirAction>, Holder<I
     public static final Codec<Material> CODEC = Codec.xor(MAIN_CODEC, OFF_CODEC).xmap(Either::unwrap, m -> m.main ? Either.left(m) : Either.right(m));
     public static final Codec<Holder<Material>> HOLDER_CODEC = RegistryFixedCodec.create(ElixirRegistries.MATERIAL);
 
-    /**
-     * 辅料的本地化名称键：优先使用自定义 prefix，缺省回退到按注册名生成的旧键
-     * item.elixir.material.name.&lt;location&gt;，以兼容未配置 prefix 的旧数据。
-     */
     public String nameKey(Holder<Material> holder) {
         return !prefix.isEmpty() ? prefix : "item.elixir.material.name." + holder.unwrapKey().orElseThrow().location().toLanguageKey();
     }
