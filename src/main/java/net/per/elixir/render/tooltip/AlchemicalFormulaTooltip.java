@@ -26,7 +26,7 @@ public class AlchemicalFormulaTooltip implements TooltipComponent, ClientTooltip
 
     @Override
     public int getHeight() {
-        return mainHeight() + (data.off().isEmpty() ? 0 : data.off().size() / 5 * 16 + 10 + 18);
+        return mainHeight() + (data.off().isEmpty() ? 0 : offHeight());
     }
 
     @Override
@@ -35,7 +35,11 @@ public class AlchemicalFormulaTooltip implements TooltipComponent, ClientTooltip
     }
 
     private int mainHeight() {
-        return data.main().size() / 5 * 16 + 10 + 18;
+        return 10 + Math.ceilDiv(data.main().size(), 5) * 16;
+    }
+
+    private int offHeight() {
+        return 10 + Math.ceilDiv(data.off().size(), 5) * 16;
     }
 
     @Override

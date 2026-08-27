@@ -4,5 +4,6 @@
   "prefix": "item.elixir.prefix.plus",
   "pharm": 0,
   "base": 75,
-  "stability": 100
+  "stability": 100,
+  "description": "item.elixir.material.desc.elixir.off.redstone"
 }

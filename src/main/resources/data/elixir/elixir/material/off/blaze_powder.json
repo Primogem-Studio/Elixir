@@ -4,5 +4,6 @@
   "prefix": "item.elixir.prefix.plus",
   "pharm": 10,
   "base": 20,
-  "stability": 7
+  "stability": 7,
+  "description": "item.elixir.material.desc.elixir.off.blaze_powder"
 }

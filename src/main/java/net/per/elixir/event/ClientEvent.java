@@ -1,9 +1,12 @@
 package net.per.elixir.event;
 
 import com.mojang.datafixers.util.Either;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.entity.ThrownItemRenderer;
 import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -26,6 +29,7 @@ import net.per.elixir.registry.ElixirEntityTypes;
 import net.per.elixir.registry.ElixirItems;
 import net.per.elixir.registry.data.Material;
 import net.per.elixir.render.entity.block.LargeFurnaceRenderer;
+import net.per.elixir.render.tooltip.AlchemicalFormulaDetailTooltip;
 import net.per.elixir.render.tooltip.AlchemicalFormulaTooltip;
 import net.per.elixir.util.ElixirHelper;
 
@@ -68,18 +72,63 @@ public class ClientEvent {
     @SubscribeEvent
     private static void onRegisterClientTooltip(RegisterClientTooltipComponentFactoriesEvent event) {
         event.register(AlchemicalFormulaTooltip.class, Function.identity());
+        event.register(AlchemicalFormulaDetailTooltip.class, Function.identity());
     }
 
     @SubscribeEvent
     private static void onGatherComponents(RenderTooltipEvent.GatherComponents event) {
         var item = event.getItemStack();
-        if (!item.has(ElixirDataComponents.AlchemicalFormula)) return;
-        event.getTooltipElements().add(1, Either.right(new AlchemicalFormulaTooltip(item.get(ElixirDataComponents.AlchemicalFormula))));
+        var formula = item.get(ElixirDataComponents.AlchemicalFormula);
+        var elixir = item.get(ElixirDataComponents.Elixir);
+        var show = Screen.hasShiftDown() && (formula != null || elixir != null && !isRandomPill(item));
+        if (!show) {
+            AlchemicalFormulaDetailTooltip.clear();
+            if (formula != null) {
+                event.getTooltipElements().add(1, Either.right(new AlchemicalFormulaTooltip(formula)));
+            }
+            return;
+        }
+        if (formula != null) {
+            var rows = AlchemicalFormulaDetailTooltip.rowsOf(formula);
+            AlchemicalFormulaDetailTooltip.begin(formula, rows.size());
+            event.getTooltipElements().add(1, Either.right(new AlchemicalFormulaDetailTooltip(rows)));
+        } else {
+            var rows = AlchemicalFormulaDetailTooltip.rowsOf(elixir);
+            AlchemicalFormulaDetailTooltip.begin(elixir, rows.size());
+            event.getTooltipElements().add(1, Either.right(new AlchemicalFormulaDetailTooltip(rows)));
+        }
+    }
+
+    @SubscribeEvent
+    private static void onMouseScroll(InputEvent.MouseScrollingEvent event) {
+        if (AlchemicalFormulaDetailTooltip.scroll(event.getScrollDeltaY())) {
+            event.setCanceled(true);
+        }
+    }
+
+    @SubscribeEvent
+    private static void onScreenMouseScroll(ScreenEvent.MouseScrolled.Pre event) {
+        if (AlchemicalFormulaDetailTooltip.scroll(event.getScrollDeltaY())) {
+            event.setCanceled(true);
+        }
+    }
+
+    @SubscribeEvent
+    private static void onClientTick(ClientTickEvent.Post event) {
+        AlchemicalFormulaDetailTooltip.onFrame();
     }
 
     @SubscribeEvent
     private static void onTooltip(ItemTooltipEvent event) {
         var it = event.getItemStack();
+        if (it.has(ElixirDataComponents.AlchemicalFormula) || it.has(ElixirDataComponents.Elixir) && !isRandomPill(it)) {
+            if (!event.getFlags().hasShiftDown()) {
+                var hint = Component.translatable("tooltip.alchemical_formula.shift").withColor(0xB4FF59);
+                if (it.has(ElixirDataComponents.Elixir)) event.getToolTip().add(Math.min(2, event.getToolTip().size()), hint);
+                else event.getToolTip().add(1, hint);
+            }
+            return;
+        }
         var main = ElixirHelper.findMain(it.getItem());
         var off = ElixirHelper.findOff(it.getItem());
         var flag = it.has(ElixirDataComponents.MaterialPropertySwitching);
@@ -189,6 +238,11 @@ public class ClientEvent {
         int g = (int) (((color1 >> 8) & 0xFF) * (1 - ratio) + ((color2 >> 8) & 0xFF) * ratio);
         int b = (int) ((color1 & 0xFF) * (1 - ratio) + (color2 & 0xFF) * ratio);
         return a << 24 | r << 16 | g << 8 | b;
+    }
+
+    private static boolean isRandomPill(ItemStack stack) {
+        var name = stack.get(DataComponents.ITEM_NAME);
+        return name != null && name.getContents() instanceof TranslatableContents t && t.getKey().equals("item.elixir.failed");
     }
 
     @SubscribeEvent

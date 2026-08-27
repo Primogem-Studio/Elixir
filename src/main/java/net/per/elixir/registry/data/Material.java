@@ -16,13 +16,13 @@ import java.util.List;
 
 public record Material(Holder<Item> item, Either<Holder<IElixirAction>, Holder<IElixirCalc>> effect, int pharm,
                        double stability, double base,
-                       boolean main, int[] colors, String prefix) {
-    private Material(Holder<Item> item, Holder<IElixirAction> effect, int pharm, double stability, List<Integer> colors) {
-        this(item, Either.left(effect), pharm, stability, 0, true, colors.stream().mapToInt(Integer::intValue).toArray(), "");
+                       boolean main, int[] colors, String prefix, String description) {
+    private Material(Holder<Item> item, Holder<IElixirAction> effect, int pharm, double stability, List<Integer> colors, String description) {
+        this(item, Either.left(effect), pharm, stability, 0, true, colors.stream().mapToInt(Integer::intValue).toArray(), "", description);
     }
 
-    private Material(Holder<Item> item, Holder<IElixirCalc> calc, int pharm, double stability, double base, String prefix) {
-        this(item, Either.right(calc), pharm, stability, base, false, null, prefix);
+    private Material(Holder<Item> item, Holder<IElixirCalc> calc, int pharm, double stability, double base, String prefix, String description) {
+        this(item, Either.right(calc), pharm, stability, base, false, null, prefix, description);
     }
 
     private static final Codec<Material> MAIN_CODEC = RecordCodecBuilder.create(
@@ -31,7 +31,8 @@ public record Material(Holder<Item> item, Either<Holder<IElixirAction>, Holder<I
                     ElixirRegistries.ACTION_REGISTRY.holderByNameCodec().fieldOf("effect").forGetter(m -> m.effect.left().orElseThrow()),
                     Codec.INT.fieldOf("pharm").forGetter(Material::pharm),
                     Codec.DOUBLE.fieldOf("stability").forGetter(Material::stability),
-                    Codec.INT.listOf().fieldOf("colors").forGetter(m -> IntList.of(m.colors))
+                    Codec.INT.listOf().fieldOf("colors").forGetter(m -> IntList.of(m.colors)),
+                    Codec.STRING.lenientOptionalFieldOf("description", "").forGetter(Material::description)
             ).apply(instance, Material::new)
     );
 
@@ -42,7 +43,8 @@ public record Material(Holder<Item> item, Either<Holder<IElixirAction>, Holder<I
                     Codec.INT.fieldOf("pharm").forGetter(Material::pharm),
                     Codec.DOUBLE.fieldOf("stability").forGetter(Material::stability),
                     Codec.DOUBLE.fieldOf("base").forGetter(Material::base),
-                    Codec.STRING.lenientOptionalFieldOf("prefix", "").forGetter(Material::prefix)
+                    Codec.STRING.lenientOptionalFieldOf("prefix", "").forGetter(Material::prefix),
+                    Codec.STRING.lenientOptionalFieldOf("description", "").forGetter(Material::description)
             ).apply(instance, Material::new)
     );
 
@@ -51,5 +53,9 @@ public record Material(Holder<Item> item, Either<Holder<IElixirAction>, Holder<I
 
     public String nameKey(Holder<Material> holder) {
         return !prefix.isEmpty() ? prefix : "item.elixir.material.name." + holder.unwrapKey().orElseThrow().location().toLanguageKey();
+    }
+
+    public boolean hasDescription() {
+        return !description.isEmpty();
     }
 }
