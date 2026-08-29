@@ -63,6 +63,11 @@ public class ElixirFurnaceCoreBlock extends BaseEntityBlock {
     }
 
     @Override
+    public int getLightBlock(BlockState state, BlockGetter level, BlockPos pos) {
+        return 0;
+    }
+
+    @Override
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         if (!movedByPiston && !state.is(newState.getBlock())) {
             MultiFurnaceStructure.dissolve(level, pos, pos);

@@ -3,6 +3,7 @@ package net.per.elixir.render.entity.block;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
@@ -26,7 +27,10 @@ import net.per.elixir.registry.data.FurnaceVisual;
 import java.util.HashMap;
 import java.util.Map;
 
+import static net.per.elixir.Elixir.MOD_ID;
+
 public class LargeFurnaceRenderer implements BlockEntityRenderer<LargeFurnaceBlockEntity> {
+    private static final ResourceLocation MASK_MODEL = ResourceLocation.fromNamespaceAndPath(MOD_ID, "block/elixir_furnace_mask");
     private static final Map<SwapKey, BakedModel> SWAP_CACHE = new HashMap<>();
     private static final int SWAP_CACHE_LIMIT = 256;
 
@@ -51,12 +55,12 @@ public class LargeFurnaceRenderer implements BlockEntityRenderer<LargeFurnaceBlo
         var dispatcher = mc.getBlockRenderer();
         int n = be.size();
         int half = (n - 1) / 2;
-        int light = be.started() ? 0xF000F0 : packedLight;
+        int light = be.started() ? 0xF000F0 : LevelRenderer.getLightColor(level, be.getBlockPos().offset(0, half, 0));
         var buf = bufferSource.getBuffer(RenderType.cutout());
 
         var furnaceState = ElixirBlocks.elixir_furnace.get().defaultBlockState()
                 .setValue(BlockStateProperties.HORIZONTAL_FACING, be.facing())
-                .setValue(ElixirFurnaceBlock.ACTIVE, be.started());
+                .setValue(ElixirFurnaceBlock.ACTIVE, false);
 
         var visual = FurnaceVisual.getDefault(level);
         var part = visual != null ? visual.select(n, be.getBlockPos().asLong()) : null;
@@ -70,6 +74,17 @@ public class LargeFurnaceRenderer implements BlockEntityRenderer<LargeFurnaceBlo
         poseStack.scale(n, n, n);
         if (customModel) applyFacing(poseStack, be.facing());
         dispatcher.getModelRenderer().renderModel(poseStack.last(), buf, furnaceState, furnaceModel, 1f, 1f, 1f, light, packedOverlay);
+        if (be.started()) {
+            var maskModel = resolveModel(mc, MASK_MODEL, null);
+            if (maskModel != null) {
+                var activeTex = part != null ? part.activeTexture().orElse(null) : null;
+                if (activeTex != null) maskModel = swapTexture(mc, maskModel, furnaceState, activeTex);
+                int color = part != null ? part.activeColor().orElse(0xFFFFFFFF) : 0xFFFFFFFF;
+                dispatcher.getModelRenderer().renderModel(poseStack.last(), buf, furnaceState, maskModel,
+                        ((color >> 16) & 0xFF) / 255f, ((color >> 8) & 0xFF) / 255f, (color & 0xFF) / 255f,
+                        light, packedOverlay);
+            }
+        }
         poseStack.popPose();
 
         var coverState = ElixirBlocks.elixir_furnace_cover.get().defaultBlockState();

@@ -16,6 +16,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.items.ItemHandlerHelper;
+import net.per.elixir.ElixirConfig;
+import net.per.elixir.block.ElixirFurnaceBrickBlock;
 import net.per.elixir.block.entity.AbstractAlchemyFurnaceBlockEntity;
 import net.per.elixir.block.entity.LargeFurnaceBlockEntity;
 import net.per.elixir.data.ElixirFurnaceMenu;
@@ -23,10 +25,13 @@ import net.per.elixir.data.LargeFurnaceMenu;
 import net.per.elixir.registry.ElixirBlocks;
 import net.per.elixir.registry.ElixirDataComponents;
 import net.per.elixir.registry.ElixirItems;
+import net.per.elixir.util.MultiFurnaceStructure;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static net.per.elixir.ElixirConfig.maidNegligenceChance;
 
@@ -40,7 +45,7 @@ public class MaidAlchemyTask extends Behavior<EntityMaid> {
     private static final int MIN_SEARCH_RADIUS = 4;
     private static final int MAX_STAND_DIST = 1;
     private static final int STAND_RETRY_INTERVAL = 20;
-    private static final int WALK_TIMEOUT = 400;
+    private static final int WALK_TIMEOUT = 600;
     private static final int IGNORE_INTERVAL = 300;
     private static final int BUBBLE_INTERVAL = 600;
     private static final float FAN_WEAK_MAX = 24f;
@@ -165,20 +170,9 @@ public class MaidAlchemyTask extends Behavior<EntityMaid> {
             }
         }
 
-        if (this.standPos == null) {
-            if (--this.standRetryCooldown > 0) {
-                return;
-            }
-            this.standRetryCooldown = STAND_RETRY_INTERVAL;
-            this.standPos = findStandPos(level, this.furnacePos, maid);
-            if (this.standPos == null) {
-                return;
-            }
-        }
-
-        // 已在互动范围内 → 直接互动，不再依赖精确站位（大炉子站位远、层数多，容易卡在走路分支）
         if (isInInteractRange(level, maid)) {
             this.walkTicks = 0;
+            maid.getBrain().eraseMemory(MemoryModuleType.WALK_TARGET);
             maid.getLookControl().setLookAt(Vec3.atCenterOf(this.furnacePos));
             if (--this.actionCooldown > 0) {
                 return;
@@ -209,10 +203,6 @@ public class MaidAlchemyTask extends Behavior<EntityMaid> {
         }
     }
 
-    /**
-     * 女仆是否已在可互动范围内：大型丹炉以炉体方块盒最近点计（站在炉体旁任意一侧即可），
-     * 普通丹炉以核心方块中心计。
-     */
     private boolean isInInteractRange(ServerLevel level, EntityMaid maid) {
         if (level.getBlockEntity(this.furnacePos) instanceof LargeFurnaceBlockEntity l) {
             int n = l.size();
@@ -389,7 +379,8 @@ public class MaidAlchemyTask extends Behavior<EntityMaid> {
     @Nullable
     private BlockPos findFurnace(ServerLevel level, EntityMaid maid) {
         BlockPos center = maid.blockPosition();
-        int radius = Math.max((int) (maid.getRestrictRadius() / 2), MIN_SEARCH_RADIUS);
+        int yRange = Math.max(4, (ElixirConfig.maxFurnaceSize - 1) / 2);
+        int radius = Math.max(Math.max((int) (maid.getRestrictRadius() / 2), MIN_SEARCH_RADIUS), yRange);
         List<EntityMaid> otherMaids = level.getEntitiesOfClass(EntityMaid.class,
                 new AABB(center).inflate(radius + MAID_SCAN_INFLATE),
                 m -> m != maid && m.getMainHandItem().is(ElixirItems.handheld_fan.get()));
@@ -399,13 +390,11 @@ public class MaidAlchemyTask extends Behavior<EntityMaid> {
                     .ifPresent(wt -> otherTargets.add(wt.getTarget().currentBlockPosition()));
         }
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
-        BlockPos best = null;
-        int bestScore = 0;
-        double bestDistSqr = Double.MAX_VALUE;
+        List<Candidate> candidates = new ArrayList<>();
+        Map<BlockPos, Integer> foundCores = new HashMap<>();
         for (int x = -radius; x <= radius; x++) {
             for (int z = -radius; z <= radius; z++) {
-                // 大炉子核心在炉体中心，比地面高 (size-1)/2 格，纵向多扫几层
-                for (int y = -4; y <= 4; y++) {
+                for (int y = -yRange; y <= yRange; y++) {
                     pos.set(center.getX() + x, center.getY() + y, center.getZ() + z);
                     if (pos.equals(this.ignoredPos)) {
                         continue;
@@ -414,38 +403,71 @@ public class MaidAlchemyTask extends Behavior<EntityMaid> {
                         continue;
                     }
                     var st = level.getBlockState(pos);
-                    if (!(level.getBlockEntity(pos) instanceof AbstractAlchemyFurnaceBlockEntity be)) {
-                        continue;
-                    }
-                    boolean large;
                     if (st.is(ElixirBlocks.elixir_furnace)) {
-                        large = false;
+                        if (level.getBlockEntity(pos) instanceof AbstractAlchemyFurnaceBlockEntity be) {
+                            candidates.add(new Candidate(be, false, pos.immutable()));
+                        }
                     } else if (st.is(ElixirBlocks.elixir_furnace_core)) {
-                        large = true;
-                    } else {
-                        continue;
-                    }
-                    int score = scoreFurnace(be, large);
-                    if (score <= 0) {
-                        continue;
-                    }
-                    boolean targeted = isTargetedByOther(pos, otherTargets);
-                    if (!large && targeted) {
-                        continue;
-                    }
-                    if (large && targeted) {
-                        score += SHARE_BONUS;
-                    }
-                    double d = pos.distToCenterSqr(maid.getX(), maid.getY(), maid.getZ());
-                    if (score > bestScore || (score == bestScore && d < bestDistSqr)) {
-                        bestScore = score;
-                        bestDistSqr = d;
-                        best = pos.immutable();
+                        if (level.getBlockEntity(pos) instanceof AbstractAlchemyFurnaceBlockEntity be) {
+                            candidates.add(new Candidate(be, true, pos.immutable()));
+                        }
+                    } else if (st.is(ElixirBlocks.elixir_furnace_brick) && st.getValue(ElixirFurnaceBrickBlock.FORMED)) {
+                        if (insideFound(foundCores, pos)) {
+                            continue;
+                        }
+                        var core = MultiFurnaceStructure.findCore(level, pos);
+                        if (core == null) {
+                            continue;
+                        }
+                        if (!(level.getBlockEntity(core) instanceof LargeFurnaceBlockEntity be)) {
+                            continue;
+                        }
+                        foundCores.put(core.immutable(), be.size());
+                        candidates.add(new Candidate(be, true, core.immutable()));
                     }
                 }
             }
         }
+        BlockPos best = null;
+        int bestScore = 0;
+        double bestDistSqr = Double.MAX_VALUE;
+        for (var cand : candidates) {
+            if (cand.pos().equals(this.ignoredPos)) {
+                continue;
+            }
+            int score = scoreFurnace(cand.be(), cand.large());
+            if (score <= 0) {
+                continue;
+            }
+            boolean targeted = isTargetedByOther(cand.pos(), otherTargets);
+            if (!cand.large() && targeted) {
+                continue;
+            }
+            if (cand.large() && targeted) {
+                score += SHARE_BONUS;
+            }
+            double d = cand.pos().distToCenterSqr(maid.getX(), maid.getY(), maid.getZ());
+            if (score > bestScore || (score == bestScore && d < bestDistSqr)) {
+                bestScore = score;
+                bestDistSqr = d;
+                best = cand.pos();
+            }
+        }
         return best;
+    }
+
+    private record Candidate(AbstractAlchemyFurnaceBlockEntity be, boolean large, BlockPos pos) {
+    }
+
+    private static boolean insideFound(Map<BlockPos, Integer> found, BlockPos pos) {
+        for (var e : found.entrySet()) {
+            int half = (e.getValue() - 1) / 2;
+            var c = e.getKey();
+            if (Math.abs(pos.getX() - c.getX()) <= half
+                    && Math.abs(pos.getY() - c.getY()) <= half
+                    && Math.abs(pos.getZ() - c.getZ()) <= half) return true;
+        }
+        return false;
     }
 
     private boolean isTargetedByOther(BlockPos furnacePos, List<BlockPos> otherTargets) {

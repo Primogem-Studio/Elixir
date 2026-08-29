@@ -2,7 +2,9 @@
   "tiers": {
     "7": {
       "texture": "elixir:block/elixir_furnace2",
-      "cover_texture": "elixir:block/elixir_furnace_cover2"
+      "cover_texture": "elixir:block/elixir_furnace_cover2",
+      "active_texture": "minecraft:block/water_still",
+      "active_color": "#3F76E4"
     },
     "31": {
       "model": "elixir:block/elixir_furnace_test",

@@ -68,6 +68,7 @@ public class ClientEvent {
     @SubscribeEvent
     private static void onRegisterAdditionalModels(ModelEvent.RegisterAdditional event) {
         event.register(new ModelResourceLocation(ResourceLocation.fromNamespaceAndPath(MOD_ID, "block/elixir_furnace_test"), "standalone"));
+        event.register(new ModelResourceLocation(ResourceLocation.fromNamespaceAndPath(MOD_ID, "block/elixir_furnace_mask"), "standalone"));
         var level = Minecraft.getInstance().level;
         if (level == null) return;
         level.registryAccess().registry(ElixirRegistries.FURNACE_VISUAL)

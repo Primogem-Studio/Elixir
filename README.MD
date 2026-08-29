@@ -22,10 +22,12 @@ Override `data/elixir/elixir/furnace_visual/default.json` in your data pack, or 
 | `texture` | resource location | Texture forced onto the body model, e.g. `elixir:block/elixir_furnace`. Falls back to the model's own textures when absent. |
 | `cover_model` | resource location | Model used for the furnace cover. Falls back to the default cover when absent. |
 | `cover_texture` | resource location | Texture forced onto the cover model. Falls back to the model's own textures when absent. |
-| `tiers` | map of size to variant | Per-grade overrides keyed by the furnace size (odd numbers 3, 5, 7, ...). Each value is a variant with the same `model`/`texture`/`cover_model`/`cover_texture` fields. |
+| `active_texture` | resource location | Animated texture drawn over the furnace while alchemy is running (the small furnace's lava mask). Falls back to `minecraft:block/lava_flow` when absent. |
+| `active_color` | color | Optional color override applied to `active_texture`, e.g. `"#3F76E4"` for vanilla water blue. Accepts `#RRGGBB`, `0xRRGGBB` or a decimal int. Falls back to the texture's own colors when absent. |
+| `tiers` | map of size to variant | Per-grade overrides keyed by the furnace size (odd numbers 3, 5, 7, ...). Each value is a variant with the same `model`/`texture`/`cover_model`/`cover_texture`/`active_texture`/`active_color` fields. |
 | `random` | boolean | When true, one of `options` is picked deterministically per furnace position. Defaults to false. |
 | `fixed` | int | Index of the option to use when `random` is false. Defaults to 0. |
-| `options` | list of variants | Candidate variants; each entry supports the same four pointing fields as `tiers`. |
+| `options` | list of variants | Candidate variants; each entry supports the same pointing fields as `tiers`. |
 
 ## Examples
 Default appearance (identity):

@@ -17,12 +17,20 @@ public record FurnaceVisual(
         Optional<ResourceLocation> texture,
         Optional<ResourceLocation> coverModel,
         Optional<ResourceLocation> coverTexture,
+        Optional<ResourceLocation> activeTexture,
+        Optional<Integer> activeColor,
         Map<Integer, FurnaceVisual> tiers,
         boolean random,
         int fixed,
         List<FurnaceVisual> options
 ) {
     public static final ResourceLocation DEFAULT_ID = ResourceLocation.fromNamespaceAndPath(MOD_ID, "default");
+    public static final ResourceLocation DEFAULT_ACTIVE_TEXTURE = ResourceLocation.withDefaultNamespace("block/lava_flow");
+
+    public static final Codec<Integer> COLOR = Codec.withAlternative(
+            Codec.STRING.xmap(FurnaceVisual::parseColor, c -> "#" + String.format("%06X", c & 0xFFFFFF)),
+            Codec.INT
+    );
 
     public static final Codec<FurnaceVisual> CODEC = Codec.recursive(
             "elixir:furnace_visual",
@@ -31,6 +39,8 @@ public record FurnaceVisual(
                     ResourceLocation.CODEC.lenientOptionalFieldOf("texture").forGetter(FurnaceVisual::texture),
                     ResourceLocation.CODEC.lenientOptionalFieldOf("cover_model").forGetter(FurnaceVisual::coverModel),
                     ResourceLocation.CODEC.lenientOptionalFieldOf("cover_texture").forGetter(FurnaceVisual::coverTexture),
+                    ResourceLocation.CODEC.lenientOptionalFieldOf("active_texture").forGetter(FurnaceVisual::activeTexture),
+                    COLOR.lenientOptionalFieldOf("active_color").forGetter(FurnaceVisual::activeColor),
                     Codec.unboundedMap(Codec.STRING.xmap(Integer::parseInt, String::valueOf), self)
                             .lenientOptionalFieldOf("tiers", Map.of()).forGetter(FurnaceVisual::tiers),
                     Codec.BOOL.lenientOptionalFieldOf("random", false).forGetter(FurnaceVisual::random),
@@ -38,6 +48,11 @@ public record FurnaceVisual(
                     self.listOf().lenientOptionalFieldOf("options", List.of()).forGetter(FurnaceVisual::options)
             ).apply(instance, FurnaceVisual::new))
     );
+
+    private static int parseColor(String s) {
+        var hex = s.startsWith("#") ? s.substring(1) : s.startsWith("0x") ? s.substring(2) : s;
+        return (int) Long.parseLong(hex, 16);
+    }
 
     public FurnaceVisual select(int size, long seed) {
         var part = this;
@@ -56,6 +71,8 @@ public record FurnaceVisual(
                 other.texture.isPresent() ? other.texture : texture,
                 other.coverModel.isPresent() ? other.coverModel : coverModel,
                 other.coverTexture.isPresent() ? other.coverTexture : coverTexture,
+                other.activeTexture.isPresent() ? other.activeTexture : activeTexture,
+                other.activeColor.isPresent() ? other.activeColor : activeColor,
                 tiers, random, fixed, options);
     }
 
