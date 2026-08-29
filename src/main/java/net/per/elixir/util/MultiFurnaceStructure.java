@@ -166,6 +166,7 @@ public final class MultiFurnaceStructure {
 
     public static InteractionResult handleUseWithoutItem(Level level, BlockPos pos, Player player, boolean formed) {
         if (!formed) return InteractionResult.PASS;
+        if (player.isSpectator()) return InteractionResult.PASS;
         if (level.isClientSide) return InteractionResult.SUCCESS;
         var core = findCore(level, pos);
         if (core != null && level.getBlockEntity(core) instanceof LargeFurnaceBlockEntity be) {

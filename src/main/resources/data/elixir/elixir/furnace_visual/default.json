@@ -1,0 +1,12 @@
+{
+  "tiers": {
+    "7": {
+      "texture": "elixir:block/elixir_furnace2",
+      "cover_texture": "elixir:block/elixir_furnace_cover2"
+    },
+    "31": {
+      "model": "elixir:block/elixir_furnace_test",
+      "texture": "elixir:block/elixir_furnace31"
+    }
+  }
+}

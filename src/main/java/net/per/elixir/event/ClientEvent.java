@@ -1,12 +1,15 @@
 package net.per.elixir.event;
 
 import com.mojang.datafixers.util.Either;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.entity.ThrownItemRenderer;
+import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -27,6 +30,8 @@ import net.per.elixir.registry.ElixirBlocks;
 import net.per.elixir.registry.ElixirDataComponents;
 import net.per.elixir.registry.ElixirEntityTypes;
 import net.per.elixir.registry.ElixirItems;
+import net.per.elixir.registry.ElixirRegistries;
+import net.per.elixir.registry.data.FurnaceVisual;
 import net.per.elixir.registry.data.Material;
 import net.per.elixir.render.entity.block.LargeFurnaceRenderer;
 import net.per.elixir.render.tooltip.AlchemicalFormulaDetailTooltip;
@@ -41,6 +46,7 @@ import static net.per.elixir.Elixir.MOD_ID;
 
 @EventBusSubscriber(modid = MOD_ID, value = Dist.CLIENT)
 public class ClientEvent {
+    public static final ResourceLocation ELIXIR_BLOCK_ATLAS = ResourceLocation.fromNamespaceAndPath(MOD_ID, "textures/atlas/blocks.png");
     @SubscribeEvent
     private static void onSetup(FMLClientSetupEvent event) {
         var container = ModList.get().getModContainerById(MOD_ID).orElseThrow();
@@ -57,6 +63,27 @@ public class ClientEvent {
     private static void onRegisterRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerEntityRenderer(ElixirEntityTypes.elixir.get(), ThrownItemRenderer::new);
         event.registerBlockEntityRenderer(LargeFurnaceBlockEntity.Type, LargeFurnaceRenderer::new);
+    }
+
+    @SubscribeEvent
+    private static void onRegisterAdditionalModels(ModelEvent.RegisterAdditional event) {
+        event.register(new ModelResourceLocation(ResourceLocation.fromNamespaceAndPath(MOD_ID, "block/elixir_furnace_test"), "standalone"));
+        var level = Minecraft.getInstance().level;
+        if (level == null) return;
+        level.registryAccess().registry(ElixirRegistries.FURNACE_VISUAL)
+                .ifPresent(registry -> registry.forEach(visual -> collectModels(visual, event)));
+    }
+
+    @SubscribeEvent
+    private static void onRegisterMaterialAtlases(RegisterMaterialAtlasesEvent event) {
+        event.register(ELIXIR_BLOCK_ATLAS, ResourceLocation.fromNamespaceAndPath(MOD_ID, "blocks"));
+    }
+
+    private static void collectModels(FurnaceVisual visual, ModelEvent.RegisterAdditional event) {
+        visual.model().ifPresent(rl -> event.register(new ModelResourceLocation(rl, "standalone")));
+        visual.coverModel().ifPresent(rl -> event.register(new ModelResourceLocation(rl, "standalone")));
+        visual.tiers().values().forEach(v -> collectModels(v, event));
+        visual.options().forEach(v -> collectModels(v, event));
     }
 
     @SubscribeEvent

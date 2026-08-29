@@ -42,7 +42,8 @@ public class ElixirFurnaceCoreBlock extends BaseEntityBlock {
                 .strength(2f, 2.0f)
                 .sound(SoundType.STONE)
                 .pushReaction(PushReaction.BLOCK)
-                .noOcclusion());
+                .noOcclusion()
+                .isValidSpawn((s, l, p, t) -> false));
     }
 
     @Override
@@ -54,6 +55,11 @@ public class ElixirFurnaceCoreBlock extends BaseEntityBlock {
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         return MultiFurnaceStructure.handleUseWithoutItem(level, pos, player, true);
+    }
+
+    @Override
+    public VoxelShape getOcclusionShape(BlockState state, BlockGetter level, BlockPos pos) {
+        return Shapes.empty();
     }
 
     @Override

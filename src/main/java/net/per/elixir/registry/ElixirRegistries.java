@@ -8,6 +8,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.registries.DataPackRegistryEvent;
 import net.neoforged.neoforge.registries.NewRegistryEvent;
 import net.neoforged.neoforge.registries.RegistryBuilder;
+import net.per.elixir.registry.data.FurnaceVisual;
 import net.per.elixir.registry.data.Material;
 import net.per.elixir.util.IElixirAction;
 import net.per.elixir.util.IElixirCalc;
@@ -17,6 +18,7 @@ import static net.per.elixir.Elixir.MOD_ID;
 @EventBusSubscriber(modid = MOD_ID)
 public class ElixirRegistries {
     public static final ResourceKey<Registry<Material>> MATERIAL = ResourceKey.createRegistryKey(ResourceLocation.fromNamespaceAndPath(MOD_ID, "material"));
+    public static final ResourceKey<Registry<FurnaceVisual>> FURNACE_VISUAL = ResourceKey.createRegistryKey(ResourceLocation.fromNamespaceAndPath(MOD_ID, "furnace_visual"));
     public static final ResourceKey<Registry<IElixirAction>> ACTION = ResourceKey.createRegistryKey(ResourceLocation.fromNamespaceAndPath(MOD_ID, "action"));
     public static final ResourceKey<Registry<IElixirCalc>> CALCULATOR = ResourceKey.createRegistryKey(ResourceLocation.fromNamespaceAndPath(MOD_ID, "calculator"));
     public static final Registry<IElixirAction> ACTION_REGISTRY = new RegistryBuilder<>(ACTION).sync(true).create();
@@ -31,5 +33,6 @@ public class ElixirRegistries {
     @SubscribeEvent
     private static void registerDynamicRegistries(DataPackRegistryEvent.NewRegistry event) {
         event.dataPackRegistry(MATERIAL, Material.CODEC, Material.CODEC);
+        event.dataPackRegistry(FURNACE_VISUAL, FurnaceVisual.CODEC, FurnaceVisual.CODEC);
     }
 }

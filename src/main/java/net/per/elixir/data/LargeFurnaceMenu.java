@@ -27,7 +27,7 @@ public class LargeFurnaceMenu extends AbstractContainerMenu {
     private final int size;
 
     public LargeFurnaceMenu(int id, Inventory inv, RegistryFriendlyByteBuf buf) {
-        this(id, inv, buf.readInt());
+        this(id, inv, buf != null ? buf.readInt() : 3);
     }
 
     public LargeFurnaceMenu(int id, Inventory inv, int size) {
