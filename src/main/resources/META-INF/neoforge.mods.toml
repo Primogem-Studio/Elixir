@@ -11,9 +11,6 @@ logoFile="logo.png"
 authors = "PepperMR"
 description = '''一个炼丹Mod'''
 
-[[mixins]]
-config = "elixir.mixins.json"
-
 [[dependencies.elixir]]
 modId = "neoforge"
 type = "required"
