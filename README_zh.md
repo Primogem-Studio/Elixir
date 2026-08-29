@@ -204,9 +204,7 @@ CALCULATORS.register("my_calc", () -> (sum, base) -> (int) (sum + base));
 
 ## 3. 模型自定义（大型丹炉外观）
 
-炉子外观完全由数据包驱动。
-
-渲染器在每次重载时从 `elixir:furnace_visual` 数据包注册表解析 `elixir:default` 条目，覆盖该文件即可改变所有大型丹炉的外观。
+炉子外观完全由数据包驱动。渲染器在每次重载时从 `elixir:furnace_visual` 数据包注册表解析 `elixir:default` 条目，覆盖该文件即可改变所有大型丹炉的外观。
 
 ### 注册文件
 
@@ -220,12 +218,34 @@ CALCULATORS.register("my_calc", () -> (sum, base) -> (int) (sum + base));
 | `texture` | 资源路径 | 强制替换炉体贴图，如 `elixir:block/elixir_furnace`，缺省用模型自带贴图。 |
 | `cover_model` | 资源路径 | 上鼎模型，缺省用默认上鼎。 |
 | `cover_texture` | 资源路径 | 上鼎贴图，缺省用模型自带。 |
-| `active_texture` | 资源路径 | 炼丹运行时的动态贴图遮罩（四象炉的岩浆遮罩），缺省为 `minecraft:block/lava_flow`。 |
-| `active_color` | 颜色 | 可选，给动态贴图染色，如 `"#3F76E4"` 为原版水蓝色。支持 `#RRGGBB`、`0xRRGGBB` 或十进制整数，缺省用贴图自带颜色。 |
+| `active_texture` | 资源路径 | 丹火动态纹理（见下文「丹火」），缺省为 `minecraft:block/lava_flow`。 |
+| `active_color` | 颜色 | 丹火染色（见下文「丹火」），缺省为白色（不染色）。 |
 | `tiers` | 尺寸→变体映射 | 按丹炉尺寸（奇数 3/5/7…）分级覆盖，值为相同字段的变体。 |
 | `random` | 布尔 | 为 `true` 时按炉子位置确定性随机选一个 `options`，缺省 `false`。 |
 | `fixed` | 整数 | 非随机时使用的 `options` 下标，缺省 0。 |
 | `options` | 变体列表 | 候选变体，每项支持与 `tiers` 相同的字段。 |
+
+### 丹火
+
+炼丹运行时，炉口上方会叠加一层动态的**丹火**，由内置遮罩模型 `elixir:block/elixir_furnace_mask` 渲染，其贴图与颜色均可自定义：
+
+* `active_texture` — 丹火的动态纹理，缺省为 `minecraft:block/lava_flow`。常用取值：`minecraft:block/lava_flow`（岩浆）、`minecraft:block/water_still`（水）或方块图集中的任意动态纹理。
+* `active_color` — 叠加在丹火贴图上的染色，支持 `#RRGGBB`、`0xRRGGBB` 或十进制整数，缺省为白色（不染色）。
+
+```json
+{
+  "active_texture": "minecraft:block/water_still",
+  "active_color": "#3F76E4"
+}
+```
+
+### 变体选择
+
+每个炉子的外观按以下顺序解析：
+
+1. 若 `options` 非空，先选出一个变体——`random` 为 `false` 时按下标 `fixed`，为 `true` 时按炉子位置确定性随机。
+2. 将选中的变体并入条目：变体中存在的字段覆盖父级，缺失字段继承父级。
+3. 若 `tiers` 中存在对应炉子尺寸的条目，再按同样方式并入。
 
 ### 示例
 
@@ -257,6 +277,32 @@ CALCULATORS.register("my_calc", () -> (sum, base) -> (int) (sum + base));
 }
 ```
 
-**现有默认配置（`default.json`）：** 7 格炉使用 `elixir_furnace2` 贴图与蓝色 `water_still` 动态贴图；31 格炉使用 `elixir_furnace_test` 模型与 `elixir_furnace31` 贴图。
+综合示例：炉子外观按位置随机取皮，大炉随尺寸升级炉体与丹火颜色：
+```json
+{
+  "model": "elixir:block/elixir_furnace",
+  "texture": "elixir:block/elixir_furnace",
+  "cover_model": "elixir:block/elixir_furnace_cover",
+  "cover_texture": "elixir:block/elixir_furnace_cover",
+  "active_texture": "minecraft:block/lava_flow",
+  "active_color": "#FF6B2A",
+  "random": true,
+  "options": [
+    { "texture": "elixir:block/elixir_furnace" },
+    { "texture": "elixir:block/elixir_furnace_fantasy_brick" }
+  ],
+  "tiers": {
+    "5": { "active_texture": "minecraft:block/water_still", "active_color": "#3F76E4" },
+    "7": {
+      "model": "elixir:block/elixir_furnace_test",
+      "texture": "elixir:block/elixir_furnace31",
+      "active_texture": "minecraft:block/water_still",
+      "active_color": "#3F76E4"
+    }
+  }
+}
+```
+
+**现有默认配置（`default.json`）：** 7 格炉使用 `elixir_furnace2` 贴图与蓝色 `water_still` 丹火；31 格炉使用 `elixir_furnace_test` 模型与 `elixir_furnace31` 贴图。
 
 模型与贴图路径指向 assets，自定义模型/贴图需由资源包提供。`assets/elixir/textures/block/` 下的贴图会自动收入方块图集，资源包在此目录添加文件即可直接被 `texture` 引用。

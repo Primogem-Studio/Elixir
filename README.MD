@@ -204,9 +204,7 @@ Built-in calculators: `empty` (identity), `plus` (add `base`), `mul` (multiply b
 
 ## 3. Large Furnace Visual Framework
 
-The visual of the Large Furnace can be fully customized through a datapack.
-
-The renderer resolves the entry `elixir:default` from the `elixir:furnace_visual` datapack registry on every reload, so overriding that file changes the appearance of every Large Furnace.
+The visual of the Large Furnace is fully data-driven. The renderer resolves the entry `elixir:default` from the `elixir:furnace_visual` datapack registry on every reload, so overriding that file changes the appearance of every Large Furnace.
 
 ### Registry file
 
@@ -220,12 +218,34 @@ Override `data/elixir/elixir/furnace_visual/default.json` in your datapack, or a
 | `texture` | resource location | Texture forced onto the body model, e.g. `elixir:block/elixir_furnace`. Falls back to the model's own textures when absent. |
 | `cover_model` | resource location | Model used for the furnace cover. Falls back to the default cover when absent. |
 | `cover_texture` | resource location | Texture forced onto the cover model. Falls back to the model's own textures when absent. |
-| `active_texture` | resource location | Animated texture drawn over the furnace while alchemy is running (the small furnace's lava mask). Falls back to `minecraft:block/lava_flow` when absent. |
-| `active_color` | color | Optional color override applied to `active_texture`, e.g. `"#3F76E4"` for vanilla water blue. Accepts `#RRGGBB`, `0xRRGGBB` or a decimal int. Falls back to the texture's own colors when absent. |
+| `active_texture` | resource location | Animated texture of the dan fire (see below). Falls back to `minecraft:block/lava_flow` when absent. |
+| `active_color` | color | Optional color override for the dan fire (see below). Falls back to white when absent. |
 | `tiers` | map of size to variant | Per-grade overrides keyed by the furnace size (odd numbers 3, 5, 7, ...). Each value is a variant with the same fields. |
 | `random` | boolean | When true, one of `options` is picked deterministically per furnace position. Defaults to false. |
 | `fixed` | int | Index of the option to use when `random` is false. Defaults to 0. |
-| `options` | list of variants | Candidate variants; each entry supports the same fields as `tiers`. |
+| `options` | list of variants | Candidate variants; each entry supports the same fields. |
+
+### Dan fire 丹火
+
+While alchemy is running, an animated **dan fire** is drawn over the furnace mouth. It is rendered by the built-in mask model `elixir:block/elixir_furnace_mask`, whose texture and color can be customized:
+
+* `active_texture` — the animated texture of the dan fire. Falls back to `minecraft:block/lava_flow` when absent. Typical values: `minecraft:block/lava_flow` (lava), `minecraft:block/water_still` (water), or any animated texture from the block atlas.
+* `active_color` — a color tint multiplied over the dan fire texture. Accepts `#RRGGBB`, `0xRRGGBB` or a decimal int. Falls back to white (no tint) when absent.
+
+```json
+{
+  "active_texture": "minecraft:block/water_still",
+  "active_color": "#3F76E4"
+}
+```
+
+### Variant selection 变体选择
+
+A visual entry is resolved per furnace in this order:
+
+1. If `options` is non-empty, pick one option — the index `fixed` when `random` is false, or a deterministic pick seeded by the furnace position when `random` is true.
+2. Merge the chosen option into the entry; fields present in the option override the parent, missing fields inherit.
+3. If `tiers` contains an entry for the furnace size, merge it on top the same way.
 
 ### Examples
 
@@ -257,6 +277,32 @@ Random skin pool per furnace:
 }
 ```
 
-**Current default (`default.json`):** 7-size furnaces use the `elixir_furnace2` texture with blue `water_still` active texture; 31-size furnaces use the `elixir_furnace_test` model with the `elixir_furnace31` texture.
+Complete example: a furnace whose skin is picked randomly per position, while larger furnaces get upgraded bodies and dan fire colors:
+```json
+{
+  "model": "elixir:block/elixir_furnace",
+  "texture": "elixir:block/elixir_furnace",
+  "cover_model": "elixir:block/elixir_furnace_cover",
+  "cover_texture": "elixir:block/elixir_furnace_cover",
+  "active_texture": "minecraft:block/lava_flow",
+  "active_color": "#FF6B2A",
+  "random": true,
+  "options": [
+    { "texture": "elixir:block/elixir_furnace" },
+    { "texture": "elixir:block/elixir_furnace_fantasy_brick" }
+  ],
+  "tiers": {
+    "5": { "active_texture": "minecraft:block/water_still", "active_color": "#3F76E4" },
+    "7": {
+      "model": "elixir:block/elixir_furnace_test",
+      "texture": "elixir:block/elixir_furnace31",
+      "active_texture": "minecraft:block/water_still",
+      "active_color": "#3F76E4"
+    }
+  }
+}
+```
+
+**Current default (`default.json`):** 7-size furnaces use the `elixir_furnace2` texture with blue `water_still` dan fire; 31-size furnaces use the `elixir_furnace_test` model with the `elixir_furnace31` texture.
 
 Model and texture locations refer to assets, so custom models and textures must be shipped by a resource pack. Textures under `assets/elixir/textures/block/` are collected into the block atlas automatically, so a resource pack that adds a file there can be referenced by `texture` right away.
