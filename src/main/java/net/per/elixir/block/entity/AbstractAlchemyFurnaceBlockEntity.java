@@ -14,6 +14,8 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
@@ -301,6 +303,7 @@ public abstract class AbstractAlchemyFurnaceBlockEntity extends BaseContainerBlo
         Elixir.LOGGER.debug("[E]稳定性 {} 药理 {} 经验{} ", s, pharma, exp);
         if (s > -pharmaLimited) {
             elixir.set(ElixirDataComponents.Elixir, new ElixirComponent(List.copyOf(off).get(level.random.nextInt(off.size())), ElixirMath.rawPharm(pharma, exp, s), List.copyOf(main)));
+            applyFormulaName(elixir);
             items.set(outputSlot(), elixir);
             outputRecipe();
             if (trigger instanceof Player) trigger.setData(ELIXIR_EXP, exp + expSuccessGain);
@@ -309,6 +312,27 @@ public abstract class AbstractAlchemyFurnaceBlockEntity extends BaseContainerBlo
             return;
         }
         failed(level);
+    }
+
+    private void applyFormulaName(ItemStack elixir) {
+        var formula = items.get(formulaSlot());
+        if (formula.isEmpty()) return;
+        MutableComponent name = null;
+        if (formula.has(DataComponents.CUSTOM_NAME)) {
+            var s = formula.get(DataComponents.CUSTOM_NAME).getString();
+            var idx = s.indexOf(" - ");
+            if (idx < 0) return;
+            var pillName = s.substring(idx + 3).trim();
+            if (!pillName.isEmpty()) name = Component.literal(pillName);
+        } else if (formula.has(DataComponents.ITEM_NAME)
+                && formula.get(DataComponents.ITEM_NAME).getContents() instanceof TranslatableContents tc) {
+            var key = tc.getKey();
+            var prefix = "item.elixir.dan_fang.";
+            if (key.startsWith(prefix)) name = Component.translatable("item.elixir.pill." + key.substring(prefix.length()));
+        }
+        if (name != null) {
+            elixir.set(DataComponents.ITEM_NAME, name.withColor(ElixirItem.getColor(elixir.get(ElixirDataComponents.Elixir))));
+        }
     }
 
     private void outputRecipe() {
