@@ -2,6 +2,8 @@ package net.per.elixir.registry;
 
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.per.elixir.block.entity.BrickFurnaceBlockEntity;
 import net.per.elixir.block.entity.ElixirFurnaceBlockEntity;
@@ -16,5 +18,11 @@ public class ElixirBlockEntityTypes {
         BLOCK_ENTITY_TYPES.register("elixir_furnace", () -> ElixirFurnaceBlockEntity.Type);
         BLOCK_ENTITY_TYPES.register("large_furnace", () -> LargeFurnaceBlockEntity.Type);
         BLOCK_ENTITY_TYPES.register("furnace_brick", () -> BrickFurnaceBlockEntity.Type);
+    }
+
+    public static void onRegisterCapabilities(RegisterCapabilitiesEvent event) {
+        event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ElixirFurnaceBlockEntity.Type, (be, side) -> be.itemHandler());
+        event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, LargeFurnaceBlockEntity.Type, (be, side) -> be.itemHandler());
+        event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, BrickFurnaceBlockEntity.Type, (be, side) -> be.itemHandler());
     }
 }

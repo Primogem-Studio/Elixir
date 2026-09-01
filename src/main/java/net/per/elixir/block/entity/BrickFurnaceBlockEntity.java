@@ -11,6 +11,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.items.IItemHandler;
 import net.per.elixir.registry.ElixirBlocks;
 import net.per.elixir.util.MultiFurnaceStructure;
 import org.jetbrains.annotations.Nullable;
@@ -102,6 +103,12 @@ public class BrickFurnaceBlockEntity extends BlockEntity implements Container, M
     public Component getDisplayName() {
         var c = core();
         return c != null ? c.getDisplayName() : Component.translatable("container.elixir.large_furnace");
+    }
+
+    @Nullable
+    public IItemHandler itemHandler() {
+        var c = core();
+        return c != null ? c.itemHandler() : null;
     }
 
     @Override

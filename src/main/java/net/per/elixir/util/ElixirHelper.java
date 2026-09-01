@@ -63,6 +63,14 @@ public class ElixirHelper {
         return offs.get(item);
     }
 
+    public static Holder<Material> findMainClient(Item item) {
+        return clientMains.get(item);
+    }
+
+    public static Holder<Material> findOffClient(Item item) {
+        return clientOffs.get(item);
+    }
+
     public static boolean hasMaterial(Item item) {
         return mains.containsKey(item) || offs.containsKey(item)
                 || clientMains.containsKey(item) || clientOffs.containsKey(item);

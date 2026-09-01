@@ -8,9 +8,11 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.neoforge.event.AddPackFindersEvent;
+import net.neoforged.neoforge.event.TagsUpdatedEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
+import net.per.elixir.Elixir;
 import net.per.elixir.item.ElixirItem;
 import net.per.elixir.network.ElixirNetwork;
 import net.per.elixir.util.ElixirHelper;
@@ -48,6 +50,11 @@ public class CommonEvent {
     @SubscribeEvent
     private static void onServerStarted(ServerStartedEvent event) {
         ElixirHelper.flush(event.getServer().registryAccess());
+    }
+
+    @SubscribeEvent
+    private static void onTagsUpdated(TagsUpdatedEvent event) {
+        ElixirHelper.flush(event.getRegistryAccess());
     }
 
     @SubscribeEvent

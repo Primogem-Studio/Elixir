@@ -18,6 +18,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.*;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
+import net.neoforged.neoforge.event.TagsUpdatedEvent;
 import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
 import net.neoforged.neoforge.event.level.LevelEvent;
 import net.per.elixir.ElixirConfig;
@@ -63,6 +64,14 @@ public class ClientEvent {
     @SubscribeEvent
     private static void onLevelLoad(LevelEvent.Load event) {
         var access = event.getLevel().registryAccess();
+        if (access.registry(ElixirRegistries.MATERIAL).isPresent()) {
+            ElixirHelper.flushClient(access);
+        }
+    }
+
+    @SubscribeEvent
+    private static void onTagsUpdated(TagsUpdatedEvent event) {
+        var access = event.getRegistryAccess();
         if (access.registry(ElixirRegistries.MATERIAL).isPresent()) {
             ElixirHelper.flushClient(access);
         }
@@ -166,8 +175,8 @@ public class ClientEvent {
             }
             return;
         }
-        var main = ElixirHelper.findMain(it.getItem());
-        var off = ElixirHelper.findOff(it.getItem());
+        var main = ElixirHelper.findMainClient(it.getItem());
+        var off = ElixirHelper.findOffClient(it.getItem());
         var flag = it.has(ElixirDataComponents.MaterialPropertySwitching);
         boolean flag2 = it.getOrDefault(ElixirDataComponents.MaterialPropertySwitching, false);
         var tips = new ArrayList<Component>();

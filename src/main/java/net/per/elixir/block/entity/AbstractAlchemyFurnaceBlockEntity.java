@@ -35,6 +35,8 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.wrapper.InvWrapper;
 import net.per.elixir.Elixir;
 import net.per.elixir.data.AlchemicalFormulaComponent;
 import net.per.elixir.data.ElixirComponent;
@@ -76,6 +78,13 @@ public abstract class AbstractAlchemyFurnaceBlockEntity extends BaseContainerBlo
     protected Object2IntMap<Holder<Material>> counter;
     protected LivingEntity trigger;
     protected UUID triggerUUID;
+    private final IItemHandler itemHandler = new InvWrapper(this) {
+        @Override
+        public ItemStack extractItem(int slot, int amount, boolean simulate) {
+            if (!canTakeItem(AbstractAlchemyFurnaceBlockEntity.this, slot, getStackInSlot(slot))) return ItemStack.EMPTY;
+            return super.extractItem(slot, amount, simulate);
+        }
+    };
 
     protected AbstractAlchemyFurnaceBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
@@ -607,6 +616,10 @@ public abstract class AbstractAlchemyFurnaceBlockEntity extends BaseContainerBlo
     @Override
     public boolean canTakeItem(Container target, int slot, ItemStack stack) {
         return !started && slot == outputSlot();
+    }
+
+    public IItemHandler itemHandler() {
+        return itemHandler;
     }
 
     @Override
