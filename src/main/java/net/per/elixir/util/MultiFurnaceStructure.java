@@ -13,6 +13,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 import net.per.elixir.ElixirConfig;
 import net.per.elixir.block.ElixirFurnaceBrickBlock;
 import net.per.elixir.block.entity.BrickFurnaceBlockEntity;
@@ -20,6 +21,9 @@ import net.per.elixir.block.entity.LargeFurnaceBlockEntity;
 import net.per.elixir.registry.ElixirBlocks;
 import net.per.elixir.registry.ElixirItems;
 
+import java.util.ArrayDeque;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.Predicate;
 
 public final class MultiFurnaceStructure {
@@ -112,27 +116,94 @@ public final class MultiFurnaceStructure {
 
     public static void dissolve(Level level, BlockPos corePos, BlockPos dropPos) {
         if (level.isClientSide) return;
-        if (!(level.getBlockEntity(corePos) instanceof LargeFurnaceBlockEntity lbe)) return;
-        dissolve(level, lbe, dropPos);
+        if (level.getBlockEntity(corePos) instanceof LargeFurnaceBlockEntity lbe) {
+            dissolveCore(level, lbe, dropPos);
+            return;
+        }
+        onPartRemoved(level, corePos, dropPos);
     }
 
     public static void dissolve(Level level, LargeFurnaceBlockEntity lbe, BlockPos dropPos) {
         if (level.isClientSide) return;
+        dissolveCore(level, lbe, dropPos);
+    }
+
+    public static void onPartRemoved(Level level, BlockPos brokenPos, BlockPos dropPos) {
+        if (level.isClientSide) return;
+        var corePos = findCoreNear(level, brokenPos);
+        if (corePos != null && level.getBlockEntity(corePos) instanceof LargeFurnaceBlockEntity lbe) {
+            dissolveCore(level, lbe, dropPos);
+            return;
+        }
+        var region = floodFormed(level, brokenPos);
+        if (region.isEmpty()) return;
+        for (var p : region) {
+            if (level.getBlockState(p).is(ElixirBlocks.elixir_furnace_core.get())
+                    && level.getBlockEntity(p) instanceof LargeFurnaceBlockEntity lbe) {
+                dissolveCore(level, lbe, dropPos);
+                return;
+            }
+        }
+        dissolveRegion(level, region);
+    }
+
+    private static void dissolveCore(Level level, LargeFurnaceBlockEntity lbe, BlockPos dropPos) {
         if (lbe.disposed) return;
         lbe.disposed = true;
         Containers.dropContents(level, dropPos, lbe);
         int n = lbe.size();
         int half = (n - 1) / 2;
         var min = lbe.getBlockPos().offset(-half, -half, -half);
-        var brick = ElixirBlocks.elixir_furnace_brick.get().defaultBlockState();
-        for (int x = 0; x < n; x++)
-            for (int y = 0; y < n; y++)
-                for (int z = 0; z < n; z++) {
+        convertRegion(level, min, n, n, n);
+        level.playSound(null, min, SoundEvents.BEACON_DEACTIVATE, SoundSource.BLOCKS, 1.0f, 1.0f);
+    }
+
+    private static void dissolveRegion(Level level, Set<BlockPos> region) {
+        BlockPos soundPos = null;
+        for (var p : region) {
+            if (!isActivePart(level.getBlockState(p))) continue;
+            level.setBlock(p, ElixirBlocks.elixir_furnace_brick.get().defaultBlockState(), 2);
+            level.removeBlockEntity(p);
+            if (soundPos == null) soundPos = p;
+        }
+        if (soundPos != null)
+            level.playSound(null, soundPos, SoundEvents.BEACON_DEACTIVATE, SoundSource.BLOCKS, 1.0f, 1.0f);
+    }
+
+    private static void convertRegion(Level level, BlockPos min, int sx, int sy, int sz) {
+        for (int x = 0; x < sx; x++)
+            for (int y = 0; y < sy; y++)
+                for (int z = 0; z < sz; z++) {
                     var p = min.offset(x, y, z);
-                    level.setBlockAndUpdate(p, brick);
+                    if (!isActivePart(level.getBlockState(p))) continue;
+                    level.setBlock(p, ElixirBlocks.elixir_furnace_brick.get().defaultBlockState(), 2);
                     level.removeBlockEntity(p);
                 }
-        level.playSound(null, min, SoundEvents.BEACON_DEACTIVATE, SoundSource.BLOCKS, 1.0f, 1.0f);
+    }
+
+    private static boolean isActivePart(BlockState state) {
+        if (state.is(ElixirBlocks.elixir_furnace_core.get())) return true;
+        return state.is(ElixirBlocks.elixir_furnace_brick.get())
+                && state.getValue(ElixirFurnaceBrickBlock.FORMED);
+    }
+
+    private static Set<BlockPos> floodFormed(Level level, BlockPos brokenPos) {
+        var region = new HashSet<BlockPos>();
+        var queue = new ArrayDeque<BlockPos>();
+        for (var dir : Direction.values()) {
+            var p = brokenPos.relative(dir);
+            if (isFormedPart(level, p) && region.add(p)) queue.add(p);
+        }
+        int cap = maxSize() * maxSize() * maxSize();
+        while (!queue.isEmpty() && region.size() < cap) {
+            var p = queue.poll();
+            for (var dir : Direction.values()) {
+                var q = p.relative(dir);
+                if (region.size() >= cap) return region;
+                if (isFormedPart(level, q) && region.add(q)) queue.add(q);
+            }
+        }
+        return region;
     }
 
     public static ItemInteractionResult handleUseItemOn(Level level, BlockPos pos, Player player, ItemStack stack) {

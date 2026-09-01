@@ -96,9 +96,8 @@ public class ElixirFurnaceBrickBlock extends Block implements EntityBlock {
 
     @Override
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (!movedByPiston && state.getValue(FORMED) && !state.is(newState.getBlock())) {
-            var core = MultiFurnaceStructure.findCoreNear(level, pos);
-            if (core != null) MultiFurnaceStructure.dissolve(level, core, pos);
+        if (!movedByPiston && !level.isClientSide && state.getValue(FORMED) && !state.is(newState.getBlock())) {
+            MultiFurnaceStructure.onPartRemoved(level, pos, pos);
         }
         super.onRemove(state, level, pos, newState, movedByPiston);
     }
