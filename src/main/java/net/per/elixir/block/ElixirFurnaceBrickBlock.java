@@ -1,6 +1,7 @@
 package net.per.elixir.block;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -14,6 +15,8 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
@@ -23,10 +26,11 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.per.elixir.registry.ElixirBlocks;
 import net.per.elixir.util.MultiFurnaceStructure;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class ElixirFurnaceBrickBlock extends Block {
+public class ElixirFurnaceBrickBlock extends Block implements EntityBlock {
     public static final BooleanProperty FORMED = BooleanProperty.create("formed");
     public static final BooleanProperty LIT = BooleanProperty.create("lit");
 
@@ -54,6 +58,21 @@ public class ElixirFurnaceBrickBlock extends Block {
     @Override
     public boolean propagatesSkylightDown(BlockState state, BlockGetter level, BlockPos pos) {
         return true;
+    }
+
+    @Override
+    public float getShadeBrightness(BlockState state, BlockGetter level, BlockPos pos) {
+        return 1.0F;
+    }
+
+    @Override
+    public boolean skipRendering(BlockState state, BlockState adjacentState, Direction direction) {
+        return adjacentState.is(this) || super.skipRendering(state, adjacentState, direction);
+    }
+
+    @Override
+    public @Nullable BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+        return null;
     }
 
     @Override

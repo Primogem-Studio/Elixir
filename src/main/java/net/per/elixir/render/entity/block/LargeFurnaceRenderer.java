@@ -70,7 +70,7 @@ public class LargeFurnaceRenderer implements BlockEntityRenderer<LargeFurnaceBlo
                 : dispatcher.getBlockModel(furnaceState);
         furnaceModel = swapTexture(mc, furnaceModel, furnaceState, part != null ? part.texture().orElse(null) : null);
         poseStack.pushPose();
-        poseStack.translate(-half, -half, -half);
+        poseStack.translate(-half, -half + 0.002f, -half);
         poseStack.scale(n, n, n);
         if (customModel) applyFacing(poseStack, be.facing());
         dispatcher.getModelRenderer().renderModel(poseStack.last(), buf, furnaceState, furnaceModel, 1f, 1f, 1f, light, packedOverlay);

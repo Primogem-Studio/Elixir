@@ -19,6 +19,7 @@ import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.*;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
+import net.neoforged.neoforge.event.level.LevelEvent;
 import net.per.elixir.ElixirConfig;
 import net.per.elixir.block.entity.LargeFurnaceBlockEntity;
 import net.per.elixir.client.ConfigScreen;
@@ -57,6 +58,14 @@ public class ClientEvent {
     @SubscribeEvent
     private static void onLoggingOut(ClientPlayerNetworkEvent.LoggingOut event) {
         ElixirConfig.restoreLocal();
+    }
+
+    @SubscribeEvent
+    private static void onLevelLoad(LevelEvent.Load event) {
+        var access = event.getLevel().registryAccess();
+        if (access.registry(ElixirRegistries.MATERIAL).isPresent()) {
+            ElixirHelper.flushClient(access);
+        }
     }
 
     @SubscribeEvent
@@ -200,11 +209,12 @@ public class ClientEvent {
         for (var m : com.main()) {
             var colors = m.value().colors();
             if (colors == null || colors.length == 0) return -1;
-            var c = colors.length == 1 ? adjustColor(colors[0], textureLayer) : colors[Math.min(textureLayer, colors.length - 1)];
+            var c = colors.length == 1 ? colors[0] : colors[Math.min(textureLayer, colors.length - 1)];
             color = color == -1 ? c : blend(color, c, 1.0f / i);
             i++;
         }
-        return color;
+        if (color == -1) return -1;
+        return adjustColor(color, textureLayer);
     }
 
     private static int adjustColor(int color, int layer) {

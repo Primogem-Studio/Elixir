@@ -17,8 +17,25 @@ import java.util.Map;
 public class ElixirHelper {
     private static Map<Item, Holder<Material>> mains = Map.of();
     private static Map<Item, Holder<Material>> offs = Map.of();
+    private static Map<Item, Holder<Material>> clientMains = Map.of();
+    private static Map<Item, Holder<Material>> clientOffs = Map.of();
 
     public static void flush(RegistryAccess registries) {
+        var c = collect(registries);
+        mains = ImmutableMap.copyOf(c.main());
+        offs = ImmutableMap.copyOf(c.off());
+    }
+
+    public static void flushClient(RegistryAccess registries) {
+        var c = collect(registries);
+        clientMains = ImmutableMap.copyOf(c.main());
+        clientOffs = ImmutableMap.copyOf(c.off());
+    }
+
+    private record Collected(Map<Item, Holder<Material>> main, Map<Item, Holder<Material>> off) {
+    }
+
+    private static Collected collect(RegistryAccess registries) {
         var main = new HashMap<Item, Holder<Material>>();
         var off = new HashMap<Item, Holder<Material>>();
         for (var h : registries.registryOrThrow(ElixirRegistries.MATERIAL).holders().toList()) {
@@ -27,8 +44,7 @@ public class ElixirHelper {
             if (h.value().main()) main.putIfAbsent(item, h);
             else off.putIfAbsent(item, h);
         }
-        mains = ImmutableMap.copyOf(main);
-        offs = ImmutableMap.copyOf(off);
+        return new Collected(main, off);
     }
 
     public static void execute(Material m, int pharm, int time, ItemStack stack, Level level, LivingEntity entity) {
@@ -48,6 +64,7 @@ public class ElixirHelper {
     }
 
     public static boolean hasMaterial(Item item) {
-        return mains.containsKey(item) || offs.containsKey(item);
+        return mains.containsKey(item) || offs.containsKey(item)
+                || clientMains.containsKey(item) || clientOffs.containsKey(item);
     }
 }

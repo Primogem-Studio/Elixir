@@ -3,6 +3,7 @@ package net.per.elixir.registry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.neoforge.registries.DeferredRegister;
+import net.per.elixir.block.entity.BrickFurnaceBlockEntity;
 import net.per.elixir.block.entity.ElixirFurnaceBlockEntity;
 import net.per.elixir.block.entity.LargeFurnaceBlockEntity;
 
@@ -14,5 +15,6 @@ public class ElixirBlockEntityTypes {
     static {
         BLOCK_ENTITY_TYPES.register("elixir_furnace", () -> ElixirFurnaceBlockEntity.Type);
         BLOCK_ENTITY_TYPES.register("large_furnace", () -> LargeFurnaceBlockEntity.Type);
+        BLOCK_ENTITY_TYPES.register("furnace_brick", () -> BrickFurnaceBlockEntity.Type);
     }
 }

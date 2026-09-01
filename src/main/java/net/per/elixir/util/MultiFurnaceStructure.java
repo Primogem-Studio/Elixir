@@ -15,6 +15,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.per.elixir.ElixirConfig;
 import net.per.elixir.block.ElixirFurnaceBrickBlock;
+import net.per.elixir.block.entity.BrickFurnaceBlockEntity;
 import net.per.elixir.block.entity.LargeFurnaceBlockEntity;
 import net.per.elixir.registry.ElixirBlocks;
 import net.per.elixir.registry.ElixirItems;
@@ -73,7 +74,13 @@ public final class MultiFurnaceStructure {
             for (int y = 0; y < n; y++)
                 for (int z = 0; z < n; z++) {
                     var p = min.offset(x, y, z);
-                    if (!p.equals(center)) level.setBlockAndUpdate(p, formed);
+                    if (p.equals(center)) continue;
+                    level.setBlockAndUpdate(p, formed);
+                    if (x == 0 || x == n - 1 || y == 0 || y == n - 1 || z == 0 || z == n - 1) {
+                        var be = new BrickFurnaceBlockEntity(p, formed);
+                        level.setBlockEntity(be);
+                        be.setChanged();
+                    }
                 }
         level.playSound(null, center, SoundEvents.BEACON_ACTIVATE, SoundSource.BLOCKS, 1.0f, 1.0f);
         return true;
@@ -120,8 +127,11 @@ public final class MultiFurnaceStructure {
         var brick = ElixirBlocks.elixir_furnace_brick.get().defaultBlockState();
         for (int x = 0; x < n; x++)
             for (int y = 0; y < n; y++)
-                for (int z = 0; z < n; z++)
-                    level.setBlockAndUpdate(min.offset(x, y, z), brick);
+                for (int z = 0; z < n; z++) {
+                    var p = min.offset(x, y, z);
+                    level.setBlockAndUpdate(p, brick);
+                    level.removeBlockEntity(p);
+                }
         level.playSound(null, min, SoundEvents.BEACON_DEACTIVATE, SoundSource.BLOCKS, 1.0f, 1.0f);
     }
 

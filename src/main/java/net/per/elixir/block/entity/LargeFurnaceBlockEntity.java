@@ -16,7 +16,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.per.elixir.block.ElixirFurnaceBrickBlock;
 import net.per.elixir.data.LargeFurnaceMenu;
 import net.per.elixir.registry.ElixirBlocks;
-import net.per.elixir.registry.ElixirDataComponents;
+import net.per.elixir.util.ElixirHelper;
 import net.per.elixir.util.MultiFurnaceStructure;
 
 import static net.per.elixir.ElixirConfig.*;
@@ -171,8 +171,9 @@ public class LargeFurnaceBlockEntity extends AbstractAlchemyFurnaceBlockEntity {
 
     @Override
     public boolean canPlaceItem(int slot, ItemStack stack) {
-        if (slot < materialSlots()) return true;
-        return slot == materialSlots() + 1 && stack.has(ElixirDataComponents.AlchemicalFormula);
+        if (started) return false;
+        if (slot < materialSlots()) return ElixirHelper.hasMaterial(stack.getItem());
+        return slot == materialSlots() + 1;
     }
 
     @Override

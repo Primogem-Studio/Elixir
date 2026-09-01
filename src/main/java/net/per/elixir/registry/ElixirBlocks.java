@@ -31,12 +31,27 @@ public class ElixirBlocks {
     public static final DeferredBlock<AlchemicalVesselBlock> alchemical_vessel = BLOCKS.register("alchemical_vessel", AlchemicalVesselBlock::new);
     public static final DeferredBlock<ElixirFurnaceBrickBlock> elixir_furnace_brick = BLOCKS.register("elixir_furnace_brick", () -> new ElixirFurnaceBrickBlock(BlockBehaviour.Properties.of().strength(2f, 2.0f).requiresCorrectToolForDrops().sound(SoundType.STONE).noOcclusion().lightLevel(state -> state.getValue(ElixirFurnaceBrickBlock.LIT) ? ElixirConfig.multifurnaceLightLevel : 0).isValidSpawn((s, l, p, t) -> false)));
     public static final DeferredBlock<ElixirFurnaceCoreBlock> elixir_furnace_core = BLOCKS.register("elixir_furnace_core", () -> new ElixirFurnaceCoreBlock());
-    public static final DeferredBlock<Block> elixir_furnace_cover = BLOCKS.register("elixir_furnace_cover", () -> new Block(BlockBehaviour.Properties.of()) {
+    public static final DeferredBlock<Block> elixir_furnace_cover = BLOCKS.register("elixir_furnace_cover", () -> new Block(BlockBehaviour.Properties.of().noOcclusion()) {
         private static final VoxelShape SHAPE = Shapes.box(0.2, -0.2, 0.2, 0.8, 0.5, 0.8);
 
         @Override
         protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
             return SHAPE;
+        }
+
+        @Override
+        public VoxelShape getOcclusionShape(BlockState state, BlockGetter level, BlockPos pos) {
+            return Shapes.empty();
+        }
+
+        @Override
+        public int getLightBlock(BlockState state, BlockGetter level, BlockPos pos) {
+            return 0;
+        }
+
+        @Override
+        public boolean propagatesSkylightDown(BlockState state, BlockGetter level, BlockPos pos) {
+            return true;
         }
 
         @Override

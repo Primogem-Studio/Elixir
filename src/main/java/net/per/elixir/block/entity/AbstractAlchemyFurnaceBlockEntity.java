@@ -606,7 +606,7 @@ public abstract class AbstractAlchemyFurnaceBlockEntity extends BaseContainerBlo
 
     @Override
     public boolean canTakeItem(Container target, int slot, ItemStack stack) {
-        return false;
+        return !started && slot == outputSlot();
     }
 
     @Override

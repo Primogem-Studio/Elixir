@@ -12,6 +12,7 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
 import net.per.elixir.block.entity.LargeFurnaceBlockEntity;
+import net.per.elixir.util.ElixirHelper;
 
 public class LargeFurnaceMenu extends AbstractContainerMenu {
     public static final MenuType<LargeFurnaceMenu> Type = IMenuTypeExtension.create(LargeFurnaceMenu::new);
@@ -67,6 +68,11 @@ public class LargeFurnaceMenu extends AbstractContainerMenu {
         @Override
         public boolean isActive() {
             return false;
+        }
+
+        @Override
+        public boolean mayPlace(ItemStack stack) {
+            return ElixirHelper.hasMaterial(stack.getItem());
         }
     }
 

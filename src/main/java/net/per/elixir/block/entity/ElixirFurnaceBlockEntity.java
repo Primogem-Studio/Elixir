@@ -12,6 +12,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.per.elixir.data.ElixirFurnaceMenu;
 import net.per.elixir.registry.ElixirBlocks;
+import net.per.elixir.util.ElixirHelper;
 
 import static net.per.elixir.block.ElixirFurnaceBlock.ACTIVE;
 import static net.per.elixir.ElixirConfig.pharmaLimited;
@@ -114,6 +115,8 @@ public class ElixirFurnaceBlockEntity extends AbstractAlchemyFurnaceBlockEntity 
 
     @Override
     public boolean canPlaceItem(int slot, ItemStack stack) {
-        return false;
+        if (started) return false;
+        if (slot < materialSlotCount()) return ElixirHelper.hasMaterial(stack.getItem());
+        return slot == formulaSlot();
     }
 }

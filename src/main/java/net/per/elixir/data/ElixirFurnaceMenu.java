@@ -12,6 +12,7 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
 import net.per.elixir.block.entity.ElixirFurnaceBlockEntity;
+import net.per.elixir.util.ElixirHelper;
 
 public class ElixirFurnaceMenu extends AbstractContainerMenu {
     public static final MenuType<ElixirFurnaceMenu> Type = IMenuTypeExtension.create(ElixirFurnaceMenu::new);
@@ -26,10 +27,30 @@ public class ElixirFurnaceMenu extends AbstractContainerMenu {
         super(Type, containerId);
         inventory = container;
         this.access = access;
-        addSlot(new Slot(inventory, 0, 31, 25));
-        addSlot(new Slot(inventory, 1, 53, 25));
-        addSlot(new Slot(inventory, 2, 31, 47));
-        addSlot(new Slot(inventory, 3, 53, 47));
+        addSlot(new Slot(inventory, 0, 31, 25) {
+            @Override
+            public boolean mayPlace(ItemStack stack) {
+                return ElixirHelper.hasMaterial(stack.getItem());
+            }
+        });
+        addSlot(new Slot(inventory, 1, 53, 25) {
+            @Override
+            public boolean mayPlace(ItemStack stack) {
+                return ElixirHelper.hasMaterial(stack.getItem());
+            }
+        });
+        addSlot(new Slot(inventory, 2, 31, 47) {
+            @Override
+            public boolean mayPlace(ItemStack stack) {
+                return ElixirHelper.hasMaterial(stack.getItem());
+            }
+        });
+        addSlot(new Slot(inventory, 3, 53, 47) {
+            @Override
+            public boolean mayPlace(ItemStack stack) {
+                return ElixirHelper.hasMaterial(stack.getItem());
+            }
+        });
         addSlot(new Slot(inventory, 4, 132, 36) {
             @Override
             public boolean mayPlace(ItemStack stack) {

@@ -7,6 +7,8 @@ import com.electronwill.nightconfig.toml.TomlParser;
 import com.electronwill.nightconfig.toml.TomlWriter;
 import net.neoforged.fml.loading.FMLPaths;
 
+import java.io.StringReader;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 
@@ -99,7 +101,7 @@ public class ElixirConfig {
     }
 
     public static void load() {
-        var c = new TomlParser().parse(CONFIG_PATH, (file, configFormat) -> false);
+        var c = readConfig();
         pharmaLimited = c.getOrElse("pharma_limited", 1000);
         pharmaConversionRate = c.getOrElse("pharma_conversion_rate", 10);
         highestPharmaLimited = c.getOrElse("highest_pharma_limited", 1000);
@@ -134,6 +136,17 @@ public class ElixirConfig {
         multifurnaceSlotsCap = Math.max(multifurnaceSlotsBase, c.getOrElse("multifurnace_slots_cap", 128));
         multifurnaceLightLevel = Math.clamp(c.getOrElse("multifurnace_light_level", 15), 0, 15);
         save();
+    }
+
+    private static Config readConfig() {
+        try {
+            var text = Files.readString(CONFIG_PATH);
+            if (!text.isEmpty() && text.charAt(0) == '\uFEFF') text = text.substring(1);
+            return new TomlParser().parse(new StringReader(text));
+        } catch (Exception e) {
+            Elixir.LOGGER.error("[E]读取配置文件失败，将使用默认配置", e);
+            return Config.of(() -> new HashMap<String, Object>(), InMemoryFormat.defaultInstance());
+        }
     }
 
     public static void restoreLocal() {
