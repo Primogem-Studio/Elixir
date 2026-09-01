@@ -87,6 +87,6 @@ public class ElixirFurnaceMenu extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(Player player) {
-        return access.evaluate((level, pos) -> level.getBlockEntity(pos) instanceof ElixirFurnaceBlockEntity be && !be.started() && player.canInteractWithBlock(pos, 4), true);
+        return access.evaluate((level, pos) -> level.getBlockEntity(pos) instanceof ElixirFurnaceBlockEntity && player.canInteractWithBlock(pos, 4), true);
     }
 }
