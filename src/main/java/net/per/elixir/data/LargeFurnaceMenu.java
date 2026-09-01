@@ -114,17 +114,6 @@ public class LargeFurnaceMenu extends AbstractContainerMenu {
     @Override
     public boolean stillValid(Player player) {
         return access.evaluate((level, pos) -> level.getBlockEntity(pos) instanceof LargeFurnaceBlockEntity be
-                && canInteractWithFurnace(player, be), true);
-    }
-
-    private static boolean canInteractWithFurnace(Player player, LargeFurnaceBlockEntity be) {
-        int n = be.size();
-        int half = (n - 1) / 2;
-        var c = be.getBlockPos();
-        double px = Math.clamp(player.getX(), c.getX() - half, c.getX() + half + 1.0);
-        double py = Math.clamp(player.getY(), c.getY() - half, c.getY() + half + 1.0);
-        double pz = Math.clamp(player.getZ(), c.getZ() - half, c.getZ() + half + 1.0);
-        double dx = player.getX() - px, dy = player.getY() - py, dz = player.getZ() - pz;
-        return dx * dx + dy * dy + dz * dz <= 36.0;
+                && player.canInteractWithBlock(pos, 4 + be.size()), true);
     }
 }
