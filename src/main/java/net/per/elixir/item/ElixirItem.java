@@ -44,6 +44,23 @@ public class ElixirItem extends Item {
         return super.finishUsingItem(stack, level, livingEntity);
     }
 
+    public static int eatDuration(ItemStack stack) {
+        var com = stack.get(ElixirDataComponents.Elixir);
+        if (com == null) return 32;
+        var limited = Math.max(1, pharmaLimited);
+        var pharma = Mth.clamp(ElixirMath.finalPharm(com.off(), com.pharm()), -limited, limited);
+        var fast = Math.max(1, danEatFastTicks);
+        var slow = Math.max(fast, Math.max(danEatSlowTicks, danEatMidTicks));
+        var mid = Mth.clamp(danEatMidTicks, fast, slow);
+        if (pharma <= 0) return (int) Math.round(mid + (slow - mid) * (-(double) pharma / limited));
+        return (int) Math.round(mid + (fast - mid) * (pharma / (double) limited));
+    }
+
+    @Override
+    public int getUseDuration(ItemStack stack, LivingEntity entity) {
+        return eatDuration(stack);
+    }
+
     @Override
     public InteractionResult interactLivingEntity(ItemStack stack, Player player, LivingEntity interactionTarget, InteractionHand usedHand) {
         if (player.isShiftKeyDown()) {

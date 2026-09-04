@@ -87,6 +87,12 @@ public class DanPouchItem extends Item {
     }
 
     @Override
+    public int getUseDuration(ItemStack stack, LivingEntity entity) {
+        var pill = selectedPill(stack);
+        return pill.isEmpty() ? super.getUseDuration(stack, entity) : ElixirItem.eatDuration(pill);
+    }
+
+    @Override
     public ItemStack finishUsingItem(ItemStack stack, Level level, LivingEntity livingEntity) {
         if (!level.isClientSide && livingEntity instanceof Player player) {
             eatPill(stack, level, player);

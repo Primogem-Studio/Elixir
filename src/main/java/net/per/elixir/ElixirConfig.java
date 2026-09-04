@@ -18,6 +18,9 @@ public class ElixirConfig {
     public static int pharmaConversionRate;
     public static int highestPharmaLimited;
     public static int timeConversionRate;
+    public static int danEatFastTicks;
+    public static int danEatMidTicks;
+    public static int danEatSlowTicks;
     public static double attributeModifierDilute;
     public static double effectDilute;
     public static final int EXTREME_TEMP_RANGE_FALLBACK = 10;
@@ -68,6 +71,9 @@ public class ElixirConfig {
         map.put("pharma_conversion_rate", pharmaConversionRate);
         map.put("highest_pharma_limited", highestPharmaLimited);
         map.put("time_conversion_rate", timeConversionRate);
+        map.put("dan_eat_fast_ticks", danEatFastTicks);
+        map.put("dan_eat_mid_ticks", danEatMidTicks);
+        map.put("dan_eat_slow_ticks", danEatSlowTicks);
         map.put("attribute_modifier_dilute", attributeModifierDilute);
         map.put("effect_dilute", effectDilute);
         map.put("temp_range_max", tempRangeMax);
@@ -106,6 +112,9 @@ public class ElixirConfig {
         pharmaConversionRate = c.getOrElse("pharma_conversion_rate", 10);
         highestPharmaLimited = c.getOrElse("highest_pharma_limited", 1000);
         timeConversionRate = c.getOrElse("time_conversion_rate", 100);
+        danEatFastTicks = Math.max(1, c.getOrElse("dan_eat_fast_ticks", 10));
+        danEatSlowTicks = Math.max(danEatFastTicks, Math.max(1, c.getOrElse("dan_eat_slow_ticks", 64)));
+        danEatMidTicks = Math.clamp(Math.max(1, c.getOrElse("dan_eat_mid_ticks", 32)), danEatFastTicks, danEatSlowTicks);
         attributeModifierDilute = c.getOrElse("attribute_modifier_dilute", 100.0);
         effectDilute = c.getOrElse("effect_dilute", 10.0);
         tempRangeMax = Math.max(1, c.getOrElse("temp_range_max", 200));

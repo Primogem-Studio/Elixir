@@ -67,6 +67,24 @@ public class ConfigScreen {
                 .setDefaultValue(100)
                 .setSaveConsumer(v -> timeConversionRate = v)
                 .build());
+        pharma.addEntry(entryBuilder.startIntField(Component.translatable("config.elixir.option.dan_eat_fast_ticks"), danEatFastTicks)
+                .setDefaultValue(10)
+                .setMin(1)
+                .setTooltip(Component.translatable("config.elixir.option.dan_eat_fast_ticks.tooltip"))
+                .setSaveConsumer(v -> danEatFastTicks = v)
+                .build());
+        pharma.addEntry(entryBuilder.startIntField(Component.translatable("config.elixir.option.dan_eat_mid_ticks"), danEatMidTicks)
+                .setDefaultValue(32)
+                .setMin(1)
+                .setTooltip(Component.translatable("config.elixir.option.dan_eat_mid_ticks.tooltip"))
+                .setSaveConsumer(v -> danEatMidTicks = v)
+                .build());
+        pharma.addEntry(entryBuilder.startIntField(Component.translatable("config.elixir.option.dan_eat_slow_ticks"), danEatSlowTicks)
+                .setDefaultValue(64)
+                .setMin(1)
+                .setTooltip(Component.translatable("config.elixir.option.dan_eat_slow_ticks.tooltip"))
+                .setSaveConsumer(v -> danEatSlowTicks = v)
+                .build());
         pharma.addEntry(entryBuilder.startDoubleField(Component.translatable("config.elixir.option.attribute_modifier_dilute"), attributeModifierDilute)
                 .setDefaultValue(100.0f)
                 .setSaveConsumer(v -> attributeModifierDilute = v)
