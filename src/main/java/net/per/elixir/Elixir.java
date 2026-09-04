@@ -2,7 +2,6 @@ package net.per.elixir;
 
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
-import net.per.elixir.gametest.FurnaceCapabilityTests;
 import net.per.elixir.registry.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -25,6 +24,5 @@ public class Elixir {
         ElixirDataAttachments.ATTACHMENT_TYPES.register(bus);
         ElixirConfig.load();
         bus.addListener(ElixirBlockEntityTypes::onRegisterCapabilities);
-        bus.addListener(FurnaceCapabilityTests::register);
     }
 }
