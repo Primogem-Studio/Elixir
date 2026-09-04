@@ -107,11 +107,15 @@ public class ElixirItem extends Item {
         return (int) ((Mth.clamp(getPharma(com), -highestPharmaLimited, highestPharmaLimited) + highestPharmaLimited) / (highestPharmaLimited * 2f) * 20) + 1;
     }
 
+    public static Component pharmComponent(ElixirComponent com) {
+        return Component.translatable("item.elixir.pharma").append(Component.translatable("item.elixir.pharma.level." + getLevel(com)).withColor(getColor(com)));
+    }
+
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> list, TooltipFlag tooltipFlag) {
         var com = stack.get(ElixirDataComponents.Elixir);
         if (com != null) {
-            list.add(Component.translatable("item.elixir.pharma").append(Component.translatable("item.elixir.pharma.level." + getLevel(com)).withColor(getColor(com))));
+            list.add(pharmComponent(com));
         }
     }
 

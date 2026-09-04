@@ -24,10 +24,15 @@ import net.neoforged.neoforge.event.level.LevelEvent;
 import net.per.elixir.ElixirConfig;
 import net.per.elixir.block.entity.LargeFurnaceBlockEntity;
 import net.per.elixir.client.ConfigScreen;
+import net.per.elixir.client.DanPouchScreen;
+import net.per.elixir.client.DanWheelClient;
 import net.per.elixir.client.ElixirFurnaceScreen;
 import net.per.elixir.client.LargeFurnaceScreen;
+import net.per.elixir.data.DanPouchMenu;
 import net.per.elixir.data.ElixirFurnaceMenu;
 import net.per.elixir.data.LargeFurnaceMenu;
+import net.per.elixir.item.DanPouchItem;
+import net.per.elixir.network.OpenPouchPayload;
 import net.per.elixir.registry.ElixirBlocks;
 import net.per.elixir.registry.ElixirDataComponents;
 import net.per.elixir.registry.ElixirEntityTypes;
@@ -39,6 +44,7 @@ import net.per.elixir.render.entity.block.LargeFurnaceRenderer;
 import net.per.elixir.render.tooltip.AlchemicalFormulaDetailTooltip;
 import net.per.elixir.render.tooltip.AlchemicalFormulaTooltip;
 import net.per.elixir.util.ElixirHelper;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -124,6 +130,19 @@ public class ClientEvent {
     @SubscribeEvent
     private static void onGatherComponents(RenderTooltipEvent.GatherComponents event) {
         var item = event.getItemStack();
+        if (item.getItem() instanceof DanPouchItem) {
+            var pouchComp = item.get(ElixirDataComponents.DanPouch);
+            var pill = pouchComp != null && pouchComp.selected() >= 0 ? pouchComp.get(pouchComp.selected()) : ItemStack.EMPTY;
+            var pillElixir = pill.get(ElixirDataComponents.Elixir);
+            if (Screen.hasShiftDown() && !pill.isEmpty() && pillElixir != null) {
+                var rows = AlchemicalFormulaDetailTooltip.rowsOf(pillElixir);
+                AlchemicalFormulaDetailTooltip.begin(pillElixir, rows.size());
+                event.getTooltipElements().add(1, Either.right(new AlchemicalFormulaDetailTooltip(rows)));
+            } else {
+                AlchemicalFormulaDetailTooltip.clear();
+            }
+            return;
+        }
         var formula = item.get(ElixirDataComponents.AlchemicalFormula);
         var elixir = item.get(ElixirDataComponents.Elixir);
         var show = Screen.hasShiftDown() && (formula != null || elixir != null && !isRandomPill(item));
@@ -162,11 +181,31 @@ public class ClientEvent {
     @SubscribeEvent
     private static void onClientTick(ClientTickEvent.Post event) {
         AlchemicalFormulaDetailTooltip.onFrame();
+        DanWheelClient.tick();
+    }
+
+    @SubscribeEvent
+    private static void onInteractionKeyTriggered(InputEvent.InteractionKeyMappingTriggered event) {
+        if (!event.isAttack()) return;
+        var mc = Minecraft.getInstance();
+        if (mc.player == null || mc.screen != null || !mc.player.isShiftKeyDown()) return;
+        if (mc.player.getMainHandItem().getItem() instanceof DanPouchItem) {
+            event.setCanceled(true);
+            PacketDistributor.sendToServer(new OpenPouchPayload());
+        }
     }
 
     @SubscribeEvent
     private static void onTooltip(ItemTooltipEvent event) {
         var it = event.getItemStack();
+        if (it.getItem() instanceof DanPouchItem) {
+            if (event.getFlags().hasShiftDown()) {
+                event.getToolTip().removeIf(line -> line.getContents() instanceof TranslatableContents t && t.getKey().startsWith("item.elixir.dan_pouch.usage."));
+            } else {
+                event.getToolTip().add(1, Component.translatable("tooltip.dan_pouch.shift").withColor(0xB4FF59));
+            }
+            return;
+        }
         if (it.has(ElixirDataComponents.AlchemicalFormula) || it.has(ElixirDataComponents.Elixir) && !isRandomPill(it)) {
             if (!event.getFlags().hasShiftDown()) {
                 var hint = Component.translatable("tooltip.alchemical_formula.shift").withColor(0xB4FF59);
@@ -296,5 +335,6 @@ public class ClientEvent {
     private static void onRegisterMenuScreens(RegisterMenuScreensEvent event) {
         event.register(ElixirFurnaceMenu.Type, ElixirFurnaceScreen::new);
         event.register(LargeFurnaceMenu.Type, LargeFurnaceScreen::new);
+        event.register(DanPouchMenu.Type, DanPouchScreen::new);
     }
 }

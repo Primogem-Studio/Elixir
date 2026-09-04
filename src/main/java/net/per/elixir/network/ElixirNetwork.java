@@ -15,6 +15,8 @@ public class ElixirNetwork {
     public static void onRegisterPayloads(RegisterPayloadHandlersEvent event) {
         var registrar = event.registrar("1");
         registrar.playToClient(SyncFurnaceConfigPayload.TYPE, SyncFurnaceConfigPayload.STREAM_CODEC, SyncFurnaceConfigPayload::handle);
+        registrar.playToServer(OpenPouchPayload.TYPE, OpenPouchPayload.STREAM_CODEC, OpenPouchPayload::handle);
+        registrar.playToServer(SelectPillPayload.TYPE, SelectPillPayload.STREAM_CODEC, SelectPillPayload::handle);
     }
 
     public static void syncFurnaceConfigTo(ServerPlayer player) {

@@ -39,6 +39,7 @@ public class ElixirTabs {
                 output.accept(elixir_furnace_cover);
                 output.accept(elixir_furnace_brick);
                 output.accept(alchemical_vessel);
+                output.accept(dan_pouch);
                 output.accept(handheld_fan);
             })
             .build());

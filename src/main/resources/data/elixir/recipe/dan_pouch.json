@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "X X",
+    " L ",
+    " X "
+  ],
+  "key": {
+    "X": {
+      "item": "elixir:elixir_furnace_brick"
+    },
+    "L": {
+      "item": "minecraft:leather"
+    }
+  },
+  "result": {
+    "id": "elixir:dan_pouch",
+    "count": 1
+  }
+}

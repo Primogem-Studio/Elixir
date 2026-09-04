@@ -6,6 +6,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.per.elixir.data.AlchemicalFormulaComponent;
+import net.per.elixir.data.DanPouchComponent;
 import net.per.elixir.data.ElixirComponent;
 
 import static net.per.elixir.Elixir.MOD_ID;
@@ -15,10 +16,12 @@ public class ElixirDataComponents {
     public static final DataComponentType<ElixirComponent> Elixir = DataComponentType.<ElixirComponent>builder().persistent(ElixirComponent.codec).networkSynchronized(ElixirComponent.streamCodec).build();
     public static final DataComponentType<AlchemicalFormulaComponent> AlchemicalFormula = DataComponentType.<AlchemicalFormulaComponent>builder().persistent(AlchemicalFormulaComponent.codec).networkSynchronized(AlchemicalFormulaComponent.streamCodec).build();
     public static final DataComponentType<Boolean> MaterialPropertySwitching = DataComponentType.<Boolean>builder().persistent(Codec.BOOL).networkSynchronized(ByteBufCodecs.BOOL).build();
+    public static final DataComponentType<DanPouchComponent> DanPouch = DataComponentType.<DanPouchComponent>builder().persistent(DanPouchComponent.CODEC).networkSynchronized(DanPouchComponent.STREAM_CODEC).build();
 
     static {
         COMPONENTS.register("elixir", () -> Elixir);
         COMPONENTS.register("alchemical_formula", () -> AlchemicalFormula);
         COMPONENTS.register("material_property_switching", () -> MaterialPropertySwitching);
+        COMPONENTS.register("dan_pouch", () -> DanPouch);
     }
 }

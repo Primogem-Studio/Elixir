@@ -3,6 +3,7 @@ package net.per.elixir.registry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.inventory.MenuType;
 import net.neoforged.neoforge.registries.DeferredRegister;
+import net.per.elixir.data.DanPouchMenu;
 import net.per.elixir.data.ElixirFurnaceMenu;
 import net.per.elixir.data.LargeFurnaceMenu;
 
@@ -14,5 +15,6 @@ public class ElixirMenus {
     static {
         MENUS.register("elixir_furnace", () -> ElixirFurnaceMenu.Type);
         MENUS.register("large_furnace", () -> LargeFurnaceMenu.Type);
+        MENUS.register("dan_pouch", () -> DanPouchMenu.Type);
     }
 }

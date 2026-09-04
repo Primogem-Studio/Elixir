@@ -20,7 +20,6 @@
   "itemGroup.elixir.tab1": "§eElixir",
   "itemGroup.elixir.tab2": "Misc",
   "block.elixir.elixir_furnace": "§aFour-Aspect Furnace",
-  "container.elixir.elixir_furnace": "Four-Aspect Furnace",
   "message.elixir_furnace.failed": "§cPill slot is not idle",
   "block.elixir.elixir_furnace_cover": "§aFour-Aspect Furnace Lid",
   "block.elixir.alchemical_vessel": "§aAlchemical Vessel",
@@ -239,5 +238,14 @@
   "chat_bubble.elixir.alchemy.backpack_full": "Backpack full, no room for pills...",
   "chat_bubble.elixir.alchemy.wait_player": "No formula yet, waiting for you to light it~",
   "chat_bubble.elixir.alchemy.formula_mismatch": "Materials don't match the formula, checking elsewhere",
-  "chat_bubble.elixir.alchemy.empty": "Nothing to refine here, looking for another furnace"
+  "chat_bubble.elixir.alchemy.empty": "Nothing to refine here, looking for another furnace",
+  "item.elixir.dan_pouch": "§aPill Pouch",
+  "item.elixir.dan_pouch.usage.1": "§7Sneak + §eLeft Click§7: open the 8-slot case (pills only)",
+  "item.elixir.dan_pouch.usage.2": "§7Hold §b%s§7 in the main hand to open the wheel and pick; §eRight Click§7 to eat, Sneak + Right Click to throw",
+  "item.elixir.dan_pouch.selected": "§7Selected: ",
+  "item.elixir.dan_pouch.none": "None",
+  "key.elixir.dan_wheel": "Pill Wheel",
+  "key.categories.elixir": "Elixir",
+  "tooltip.dan_pouch.shift": "Hold §eShift§r for the chosen pill's details",
+  "dan_wheel.elixir.none": "No pill selected"
 }

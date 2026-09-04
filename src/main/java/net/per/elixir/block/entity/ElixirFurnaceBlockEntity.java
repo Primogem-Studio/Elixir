@@ -104,7 +104,7 @@ public class ElixirFurnaceBlockEntity extends AbstractAlchemyFurnaceBlockEntity 
 
     @Override
     protected Component getDefaultName() {
-        return Component.translatable("container.elixir.elixir_furnace");
+        return Component.empty();
     }
 
     @Override

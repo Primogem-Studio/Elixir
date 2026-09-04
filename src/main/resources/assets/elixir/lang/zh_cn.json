@@ -20,7 +20,6 @@
   "itemGroup.elixir.tab1": "丹",
   "itemGroup.elixir.tab2": "杂物",
   "block.elixir.elixir_furnace": "§a四象炉",
-  "container.elixir.elixir_furnace": "四象炉",
   "message.elixir_furnace.failed": "§c丹仓非空闲状态",
   "block.elixir.elixir_furnace_cover": "§a四象炉上鼎",
   "block.elixir.alchemical_vessel": "§a药鼎",
@@ -239,5 +238,14 @@
   "chat_bubble.elixir.alchemy.backpack_full": "背包满了，装不下丹药…",
   "chat_bubble.elixir.alchemy.wait_player": "没有丹方，等主人点火~",
   "chat_bubble.elixir.alchemy.formula_mismatch": "材料和丹方对不上，我先去别处看看",
-  "chat_bubble.elixir.alchemy.empty": "炉子里没有可炼的东西，我找找别的炉子"
+  "chat_bubble.elixir.alchemy.empty": "炉子里没有可炼的东西，我找找别的炉子",
+  "item.elixir.dan_pouch": "§a丹囊",
+  "item.elixir.dan_pouch.usage.1": "§7潜行+§e左键§7开八格丹匣 · 仅容丹药",
+  "item.elixir.dan_pouch.usage.2": "§7主手持按§b%s§7轮盘择丹 · §e右键§7服丹 / 潜行右键掷丹",
+  "item.elixir.dan_pouch.selected": "§7当前所选：",
+  "item.elixir.dan_pouch.none": "无",
+  "key.elixir.dan_wheel": "丹药轮盘",
+  "key.categories.elixir": "丹药",
+  "tooltip.dan_pouch.shift": "持按§eShift§r查看所选丹药理明细",
+  "dan_wheel.elixir.none": "未选定丹药"
 }

@@ -13,6 +13,7 @@ import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.per.elixir.Elixir;
+import net.per.elixir.item.DanPouchItem;
 import net.per.elixir.item.ElixirItem;
 import net.per.elixir.network.ElixirNetwork;
 import net.per.elixir.util.ElixirHelper;
@@ -44,6 +45,9 @@ public class CommonEvent {
         if (stack.getItem() instanceof ElixirItem) {
             ElixirItem.launch(player, stack);
             event.setCanceled(true);
+        } else if (stack.getItem() instanceof DanPouchItem) {
+            DanPouchItem.throwPill(player, stack);
+            event.setCanceled(true);
         }
     }
 
@@ -54,7 +58,9 @@ public class CommonEvent {
 
     @SubscribeEvent
     private static void onTagsUpdated(TagsUpdatedEvent event) {
-        ElixirHelper.flush(event.getRegistryAccess());
+        if (event.shouldUpdateStaticData()) {
+            ElixirHelper.flush(event.getRegistryAccess());
+        }
     }
 
     @SubscribeEvent
