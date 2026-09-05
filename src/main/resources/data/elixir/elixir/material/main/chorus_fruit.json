@@ -1,0 +1,10 @@
+{
+  "item": "minecraft:chorus_fruit",
+  "effect": "elixir:dash_z",
+  "pharm": 7,
+  "stability": -9,
+  "colors": [
+    4292251618
+  ],
+  "description": "item.elixir.material.desc.elixir.main.chorus_fruit"
+}

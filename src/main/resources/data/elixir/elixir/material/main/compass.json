@@ -1,0 +1,10 @@
+{
+  "item": "minecraft:compass",
+  "effect": "elixir:dash_look",
+  "pharm": -5,
+  "stability": -3,
+  "colors": [
+    4293314138
+  ],
+  "description": "item.elixir.material.desc.elixir.main.spyglass"
+}

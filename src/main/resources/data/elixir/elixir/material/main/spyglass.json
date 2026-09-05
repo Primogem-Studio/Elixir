@@ -1,0 +1,10 @@
+{
+  "item": "minecraft:spyglass",
+  "effect": "elixir:dash_look",
+  "pharm": 6,
+  "stability": -2,
+  "colors": [
+    4287393087
+  ],
+  "description": "item.elixir.material.desc.elixir.main.spyglass"
+}

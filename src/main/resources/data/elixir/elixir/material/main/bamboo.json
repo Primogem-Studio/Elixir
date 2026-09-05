@@ -1,0 +1,10 @@
+{
+  "item": "minecraft:bamboo",
+  "effect": "elixir:dash_y",
+  "pharm": 5,
+  "stability": 3,
+  "colors": [
+    4283606087
+  ],
+  "description": "item.elixir.material.desc.elixir.main.bamboo"
+}

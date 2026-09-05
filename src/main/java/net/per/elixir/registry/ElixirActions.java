@@ -1,6 +1,7 @@
 package net.per.elixir.registry;
 
 import net.minecraft.core.Holder;
+import net.minecraft.network.protocol.game.ClientboundSetEntityMotionPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -8,11 +9,17 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LightningBolt;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.monster.Enemy;
+import net.minecraft.world.entity.projectile.EvokerFangs;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.registries.DeferredRegister;
+import net.per.elixir.util.ElixirSummon;
 import net.per.elixir.util.IElixirAction;
 import net.per.elixir.util.ModifierUtil;
 
@@ -129,6 +136,69 @@ public class ElixirActions {
             for (int i = 0; i < pharm / 2; i++)
                 level.explode(entity, entity.getX() + (r.nextDouble() - 0.5) * 2 * radius, entity.getY() + (r.nextDouble() - 0.5) * radius, entity.getZ() + (r.nextDouble() - 0.5) * 2 * radius, Math.clamp(pharm / 10, 1, 10), Level.ExplosionInteraction.TNT);
         });
+
+        ACTIONS.register("necromancy", () -> (pharm, time, stack, level, entity) -> {
+            if (level.isClientSide) return;
+            boolean hostile = pharm < 0;
+            LivingEntity foe = hostile ? entity : null;
+            if (!hostile) {
+                if (entity instanceof Mob me && me.getTarget() != null && me.getTarget().isAlive()) foe = me.getTarget();
+                else if (entity.getLastHurtByMob() != null && entity.getLastHurtByMob().isAlive()) foe = entity.getLastHurtByMob();
+                else for (var m : level.getEntitiesOfClass(Mob.class, entity.getBoundingBox().inflate(24), m -> m.isAlive() && !ElixirSummon.isServant(m) && (m.getTarget() == entity || m instanceof Enemy))) {
+                    foe = m;
+                    break;
+                }
+            }
+            if (level instanceof ServerLevel sl)
+                ElixirSummon.summonZombies(sl, entity, foe, hostile, Math.clamp(Math.abs(pharm) / 10 + 1, 1, 8));
+        });
+
+        ACTIONS.register("dash_x", () -> (pharm, time, stack, level, entity) -> {
+            double v = Math.min(0.4 + Math.abs(pharm) * 0.05, 2.4);
+            dash(entity, Math.copySign(v, pharm), 0, 0);
+        });
+        ACTIONS.register("dash_y", () -> (pharm, time, stack, level, entity) -> {
+            double v = Math.min(0.4 + Math.abs(pharm) * 0.05, 2.4);
+            dash(entity, 0, Math.copySign(v, pharm), 0);
+        });
+        ACTIONS.register("dash_z", () -> (pharm, time, stack, level, entity) -> {
+            double v = Math.min(0.4 + Math.abs(pharm) * 0.05, 2.4);
+            dash(entity, 0, 0, Math.copySign(v, pharm));
+        });
+        ACTIONS.register("dash_look", () -> (pharm, time, stack, level, entity) -> {
+            double v = Math.min(0.4 + Math.abs(pharm) * 0.05, 2.4);
+            var look = entity.getLookAngle();
+            dash(entity, look.x * Math.copySign(v, pharm), look.y * Math.copySign(v, pharm), look.z * Math.copySign(v, pharm));
+        });
+
+        ACTIONS.register("evoker", () -> (pharm, time, stack, level, entity) -> {
+            if (level.isClientSide) return;
+            boolean outward = pharm > 0;
+            int a = Math.abs(pharm);
+            float dmg = (float) Math.min(4.0 + a / 8.0, 12.0);
+            double range = Math.min(8.0 + a / 4.0, 20.0);
+            int rings = Math.clamp(a / 30 + 1, 2, 3);
+            for (int i = 0; i < rings; i++) {
+                double radius = 3.0 + (range - 3.0) * i / (rings - 1);
+                int n = Math.clamp((int) (Math.PI * 2 * radius / 1.6), 8, 20);
+                int warmup = outward ? 6 + i * 6 : 6 + (rings - 1 - i) * 6;
+                for (int j = 0; j < n; j++) {
+                    double ang = j * Math.PI * 2 / n;
+                    fang(level, entity.getX() + Math.cos(ang) * radius, entity.getY(), entity.getZ() + Math.sin(ang) * radius, warmup, outward ? entity : null);
+                }
+            }
+            if (outward) {
+                var hits = level.getEntitiesOfClass(LivingEntity.class, entity.getBoundingBox().inflate(range), e -> e != entity && e.isAlive() && !entity.isAlliedTo(e));
+                for (int i = 0; i < Math.min(hits.size(), 16); i++) {
+                    var t = hits.get(i);
+                    t.hurt(level.damageSources().indirectMagic(entity, null), dmg);
+                    fang(level, t.getX(), t.getY(), t.getZ(), 12 + rings * 6, entity);
+                }
+            } else {
+                entity.hurt(level.damageSources().indirectMagic(entity, null), dmg);
+                fang(level, entity.getX(), entity.getY(), entity.getZ(), 12 + rings * 6, null);
+            }
+        });
     }
 
     private static IElixirAction effect(Holder<MobEffect> effect) {
@@ -166,5 +236,18 @@ public class ElixirActions {
 
     private static IElixirAction modifier(String name, Holder<Attribute> attr) {
         return (pharm, time, stack, level, entity) -> ModifierUtil.addTimeLimited(entity, time, attr, new AttributeModifier(ResourceLocation.fromNamespaceAndPath(MOD_ID, name), pharm / attributeModifierDilute, AttributeModifier.Operation.ADD_MULTIPLIED_BASE));
+    }
+
+    private static void dash(LivingEntity entity, double vx, double vy, double vz) {
+        if (entity.level().isClientSide) return;
+        var motion = entity.getDeltaMovement();
+        if (entity.onGround() && (vx * vx + vz * vz) > 0.01 && vy < 0.45) vy = 0.45;
+        motion = motion.add(vx, vy, vz);
+        entity.setDeltaMovement(motion);
+        if (entity instanceof ServerPlayer sp) sp.connection.send(new ClientboundSetEntityMotionPacket(entity.getId(), motion));
+    }
+
+    private static void fang(Level level, double x, double y, double z, int warmup, LivingEntity owner) {
+        level.addFreshEntity(new EvokerFangs(level, x, y, z, 0, warmup, owner));
     }
 }

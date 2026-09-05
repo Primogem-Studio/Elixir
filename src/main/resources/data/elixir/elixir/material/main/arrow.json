@@ -1,0 +1,10 @@
+{
+  "item": "minecraft:arrow",
+  "effect": "elixir:dash_x",
+  "pharm": 5,
+  "stability": -2,
+  "colors": [
+    4291404327
+  ],
+  "description": "item.elixir.material.desc.elixir.main.arrow"
+}

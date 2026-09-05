@@ -1,0 +1,10 @@
+{
+  "item": "minecraft:sand",
+  "effect": "elixir:dash_y",
+  "pharm": -5,
+  "stability": -4,
+  "colors": [
+    4293516454
+  ],
+  "description": "item.elixir.material.desc.elixir.main.bamboo"
+}

@@ -1,0 +1,10 @@
+{
+  "item": "minecraft:bone",
+  "effect": "elixir:necromancy",
+  "pharm": 8,
+  "stability": -16,
+  "colors": [
+    4293451982
+  ],
+  "description": "item.elixir.material.desc.elixir.main.bone"
+}

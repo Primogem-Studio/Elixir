@@ -1,0 +1,10 @@
+{
+  "item": "minecraft:phantom_membrane",
+  "effect": "elixir:evoker",
+  "pharm": 12,
+  "stability": -15,
+  "colors": [
+    4287617250
+  ],
+  "description": "item.elixir.material.desc.elixir.main.phantom_membrane"
+}

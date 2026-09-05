@@ -1,0 +1,10 @@
+{
+  "item": "minecraft:spectral_arrow",
+  "effect": "elixir:dash_x",
+  "pharm": -4,
+  "stability": -6,
+  "colors": [
+    4290306303
+  ],
+  "description": "item.elixir.material.desc.elixir.main.arrow"
+}

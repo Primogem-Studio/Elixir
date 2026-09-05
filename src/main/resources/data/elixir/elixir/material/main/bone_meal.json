@@ -1,0 +1,10 @@
+{
+  "item": "minecraft:bone_meal",
+  "effect": "elixir:necromancy",
+  "pharm": -6,
+  "stability": -12,
+  "colors": [
+    4293324742
+  ],
+  "description": "item.elixir.material.desc.elixir.main.bone"
+}
