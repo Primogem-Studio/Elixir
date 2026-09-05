@@ -1,6 +1,6 @@
 {
   "item": "minecraft:feather",
-  "effect": "elixir:slow_falling",
+  "effect": "elixir:slow_falling_levitation",
   "pharm": 0,
   "stability": -1,
   "colors": [

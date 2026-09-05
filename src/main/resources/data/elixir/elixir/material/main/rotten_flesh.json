@@ -1,6 +1,6 @@
 {
   "item": "minecraft:rotten_flesh",
-  "effect": "elixir:hunger",
+  "effect": "elixir:saturation_hunger",
   "pharm": 3,
   "stability": -8,
   "colors": [

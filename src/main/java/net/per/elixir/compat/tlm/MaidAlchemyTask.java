@@ -3,6 +3,7 @@ package net.per.elixir.compat.tlm;
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
 import com.google.common.collect.ImmutableMap;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -182,6 +183,20 @@ public class MaidAlchemyTask extends Behavior<EntityMaid> {
             return;
         }
 
+        boolean sitting = maid.isMaidInSittingPose() || maid.isPassenger();
+        if (sitting) {
+            if (--this.relocateCooldown <= 0) {
+                this.relocateCooldown = SEARCH_INTERVAL;
+                BlockPos better = findFurnace(level, maid);
+                if (better == null) {
+                    clearTarget(maid);
+                } else if (!better.equals(this.furnacePos)) {
+                    switchTo(level, maid, better);
+                }
+            }
+            return;
+        }
+
         if (this.standPos == null) {
             if (--this.standRetryCooldown > 0) {
                 return;
@@ -204,18 +219,22 @@ public class MaidAlchemyTask extends Behavior<EntityMaid> {
     }
 
     private boolean isInInteractRange(ServerLevel level, EntityMaid maid) {
-        if (level.getBlockEntity(this.furnacePos) instanceof LargeFurnaceBlockEntity l) {
+        return inReach(level, maid, this.furnacePos);
+    }
+
+    private static boolean inReach(ServerLevel level, EntityMaid maid, BlockPos pos) {
+        if (level.getBlockEntity(pos) instanceof LargeFurnaceBlockEntity l) {
             int n = l.size();
             int half = (n - 1) / 2;
-            double px = Math.clamp(maid.getX(), this.furnacePos.getX() - half, this.furnacePos.getX() + half + 1);
-            double py = Math.clamp(maid.getY(), this.furnacePos.getY() - half, this.furnacePos.getY() + half + 1);
-            double pz = Math.clamp(maid.getZ(), this.furnacePos.getZ() - half, this.furnacePos.getZ() + half + 1);
+            double px = Math.clamp(maid.getX(), pos.getX() - half, pos.getX() + half + 1);
+            double py = Math.clamp(maid.getY(), pos.getY() - half, pos.getY() + half + 1);
+            double pz = Math.clamp(maid.getZ(), pos.getZ() - half, pos.getZ() + half + 1);
             double dx = maid.getX() - px;
             double dy = maid.getY() - py;
             double dz = maid.getZ() - pz;
             return dx * dx + dy * dy + dz * dz <= 9;
         }
-        return maid.distanceToSqr(Vec3.atCenterOf(this.furnacePos)) <= 16;
+        return maid.distanceToSqr(Vec3.atCenterOf(pos)) <= 16;
     }
 
     private void interact(ServerLevel level, EntityMaid maid) {
@@ -244,6 +263,9 @@ public class MaidAlchemyTask extends Behavior<EntityMaid> {
                     level.playSound(null, this.furnacePos, SoundEvents.BLAZE_SHOOT, SoundSource.BLOCKS, 0.8f, 0.9f + level.random.nextFloat() * 0.2f);
                 }
                 maid.swing(InteractionHand.MAIN_HAND);
+                if (maid.isMaidInSittingPose() || maid.isPassenger()) {
+                    level.sendParticles(ParticleTypes.CLOUD, this.furnacePos.getX() + 0.5, this.furnacePos.getY() + 1.0, this.furnacePos.getZ() + 0.5, 2, 0.35, 0.15, 0.35, 0.02);
+                }
             }
             return;
         }
@@ -431,8 +453,12 @@ public class MaidAlchemyTask extends Behavior<EntityMaid> {
         BlockPos best = null;
         int bestScore = 0;
         double bestDistSqr = Double.MAX_VALUE;
+        boolean anchored = maid.isMaidInSittingPose() || maid.isPassenger();
         for (var cand : candidates) {
             if (cand.pos().equals(this.ignoredPos)) {
+                continue;
+            }
+            if (anchored && !inReach(level, maid, cand.pos())) {
                 continue;
             }
             int score = scoreFurnace(cand.be(), cand.large());

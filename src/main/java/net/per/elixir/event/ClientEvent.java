@@ -251,18 +251,32 @@ public class ClientEvent {
     private static int getColor(ItemStack stack, int layer) {
         var com = stack.get(ElixirDataComponents.Elixir);
         if (com == null) return -1;
-        int color = -1;
-        int i = 1;
         int textureLayer = 3 - layer;
+        Holder<Material> custom = null;
+        var mixing = new ArrayList<Holder<Material>>();
         for (var m : com.main()) {
             var colors = m.value().colors();
             if (colors == null || colors.length == 0) return -1;
-            var c = colors.length == 1 ? colors[0] : colors[Math.min(textureLayer, colors.length - 1)];
-            color = color == -1 ? c : blend(color, c, 1.0f / i);
-            i++;
+            if (colors.length == 4) {
+                if (custom == null) custom = m;
+            } else {
+                mixing.add(m);
+            }
         }
-        if (color == -1) return -1;
-        return adjustColor(color, textureLayer);
+        if (!mixing.isEmpty()) {
+            int color = -1;
+            int i = 1;
+            for (var m : mixing) {
+                var colors = m.value().colors();
+                var c = colors.length == 1 ? colors[0] : colors[Math.min(textureLayer, colors.length - 1)];
+                color = color == -1 ? c : blend(color, c, 1.0f / i);
+                i++;
+            }
+            return adjustColor(color, textureLayer);
+        }
+        if (custom == null) return -1;
+        var colors = custom.value().colors();
+        return colors[Math.min(textureLayer, colors.length - 1)];
     }
 
     private static int adjustColor(int color, int layer) {

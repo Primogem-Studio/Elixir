@@ -65,7 +65,7 @@ Main materials decide which effect the pill applies.
 | `effect` | effect id | Main-only. An effect registered in the `elixir:action` registry, e.g. `elixir:true_lightning`. |
 | `pharm` | int | Pharm value; sign controls effect direction, magnitude controls strength. |
 | `stability` | double | Stability, affects refining success. |
-| `colors` | int array | Blended pill colors (ARGB decimal). |
+| `colors` | int array | Pill colors (ARGB decimal). One value = layered single-color pill (bloom & material mixing apply). Four values = a custom four-color material: only when it is the sole color source does the pill show the four layer colors as-is, skipping bloom and mixing; when refined together with other main materials its colors take no part in the blend, and the other materials decide the appearance. |
 | `description` | lang key (optional) | Material description. |
 
 ### 1.2 Off Material
@@ -98,7 +98,7 @@ Off materials do not decide the effect; they adjust the final pharm through a `c
 
 ### 1.3 Existing Materials
 
-**Main (32)**
+**Main (31)**
 
 | File | Item | Effect | Pharm | Stability |
 | --- | --- | --- | --- | --- |
@@ -110,25 +110,24 @@ Off materials do not decide the effect; they adjust the final pharm through a `c
 | cobweb | `minecraft:cobweb` | `elixir:weaving` | 3 | -2 |
 | cod | `minecraft:cod` | `elixir:dolphins_grace` | 3 | 4 |
 | dandelion | `minecraft:dandelion` | `elixir:dig_speed_slowdown` | 0 | -10 |
-| dead_bush | `minecraft:dead_bush` | `elixir:unluck` | 2 | -6 |
 | dirt | `minecraft:dirt` | `elixir:poison_wither` | 1 | 1 |
 | echo_shard | `minecraft:echo_shard` | `elixir:darkness` | 5 | -7 |
 | ender_eye | `minecraft:ender_eye` | `elixir:entity_interaction_range` | 6 | 1 |
 | ender_pearl | `minecraft:ender_pearl` | `elixir:invisibility_glowing` | 5 | -5 |
-| feather | `minecraft:feather` | `elixir:slow_falling` | 0 | -1 |
+| feather | `minecraft:feather` | `elixir:slow_falling_levitation` | 0 | -1 |
 | ghast_tear | `minecraft:ghast_tear` | `elixir:regeneration_poison` | 20 | -20 |
 | glistering_melon_slice | `minecraft:glistering_melon_slice` | `elixir:instant_health_damage` | 10 | -10 |
 | golden_apple | `minecraft:golden_apple` | `elixir:damage_resistance` | 1 | 10 |
 | golden_carrot | `minecraft:golden_carrot` | `elixir:night_vision_blindness` | 8 | 5 |
 | gold_ingot | `minecraft:gold_ingot` | `elixir:absorption` | 4 | 8 |
 | gunpowder | `minecraft:gunpowder` | `elixir:explode` | 1 | 5 |
-| lapis_lazuli | `minecraft:lapis_lazuli` | `elixir:lucks` | 5 | 3 |
+| lapis_lazuli | `minecraft:lapis_lazuli` | `elixir:luck_unluck` | 5 | 3 |
 | magma_cream | `minecraft:magma_cream` | `elixir:fire_resistance` | 3 | -5 |
 | nautilus_shell | `minecraft:nautilus_shell` | `elixir:conduit_power` | 7 | 3 |
 | pufferfish | `minecraft:pufferfish` | `elixir:water_breathing` | 4 | -3 |
 | rabbit_foot | `minecraft:rabbit_foot` | `elixir:jump_boost` | 6 | -9 |
 | red_mushroom | `minecraft:red_mushroom` | `elixir:lightning` | 5 | 1 |
-| rotten_flesh | `minecraft:rotten_flesh` | `elixir:hunger` | 3 | -8 |
+| rotten_flesh | `minecraft:rotten_flesh` | `elixir:saturation_hunger` | 3 | -8 |
 | slime_ball | `minecraft:slime_ball` | `elixir:oozing` | 4 | -1 |
 | spider_eye | `minecraft:spider_eye` | `elixir:confusion` | 2 | -3 |
 | sugar | `minecraft:sugar` | `elixir:speed_slowdown` | 1 | -10 |

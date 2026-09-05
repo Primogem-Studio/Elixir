@@ -17,12 +17,12 @@ public class DanWheelScreen extends Screen {
     private static final int SLOT = 16;
     private static final int CENTER_H = 24;
     private static final int CENTER_DEAD = 30;
-    private static final int RING_COLOR = 0x2E808080;
+    private static final int RING_COLOR = 0x26808080;
     private static final int CENTER_BG = 0xC033363C;
-    private static final int FILL = 0x248A8A8A;
-    private static final int FILL_ON = 0x3F8A8A8A;
-    private static final int EDGE = 0x6E8A8A8A;
-    private static final int EDGE_ON = 0xCFA0A0A0;
+    private static final int FILL = 0x38969696;
+    private static final int FILL_ON = 0x60A6A6A6;
+    private static final int EDGE = 0xA8A2A2A2;
+    private static final int EDGE_ON = 0xF0D8D8D8;
     private static final double COS_HALF = Math.cos(Math.PI / 8.0);
     private static final double SIDE_EPS = 0.014;
 
@@ -62,7 +62,7 @@ public class DanWheelScreen extends Screen {
             double angle = Math.toRadians(i * 45.0 - 90.0);
             int px = cx + (int) (Math.cos(angle) * RING_R);
             int py = cy + (int) (Math.sin(angle) * RING_R);
-            g.renderItem(pills.get(i), px - SLOT / 2, py - SLOT / 2);
+            renderPill(g, pills.get(i), px - SLOT / 2, py - SLOT / 2);
         }
         ItemStack show = hover >= 0 ? pills.get(hover) : fixed >= 0 ? pills.get(fixed) : ItemStack.EMPTY;
         renderCenter(g, cx, cy, show);
@@ -133,9 +133,17 @@ public class DanWheelScreen extends Screen {
         int py = cy - CENTER_H / 2;
         g.fill(px, py, px + pw, py + CENTER_H, CENTER_BG);
         if (!show.isEmpty()) {
-            g.renderItem(show, px + pad, py + (CENTER_H - SLOT) / 2);
+            int ix = px + pad;
+            int iy = py + (CENTER_H - SLOT) / 2;
+            g.renderItem(show, ix, iy);
+            g.renderItemDecorations(font, show, ix, iy);
         }
         g.drawString(font, desc, px + pad + iconW, py + (CENTER_H - font.lineHeight) / 2, 0xFFFFFFFF);
+    }
+
+    private void renderPill(GuiGraphics g, ItemStack stack, int px, int py) {
+        g.renderItem(stack, px, py);
+        g.renderItemDecorations(font, stack, px, py);
     }
 
     private void drawRing(GuiGraphics g, int cx, int cy, int rOuter, int rInner, int color) {

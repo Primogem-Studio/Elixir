@@ -75,6 +75,9 @@ public class ElixirActions {
             entity.addEffect(new MobEffectInstance(pharm > 0 ? MobEffects.HEAL : MobEffects.HARM, 1, (int) d));
         });
         ACTIONS.register("night_vision_blindness", () -> effect(MobEffects.NIGHT_VISION, MobEffects.BLINDNESS));
+        ACTIONS.register("luck_unluck", () -> effect(MobEffects.LUCK, MobEffects.UNLUCK));
+        ACTIONS.register("saturation_hunger", () -> effect(MobEffects.SATURATION, MobEffects.HUNGER));
+        ACTIONS.register("slow_falling_levitation", () -> effect(MobEffects.SLOW_FALLING, MobEffects.LEVITATION));
 
         ACTIONS.register("max_health", () -> modifier("e1", Attributes.MAX_HEALTH));
         ACTIONS.register("follow_range", () -> modifier("e2", Attributes.FOLLOW_RANGE));

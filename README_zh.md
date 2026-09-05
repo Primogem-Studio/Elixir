@@ -65,7 +65,7 @@
 | `effect` | 效果注册名 | 主料专属。注册于 `elixir:action` 注册表的效果，如 `elixir:true_lightning`。 |
 | `pharm` | 整数 | 药理值，正负决定效果方向，绝对值决定强度。 |
 | `stability` | 小数 | 稳定性，影响炼丹成败。 |
-| `colors` | 整数数组 | 丹药混合颜色（ARGB 十进制）。 |
+| `colors` | 整数数组 | 丹药颜色（ARGB 十进制）。一个值 = 分层单色丹（应用泛光与混色）；四个值 = 四色自定义配色丹料，仅在它独自成丹时整丹按四层原色显示，不参与泛光与颜色混合——与其它主料同炉混炼时它的颜色不参与混色，外观由其余主料决定。 |
 | `description` | 语言键（可选） | 材料描述。 |
 
 ### 1.2 辅料
@@ -98,7 +98,7 @@
 
 ### 1.3 现有丹料列表
 
-**主料（32）**
+**主料（31）**
 
 | 文件 | 物品 | 效果 | 药理 | 稳定性 |
 | --- | --- | --- | --- | --- |
@@ -110,25 +110,24 @@
 | cobweb | `minecraft:cobweb` | `elixir:weaving` 织效 | 3 | -2 |
 | cod | `minecraft:cod` | `elixir:dolphins_grace` 泳效 | 3 | 4 |
 | dandelion | `minecraft:dandelion` | `elixir:dig_speed_slowdown` 掘 | 0 | -10 |
-| dead_bush | `minecraft:dead_bush` | `elixir:unluck` 厄效 | 2 | -6 |
 | dirt | `minecraft:dirt` | `elixir:poison_wither` 害 | 1 | 1 |
 | echo_shard | `minecraft:echo_shard` | `elixir:darkness` 暗效 | 5 | -7 |
 | ender_eye | `minecraft:ender_eye` | `elixir:entity_interaction_range` 互距 | 6 | 1 |
 | ender_pearl | `minecraft:ender_pearl` | `elixir:invisibility_glowing` 匿 | 5 | -5 |
-| feather | `minecraft:feather` | `elixir:slow_falling` 缓降 | 0 | -1 |
+| feather | `minecraft:feather` | `elixir:slow_falling_levitation` 飘 | 0 | -1 |
 | ghast_tear | `minecraft:ghast_tear` | `elixir:regeneration_poison` 补血 | 20 | -20 |
 | glistering_melon_slice | `minecraft:glistering_melon_slice` | `elixir:instant_health_damage` 瞬效 | 10 | -10 |
 | golden_apple | `minecraft:golden_apple` | `elixir:damage_resistance` 抗效 | 1 | 10 |
 | golden_carrot | `minecraft:golden_carrot` | `elixir:night_vision_blindness` 目 | 8 | 5 |
 | gold_ingot | `minecraft:gold_ingot` | `elixir:absorption` 吸收 | 4 | 8 |
 | gunpowder | `minecraft:gunpowder` | `elixir:explode` 爆 | 1 | 5 |
-| lapis_lazuli | `minecraft:lapis_lazuli` | `elixir:lucks` 运 | 5 | 3 |
+| lapis_lazuli | `minecraft:lapis_lazuli` | `elixir:luck_unluck` 运 | 5 | 3 |
 | magma_cream | `minecraft:magma_cream` | `elixir:fire_resistance` 炎抗 | 3 | -5 |
 | nautilus_shell | `minecraft:nautilus_shell` | `elixir:conduit_power` 涌效 | 7 | 3 |
 | pufferfish | `minecraft:pufferfish` | `elixir:water_breathing` 水息效 | 4 | -3 |
 | rabbit_foot | `minecraft:rabbit_foot` | `elixir:jump_boost` 跃效 | 6 | -9 |
 | red_mushroom | `minecraft:red_mushroom` | `elixir:lightning` 电 | 5 | 1 |
-| rotten_flesh | `minecraft:rotten_flesh` | `elixir:hunger` 饥效 | 3 | -8 |
+| rotten_flesh | `minecraft:rotten_flesh` | `elixir:saturation_hunger` 饱 | 3 | -8 |
 | slime_ball | `minecraft:slime_ball` | `elixir:oozing` 浆效 | 4 | -1 |
 | spider_eye | `minecraft:spider_eye` | `elixir:confusion` 惑效 | 2 | -3 |
 | sugar | `minecraft:sugar` | `elixir:speed_slowdown` 速 | 1 | -10 |

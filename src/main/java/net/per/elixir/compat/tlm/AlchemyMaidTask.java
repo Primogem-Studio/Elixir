@@ -39,6 +39,11 @@ public class AlchemyMaidTask implements IMaidTask {
     }
 
     @Override
+    public List<Pair<Integer, BehaviorControl<? super EntityMaid>>> createRideBrainTasks(EntityMaid maid) {
+        return Lists.newArrayList(Pair.of(5, new MaidAlchemyTask()));
+    }
+
+    @Override
     public boolean isEnable(EntityMaid maid) {
         return maid.getMainHandItem().is(ElixirItems.handheld_fan.get());
     }
