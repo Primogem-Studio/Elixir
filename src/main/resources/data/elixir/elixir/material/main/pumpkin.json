@@ -1,0 +1,10 @@
+{
+  "item": "minecraft:carved_pumpkin",
+  "effect": "elixir:dash_look",
+  "pharm": 6,
+  "stability": -2,
+  "colors": [
+    4291324436
+  ],
+  "description": "item.elixir.material.desc.elixir.main.pumpkin"
+}
