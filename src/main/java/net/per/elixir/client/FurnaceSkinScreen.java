@@ -186,6 +186,7 @@ public class FurnaceSkinScreen extends Screen {
         if (idx >= 0 && idx < options.size()) {
             var models = modelsOf(options.get(idx).visual());
             renderFurnace(g, models, x0 + box / 2, y0 + box / 2 + 2, 21);
+            drawFlameSample(g, options.get(idx).visual(), x0, y0, box);
             int tx = x0 + box + 10;
             int maxW = ox + PANEL_W - CONTENT_X - tx - 2;
             int ty = y0 + 1;
@@ -207,6 +208,24 @@ public class FurnaceSkinScreen extends Screen {
         }
     }
 
+    private void drawFlameSample(GuiGraphics g, FurnaceVisual visual, int x0, int y0, int box) {
+        var tex = visual.activeTexture().orElse(FurnaceVisual.DEFAULT_ACTIVE_TEXTURE);
+        int color = visual.activeColor().orElse(0xFFFFFFFF);
+        int s = 18;
+        int x = x0 + box - s - 3;
+        int y = y0 + box - s - 3;
+        g.fill(x - 1, y - 1, x + s + 1, y + s + 1, 0xFF101214);
+        var sprite = LargeFurnaceRenderer.resolveSprite(Minecraft.getInstance(), tex);
+        if (sprite != null) {
+            g.blit(x, y, 0, s, s, sprite,
+                    ((color >> 16) & 0xFF) / 255.0F, ((color >> 8) & 0xFF) / 255.0F,
+                    (color & 0xFF) / 255.0F, 1.0F);
+        } else {
+            g.fill(x, y, x + s, y + s, 0xFF000000 | (color & 0xFFFFFF));
+        }
+        frame(g, x - 1, y - 1, s + 2, s + 2, 0xFF5A5D62);
+    }
+
     private void drawColorSwatch(GuiGraphics g, int x, int y, int color) {
         int rgb = color & 0xFFFFFF;
         g.fill(x, y, x + 9, y + 9, 0xFF000000 | rgb);
@@ -217,19 +236,20 @@ public class FurnaceSkinScreen extends Screen {
     }
 
     private List<String> describe(FurnaceVisual v) {
+        var fallback = Component.translatable("gui.elixir.seal.default").getString();
         var out = new ArrayList<String>();
-        out.add(key("gui.elixir.seal.model", v.model()));
-        out.add(key("gui.elixir.seal.cover_model", v.coverModel()));
-        out.add(key("gui.elixir.seal.tex", v.texture()));
-        out.add(key("gui.elixir.seal.cover_tex", v.coverTexture()));
-        out.add(key("gui.elixir.seal.active_tex", v.activeTexture()));
-        String color = v.activeColor().map(c -> "#" + String.format("%06X", c & 0xFFFFFF)).orElse("-");
+        out.add(key("gui.elixir.seal.model", v.model(), fallback));
+        out.add(key("gui.elixir.seal.cover_model", v.coverModel(), fallback));
+        out.add(key("gui.elixir.seal.tex", v.texture(), fallback));
+        out.add(key("gui.elixir.seal.cover_tex", v.coverTexture(), fallback));
+        out.add(key("gui.elixir.seal.active_tex", v.activeTexture(), fallback));
+        String color = v.activeColor().map(c -> "#" + String.format("%06X", c & 0xFFFFFF)).orElse(fallback);
         out.add(Component.translatable("gui.elixir.seal.active_color").getString() + color);
         return out;
     }
 
-    private String key(String lang, java.util.Optional<ResourceLocation> rl) {
-        return Component.translatable(lang).getString() + (rl.map(Object::toString).orElse("-"));
+    private String key(String lang, java.util.Optional<ResourceLocation> rl, String fallback) {
+        return Component.translatable(lang).getString() + rl.map(Object::toString).orElse(fallback);
     }
 
     private void drawGrid(GuiGraphics g, int ox, int oy) {

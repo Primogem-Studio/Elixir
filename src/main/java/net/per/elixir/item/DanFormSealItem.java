@@ -14,6 +14,7 @@ public class DanFormSealItem extends Item {
 
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> list, TooltipFlag tooltipFlag) {
+        list.add(Component.translatable("item.elixir.dan_form_seal.tag"));
         list.add(Component.translatable("item.elixir.dan_form_seal.usage.1"));
         list.add(Component.translatable("item.elixir.dan_form_seal.usage.2"));
     }
