@@ -76,6 +76,11 @@ public record FurnaceVisual(
                 tiers, random, fixed, options);
     }
 
+    public FurnaceVisual flattened() {
+        return new FurnaceVisual(model, texture, coverModel, coverTexture, activeTexture, activeColor,
+                Map.of(), false, 0, List.of());
+    }
+
     public static FurnaceVisual getDefault(Level level) {
         return level.registryAccess().registry(ElixirRegistries.FURNACE_VISUAL)
                 .map(registry -> registry.get(DEFAULT_ID))

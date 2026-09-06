@@ -22,7 +22,6 @@ import net.per.elixir.block.ElixirFurnaceBlock;
 import net.per.elixir.block.entity.LargeFurnaceBlockEntity;
 import net.per.elixir.event.ClientEvent;
 import net.per.elixir.registry.ElixirBlocks;
-import net.per.elixir.registry.data.FurnaceVisual;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -62,8 +61,7 @@ public class LargeFurnaceRenderer implements BlockEntityRenderer<LargeFurnaceBlo
                 .setValue(BlockStateProperties.HORIZONTAL_FACING, be.facing())
                 .setValue(ElixirFurnaceBlock.ACTIVE, false);
 
-        var visual = FurnaceVisual.getDefault(level);
-        var part = visual != null ? visual.select(n, be.getBlockPos().asLong()) : null;
+        var part = be.currentVisual(level);
         var customModel = part != null && part.model().isPresent();
 
         var furnaceModel = customModel ? resolveModel(mc, part.model().get(), dispatcher.getBlockModel(furnaceState))
@@ -111,7 +109,7 @@ public class LargeFurnaceRenderer implements BlockEntityRenderer<LargeFurnaceBlo
         poseStack.translate(-0.5, 0, -0.5);
     }
 
-    private static BakedModel resolveModel(Minecraft mc, ResourceLocation location, BakedModel fallback) {
+    public static BakedModel resolveModel(Minecraft mc, ResourceLocation location, BakedModel fallback) {
         var model = mc.getModelManager().getModel(new ModelResourceLocation(location, "standalone"));
         if (model == mc.getModelManager().getMissingModel()) {
             model = mc.getModelManager().getModel(new ModelResourceLocation(location, ""));
@@ -122,7 +120,7 @@ public class LargeFurnaceRenderer implements BlockEntityRenderer<LargeFurnaceBlo
         return model == mc.getModelManager().getMissingModel() ? fallback : model;
     }
 
-    private static BakedModel swapTexture(Minecraft mc, BakedModel model, BlockState state, ResourceLocation texture) {
+    public static BakedModel swapTexture(Minecraft mc, BakedModel model, BlockState state, ResourceLocation texture) {
         if (texture == null) return model;
         var sprite = resolveSprite(mc, texture);
         if (sprite == null) return model;
@@ -135,7 +133,7 @@ public class LargeFurnaceRenderer implements BlockEntityRenderer<LargeFurnaceBlo
         return swapped;
     }
 
-    private static TextureAtlasSprite resolveSprite(Minecraft mc, ResourceLocation texture) {
+    public static TextureAtlasSprite resolveSprite(Minecraft mc, ResourceLocation texture) {
         var blockAtlas = mc.getModelManager().getAtlas(InventoryMenu.BLOCK_ATLAS);
         var sprite = blockAtlas.getSprite(texture);
         if (!sprite.atlasLocation().equals(MissingTextureAtlasSprite.getLocation())) return sprite;

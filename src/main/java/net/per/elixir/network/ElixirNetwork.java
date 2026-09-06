@@ -15,6 +15,9 @@ public class ElixirNetwork {
     public static void onRegisterPayloads(RegisterPayloadHandlersEvent event) {
         var registrar = event.registrar("1");
         registrar.playToClient(SyncFurnaceConfigPayload.TYPE, SyncFurnaceConfigPayload.STREAM_CODEC, SyncFurnaceConfigPayload::handle);
+        registrar.playToClient(OpenFurnaceSkinPayload.TYPE, OpenFurnaceSkinPayload.STREAM_CODEC, OpenFurnaceSkinPayload::handle);
+        registrar.playToClient(SyncFurnaceSkinPayload.TYPE, SyncFurnaceSkinPayload.STREAM_CODEC, SyncFurnaceSkinPayload::handle);
+        registrar.playToServer(SetFurnaceSkinPayload.TYPE, SetFurnaceSkinPayload.STREAM_CODEC, SetFurnaceSkinPayload::handle);
         registrar.playToServer(OpenPouchPayload.TYPE, OpenPouchPayload.STREAM_CODEC, OpenPouchPayload::handle);
         registrar.playToServer(SelectPillPayload.TYPE, SelectPillPayload.STREAM_CODEC, SelectPillPayload::handle);
     }

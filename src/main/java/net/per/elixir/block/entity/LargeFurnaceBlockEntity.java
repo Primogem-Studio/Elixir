@@ -6,18 +6,28 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.network.PacketDistributor;
 import net.per.elixir.block.ElixirFurnaceBrickBlock;
 import net.per.elixir.data.LargeFurnaceMenu;
+import net.per.elixir.network.SyncFurnaceSkinPayload;
 import net.per.elixir.registry.ElixirBlocks;
+import net.per.elixir.registry.data.FurnaceVisual;
 import net.per.elixir.util.ElixirHelper;
 import net.per.elixir.util.MultiFurnaceStructure;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import static net.per.elixir.ElixirConfig.*;
 
@@ -27,6 +37,7 @@ public class LargeFurnaceBlockEntity extends AbstractAlchemyFurnaceBlockEntity {
 
     private int size = 3;
     private Direction facing = Direction.NORTH;
+    private FurnaceVisual pinnedVisual;
     public boolean disposed;
 
     public LargeFurnaceBlockEntity(BlockPos pos, BlockState state) {
@@ -47,6 +58,41 @@ public class LargeFurnaceBlockEntity extends AbstractAlchemyFurnaceBlockEntity {
 
     public Direction facing() {
         return facing;
+    }
+
+    public FurnaceVisual pinnedVisual() {
+        return pinnedVisual;
+    }
+
+    public boolean isVisualPinned() {
+        return pinnedVisual != null;
+    }
+
+    public FurnaceVisual currentVisual(Level level) {
+        if (pinnedVisual != null) return pinnedVisual;
+        var visual = FurnaceVisual.getDefault(level);
+        return visual == null ? null : visual.select(size, worldPosition.asLong());
+    }
+
+    public void setPinnedVisual(FurnaceVisual visual) {
+        pinnedVisual = visual == null ? null : visual.flattened();
+        syncVisualToClients();
+    }
+
+    public void clearPinnedVisual() {
+        setPinnedVisual(null);
+    }
+
+    public void acceptPinnedVisualClient(FurnaceVisual visual) {
+        pinnedVisual = visual == null ? null : visual.flattened();
+    }
+
+    private void syncVisualToClients() {
+        setChanged();
+        if (level != null && !level.isClientSide && level instanceof ServerLevel serverLevel) {
+            PacketDistributor.sendToPlayersTrackingChunk(serverLevel, new ChunkPos(worldPosition),
+                    new SyncFurnaceSkinPayload(worldPosition, pinnedVisual));
+        }
     }
 
     public int materialSlots() {
@@ -141,6 +187,7 @@ public class LargeFurnaceBlockEntity extends AbstractAlchemyFurnaceBlockEntity {
         super.saveAdditional(tag, provider);
         tag.putInt("size", size);
         tag.putInt("facing", facing.get2DDataValue());
+        writePinnedVisual(tag, pinnedVisual);
     }
 
     @Override
@@ -148,6 +195,7 @@ public class LargeFurnaceBlockEntity extends AbstractAlchemyFurnaceBlockEntity {
         size = tag.getInt("size");
         if (size < 3 || size > maxFurnaceSize) size = 3;
         facing = Direction.from2DDataValue(tag.getInt("facing"));
+        pinnedVisual = readPinnedVisual(tag);
         super.loadAdditional(tag, provider);
     }
 
@@ -156,7 +204,37 @@ public class LargeFurnaceBlockEntity extends AbstractAlchemyFurnaceBlockEntity {
         var tag = super.getUpdateTag(registries);
         tag.putInt("size", size);
         tag.putInt("facing", facing.get2DDataValue());
+        writePinnedVisual(tag, pinnedVisual);
         return tag;
+    }
+
+    private static void writePinnedVisual(CompoundTag tag, FurnaceVisual visual) {
+        if (visual == null) return;
+        var pin = new CompoundTag();
+        visual.model().ifPresent(rl -> pin.putString("model", rl.toString()));
+        visual.texture().ifPresent(rl -> pin.putString("texture", rl.toString()));
+        visual.coverModel().ifPresent(rl -> pin.putString("cover_model", rl.toString()));
+        visual.coverTexture().ifPresent(rl -> pin.putString("cover_texture", rl.toString()));
+        visual.activeTexture().ifPresent(rl -> pin.putString("active_texture", rl.toString()));
+        visual.activeColor().ifPresent(c -> pin.putInt("active_color", c));
+        tag.put("pinned_visual", pin);
+    }
+
+    private static FurnaceVisual readPinnedVisual(CompoundTag tag) {
+        if (!tag.contains("pinned_visual")) return null;
+        var pin = tag.getCompound("pinned_visual");
+        return new FurnaceVisual(
+                optRl(pin, "model"),
+                optRl(pin, "texture"),
+                optRl(pin, "cover_model"),
+                optRl(pin, "cover_texture"),
+                optRl(pin, "active_texture"),
+                pin.contains("active_color") ? Optional.of(pin.getInt("active_color")) : Optional.empty(),
+                Map.of(), false, 0, List.of());
+    }
+
+    private static Optional<ResourceLocation> optRl(CompoundTag tag, String key) {
+        return tag.contains(key) ? Optional.ofNullable(ResourceLocation.tryParse(tag.getString(key))) : Optional.empty();
     }
 
     @Override

@@ -3,6 +3,7 @@ package net.per.elixir.util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Containers;
@@ -14,10 +15,12 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.network.PacketDistributor;
 import net.per.elixir.ElixirConfig;
 import net.per.elixir.block.ElixirFurnaceBrickBlock;
 import net.per.elixir.block.entity.BrickFurnaceBlockEntity;
 import net.per.elixir.block.entity.LargeFurnaceBlockEntity;
+import net.per.elixir.network.OpenFurnaceSkinPayload;
 import net.per.elixir.registry.ElixirBlocks;
 import net.per.elixir.registry.ElixirItems;
 
@@ -208,6 +211,22 @@ public final class MultiFurnaceStructure {
 
     public static ItemInteractionResult handleUseItemOn(Level level, BlockPos pos, Player player, ItemStack stack) {
         if (level.isClientSide) return ItemInteractionResult.SUCCESS;
+        if (stack.is(ElixirItems.dan_form_seal)) {
+            if (!isFormedPart(level, pos)) {
+                player.displayClientMessage(Component.translatable("message.elixir.seal.invalid"), true);
+                return ItemInteractionResult.SUCCESS;
+            }
+            var core = findCore(level, pos);
+            if (core == null || !(level.getBlockEntity(core) instanceof LargeFurnaceBlockEntity be)) {
+                player.displayClientMessage(Component.translatable("message.elixir.seal.invalid"), true);
+                return ItemInteractionResult.SUCCESS;
+            }
+            if (player instanceof ServerPlayer sp) {
+                PacketDistributor.sendToPlayer(sp, new OpenFurnaceSkinPayload(be.size(), be.getBlockPos()));
+                level.playSound(null, core, SoundEvents.UI_BUTTON_CLICK.value(), SoundSource.BLOCKS, 1.0f, 1.0f);
+            }
+            return ItemInteractionResult.SUCCESS;
+        }
         if (stack.is(Items.FLINT_AND_STEEL)) {
             var core = findCore(level, pos);
             if (core != null && level.getBlockEntity(core) instanceof LargeFurnaceBlockEntity be) {
