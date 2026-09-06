@@ -64,6 +64,7 @@ public class TdpPickState {
         if (q.isEmpty()) return true;
         return TdpData.name(m).getString().toLowerCase(Locale.ROOT).contains(q)
                 || TdpData.description(m).getString().toLowerCase(Locale.ROOT).contains(q)
-                || TdpData.id(m).toLowerCase(Locale.ROOT).contains(q);
+                || TdpData.id(m).toLowerCase(Locale.ROOT).contains(q)
+                || TdpData.effectName(m).toLowerCase(Locale.ROOT).contains(q);
     }
 }

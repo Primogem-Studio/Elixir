@@ -106,6 +106,14 @@ public final class TdpData {
                 : Component.translatable("item.elixir.material.unknown");
     }
 
+    public static String effectName(Holder<Material> m) {
+        var key = m.value().effect().left()
+                .flatMap(Holder::unwrapKey)
+                .map(k -> "item.elixir.action." + k.location().toLanguageKey())
+                .orElse(null);
+        return key == null ? "" : Component.translatable(key).getString();
+    }
+
     public static List<Component> statLines(Holder<Material> m) {
         var v = m.value();
         var list = new ArrayList<Component>();

@@ -303,7 +303,7 @@
     "gui.elixir.tdp.tab.formula":  "丹方生成器",
     "gui.elixir.tdp.pick.main":  "主料",
     "gui.elixir.tdp.pick.off":  "辅料",
-    "gui.elixir.tdp.search.hint":  "搜索丹料名称或描述…",
+    "gui.elixir.tdp.search.hint":  "搜索...",
     "gui.elixir.tdp.off.multi":  "可多选",
     "gui.elixir.tdp.scroll.hint":  "滚轮翻页",
     "gui.elixir.tdp.selected.count":  "已选主料 %s/%s",

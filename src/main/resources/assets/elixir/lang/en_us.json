@@ -303,7 +303,7 @@
     "gui.elixir.tdp.tab.formula":  "Formula Maker",
     "gui.elixir.tdp.pick.main":  "Main",
     "gui.elixir.tdp.pick.off":  "Off",
-    "gui.elixir.tdp.search.hint":  "Search material name or description…",
+    "gui.elixir.tdp.search.hint":  "Search...",
     "gui.elixir.tdp.off.multi":  "multi",
     "gui.elixir.tdp.scroll.hint":  "Scroll",
     "gui.elixir.tdp.selected.count":  "Main selected %s/%s",
