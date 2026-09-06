@@ -1,13 +1,11 @@
 package net.per.elixir.network;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
-import net.per.elixir.block.entity.LargeFurnaceBlockEntity;
 import net.per.elixir.registry.data.FurnaceVisual;
 
 import java.util.List;
@@ -59,11 +57,8 @@ public record SyncFurnaceSkinPayload(BlockPos core, FurnaceVisual visual) implem
 
     public static void handle(SyncFurnaceSkinPayload payload, IPayloadContext context) {
         context.enqueueWork(() -> {
-            if (!context.flow().isClientbound()) return;
-            var mc = Minecraft.getInstance();
-            if (mc.level == null) return;
-            if (mc.level.getBlockEntity(payload.core) instanceof LargeFurnaceBlockEntity be) {
-                be.acceptPinnedVisualClient(payload.visual);
+            if (context.flow().isClientbound()) {
+                ClientPayloadHooks.syncSkin.sync(payload.core(), payload.visual());
             }
         });
     }

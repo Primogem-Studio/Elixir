@@ -27,11 +27,13 @@ import net.per.elixir.client.ConfigScreen;
 import net.per.elixir.client.DanPouchScreen;
 import net.per.elixir.client.DanWheelClient;
 import net.per.elixir.client.ElixirFurnaceScreen;
+import net.per.elixir.client.FurnaceSkinScreen;
 import net.per.elixir.client.LargeFurnaceScreen;
 import net.per.elixir.data.DanPouchMenu;
 import net.per.elixir.data.ElixirFurnaceMenu;
 import net.per.elixir.data.LargeFurnaceMenu;
 import net.per.elixir.item.DanPouchItem;
+import net.per.elixir.network.ClientPayloadHooks;
 import net.per.elixir.network.OpenPouchPayload;
 import net.per.elixir.registry.ElixirBlocks;
 import net.per.elixir.registry.ElixirDataComponents;
@@ -60,6 +62,16 @@ public class ClientEvent {
         var container = ModList.get().getModContainerById(MOD_ID).orElseThrow();
         if (ModList.get().isLoaded("cloth_config"))
             container.registerExtensionPoint(IConfigScreenFactory.class, ConfigScreen::create);
+        ClientPayloadHooks.openSkinScreen = (size, core) -> {
+            var mc = Minecraft.getInstance();
+            if (mc.player != null) mc.setScreen(new FurnaceSkinScreen(size, core));
+        };
+        ClientPayloadHooks.syncSkin = (core, visual) -> {
+            var mc = Minecraft.getInstance();
+            if (mc.level != null && mc.level.getBlockEntity(core) instanceof LargeFurnaceBlockEntity be) {
+                be.acceptPinnedVisualClient(visual);
+            }
+        };
     }
 
     @SubscribeEvent
