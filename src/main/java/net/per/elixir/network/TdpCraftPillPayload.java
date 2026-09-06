@@ -54,10 +54,6 @@ public record TdpCraftPillPayload(int count, int pharm, String off, List<String>
     public static void handle(TdpCraftPillPayload payload, IPayloadContext context) {
         context.enqueueWork(() -> {
             if (!context.flow().isServerbound() || !(context.player() instanceof ServerPlayer sp)) return;
-            if (!sp.getAbilities().instabuild) {
-                sp.displayClientMessage(Component.translatable("message.elixir.tdp.need.creative"), true);
-                return;
-            }
             int n = Math.max(1, Math.min(512, payload.count));
             var registry = sp.serverLevel().registryAccess().lookupOrThrow(ElixirRegistries.MATERIAL);
             var off = registry.get(ResourceKey.create(ElixirRegistries.MATERIAL, ResourceLocation.parse(payload.off))).orElse(null);

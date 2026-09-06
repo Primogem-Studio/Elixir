@@ -7,8 +7,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.per.elixir.client.tdp.TdpData;
-import net.per.elixir.client.tdp.TdpGrid;
-import net.per.elixir.client.tdp.TdpPage;
+import net.per.elixir.client.tdp.TdpEditField;
 import net.per.elixir.client.tdp.TdpPresets;
 import net.per.elixir.client.tdp.TdpScreen;
 import net.per.elixir.client.tdp.TdpTextField;
@@ -22,39 +21,19 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 
-public class PillGenPage implements TdpPage {
-    private static final int MAX_MAIN = 8;
-    private static final int TAB_Y = 0;
-    private static final int BODY_Y = 17;
-    private static final int PREVIEW_Y = 124;
-    private static final int FIELDS_Y = 136;
-    private static final int PRESET_Y = 152;
-    private static final int BUTTONS_Y = 171;
-    private static final int STATUS_Y = 196;
-    private static final String[] VIEWS = {"gui.elixir.tdp.pick.main", "gui.elixir.tdp.pick.off", "gui.elixir.tdp.tab.selected"};
-    private static final int CELL = 21;
-    private static final int COLS = 13;
-    private static final int GRID_ROWS = 5;
-    private static final int LIST_ROWS = 6;
-    private static final int ROW_H = 16;
-
-    private int view;
-    private int selScroll;
+public class PillGenPage extends TdpPickerPage {
     private final LinkedHashSet<String> selectedMains = new LinkedHashSet<>();
-    private String offId = "";
-    private boolean pharmManual;
-    private final List<Holder<Material>> mains = new ArrayList<>();
-    private final List<Holder<Material>> offs = new ArrayList<>();
-    private final TdpGrid<Holder<Material>> mainGrid = new TdpGrid<>(CELL, CELL, COLS, GRID_ROWS, mains);
-    private final TdpGrid<Holder<Material>> offGrid = new TdpGrid<>(CELL, CELL, COLS, 1, offs);
     private final TdpTextField pharm = new TdpTextField(0, 0, 50, 13, TdpTextField.Mode.INT);
     private final TdpTextField count = new TdpTextField(0, 0, 34, 13, TdpTextField.Mode.INT);
-    private final TdpTextField pillName = new TdpTextField(0, 0, 88, 13, TdpTextField.Mode.TEXT);
-    private final TdpTextField presetName = new TdpTextField(0, 0, 60, 12, TdpTextField.Mode.TEXT);
-    private String status = "";
-    private int statusAge;
+    private final TdpEditField pillName = new TdpEditField(88, 13);
+    private String offId = "";
+    private boolean pharmManual;
+
+    private record RowLine(Holder<Material> m, boolean isOff) {
+    }
 
     public PillGenPage() {
+        super(true);
         pharm.setText("0");
         count.setText("1");
     }
@@ -65,16 +44,18 @@ public class PillGenPage implements TdpPage {
     }
 
     @Override
+    protected String category() {
+        return "pill";
+    }
+
+    @Override
     public void refresh(TdpScreen host) {
-        mains.clear();
-        mains.addAll(TdpData.materials(true));
-        offs.clear();
-        offs.addAll(TdpData.materials(false));
+        super.refresh(host);
         for (String id : List.copyOf(selectedMains)) {
             if (TdpData.byId(id) == null) selectedMains.remove(id);
         }
         if (TdpData.byId(offId) == null) {
-            for (var o : offs) {
+            for (var o : TdpData.materials(false)) {
                 if (TdpData.isEmpty(o)) {
                     offId = TdpData.id(o);
                     break;
@@ -82,8 +63,6 @@ public class PillGenPage implements TdpPage {
             }
         }
         if (!pharmManual) pharm.setText(String.valueOf(sumPharm()));
-        status = "";
-        statusAge = 0;
     }
 
     private int sumPharm() {
@@ -95,64 +74,68 @@ public class PillGenPage implements TdpPage {
         return sum;
     }
 
-    private boolean hasSelection() {
-        return !selectedMains.isEmpty();
-    }
-
     private Holder<Material> selectedOff() {
         if (!offId.isEmpty()) {
             var h = TdpData.byId(offId);
             if (h != null) return h;
         }
-        for (var o : offs) {
+        for (var o : TdpData.materials(false)) {
             if (TdpData.isEmpty(o)) return o;
         }
-        return offs.isEmpty() ? null : offs.get(0);
+        var all = TdpData.materials(false);
+        return all.isEmpty() ? null : all.get(0);
+    }
+
+    private boolean hasSelection() {
+        return !selectedMains.isEmpty();
     }
 
     @Override
-    public void render(TdpScreen host, GuiGraphics g, int mouseX, int mouseY, float partialTick) {
-        int px = host.ox() + TdpScreen.CX;
-        int py = host.oy() + TdpScreen.CY;
-        var font = host.font();
-        TdpUi.tabBar(g, font, px, py + TAB_Y, TdpScreen.CW, view, VIEWS, mouseX, mouseY);
-        if (view == 0) drawMainGrid(g, font, px, py, mouseX, mouseY);
-        else if (view == 1) drawOffGrid(g, font, px, py, mouseX, mouseY);
-        else drawSelection(g, font, px, py, mouseX, mouseY);
-        drawFixed(host, g, font, px, py, mouseX, mouseY);
-        if (statusAge > 0) {
-            TdpUi.text(g, font, status, px + 2, py + STATUS_Y, TdpUi.HINT);
-            statusAge--;
+    protected boolean mainSelected(Holder<Material> m) {
+        return selectedMains.contains(TdpData.id(m));
+    }
+
+    @Override
+    protected boolean offSelected(Holder<Material> m) {
+        return TdpData.id(m).equals(offId);
+    }
+
+    @Override
+    protected void onMainPick(Holder<Material> m) {
+        toggleMain(m);
+    }
+
+    @Override
+    protected void onOffPick(Holder<Material> m) {
+        offId = TdpData.id(m);
+    }
+
+    private void toggleMain(Holder<Material> m) {
+        String id = TdpData.id(m);
+        if (!selectedMains.remove(id)) selectedMains.add(id);
+        if (!pharmManual) pharm.setText(String.valueOf(sumPharm()));
+    }
+
+    private List<RowLine> currentRows() {
+        var rows = new ArrayList<RowLine>();
+        var off = selectedOff();
+        if (off != null && !TdpData.isEmpty(off)) rows.add(new RowLine(off, true));
+        for (var id : selectedMains) {
+            var m = TdpData.byId(id);
+            if (m != null) rows.add(new RowLine(m, false));
         }
-        drawHover(host, g, mouseX, mouseY);
+        return rows;
     }
 
-    private void drawMainGrid(GuiGraphics g, Font font, int px, int py, int mx, int my) {
-        int x0 = px + 1;
-        int y0 = py + BODY_Y;
-        mainGrid.render(g, font, x0, y0, mx, my,
-                m -> selectedMains.contains(TdpData.id(m)),
-                (gr, f, x, y, w, h, hov, sel, m, mx2, my2) -> TdpData.drawCell(gr, x, y, w, m, hov, sel, TdpUi.CYAN));
-        mainGrid.drawScrollbar(g, x0 + COLS * CELL + 5, y0, mainGrid.visibleHeight());
-    }
-
-    private void drawOffGrid(GuiGraphics g, Font font, int px, int py, int mx, int my) {
-        int x0 = px + 1;
-        int y0 = py + BODY_Y;
-        offGrid.render(g, font, x0, y0, mx, my,
-                m -> TdpData.id(m).equals(offId),
-                (gr, f, x, y, w, h, hov, sel, m, mx2, my2) -> TdpData.drawCell(gr, x, y, w, m, hov, sel, TdpUi.GREEN));
-        offGrid.drawScrollbar(g, x0 + COLS * CELL + 5, y0, offGrid.visibleHeight());
-    }
-
-    private void drawSelection(GuiGraphics g, Font font, int px, int py, int mx, int my) {
+    @Override
+    protected void drawListPane(GuiGraphics g, Font font, int px, int py, int mx, int my) {
         int x0 = px + 1;
         int y0 = py + BODY_Y;
         var rows = currentRows();
         int max = Math.max(0, rows.size() - LIST_ROWS);
-        selScroll = TdpUi.clamped(selScroll, 0, max);
+        listScroll = TdpUi.clamped(listScroll, 0, max);
         for (int i = 0; i < LIST_ROWS; i++) {
-            int idx = selScroll + i;
+            int idx = listScroll + i;
             if (idx >= rows.size()) break;
             var row = rows.get(idx);
             int y = y0 + i * ROW_H;
@@ -172,24 +155,36 @@ public class PillGenPage implements TdpPage {
         if (rows.isEmpty()) {
             g.drawString(font, Component.translatable("gui.elixir.tdp.list.empty").getString(), x0, y0 + 8, TdpUi.DIM);
         }
-        TdpUi.track(g, px + TdpScreen.CW - 9, y0, LIST_ROWS * ROW_H, selScroll, max, LIST_ROWS);
+        TdpUi.track(g, px + TdpScreen.CW - 9, y0, LIST_ROWS * ROW_H, listScroll, max, LIST_ROWS);
     }
 
-    private record RowLine(Holder<Material> m, boolean isOff) {
-    }
-
-    private List<RowLine> currentRows() {
-        var rows = new ArrayList<RowLine>();
-        var off = selectedOff();
-        if (off != null && !TdpData.isEmpty(off)) rows.add(new RowLine(off, true));
-        for (var id : selectedMains) {
-            var m = TdpData.byId(id);
-            if (m != null) rows.add(new RowLine(m, false));
+    @Override
+    protected boolean listRowClick(double mx, double my, int px, int py) {
+        int row = (int) ((my - py - BODY_Y) / ROW_H);
+        if (row < 0 || row >= LIST_ROWS) return false;
+        var rows = currentRows();
+        int idx = listScroll + row;
+        if (idx < 0 || idx >= rows.size()) return false;
+        var r = rows.get(idx);
+        if (mx >= px + TdpScreen.CW - 14) {
+            if (r.isOff()) offId = "";
+            else selectedMains.remove(TdpData.id(r.m()));
+            if (!pharmManual) pharm.setText(String.valueOf(sumPharm()));
         }
-        return rows;
+        return true;
     }
 
-    private void drawFixed(TdpScreen host, GuiGraphics g, Font font, int px, int py, int mx, int my) {
+    @Override
+    protected void hoverList(TdpScreen host, GuiGraphics g, int px, int py, int mouseX, int mouseY) {
+        int row = (int) ((mouseY - py - BODY_Y) / ROW_H);
+        if (row < 0 || row >= LIST_ROWS) return;
+        var rows = currentRows();
+        int idx = listScroll + row;
+        if (idx >= 0 && idx < rows.size()) TdpData.hoverMaterial(host, g, rows.get(idx).m(), mouseX, mouseY);
+    }
+
+    @Override
+    protected void drawFixed(TdpScreen host, GuiGraphics g, Font font, int px, int py, int mx, int my) {
         var off = selectedOff();
         if (off != null) {
             int fin = ElixirMath.finalPharm(off, pharm.intValue(0));
@@ -202,30 +197,8 @@ public class PillGenPage implements TdpPage {
         x = TdpUi.fieldRow(g, font, pharm, Component.translatable("gui.elixir.tdp.pharm"), x, y, mx, my);
         x = TdpUi.fieldRow(g, font, count, Component.translatable("gui.elixir.tdp.count"), x, y, mx, my);
         TdpUi.fieldRow(g, font, pillName, Component.translatable("gui.elixir.tdp.pill.name"), x, y, mx, my);
-        drawPresetBar(g, font, px, py, mx, my);
+        presets.render(g, font, px, py + PRESET_Y, mx, my);
         drawButtons(g, font, px, py, mx, my);
-    }
-
-    private void drawPresetBar(GuiGraphics g, Font font, int px, int py, int mx, int my) {
-        int y = py + PRESET_Y;
-        int x = px + 2 + font.width(Component.translatable("gui.elixir.tdp.preset"));
-        presetName.setPos(x, y);
-        presetName.render(g, font, mx, my);
-        int bx = x + presetName.w() + 3;
-        boolean hs = TdpUi.in(mx, my, bx, y - 1, 24, 14);
-        TdpUi.button(g, font, bx, y - 1, 24, 14, Component.translatable("gui.elixir.tdp.preset.save"), true, hs);
-        int dx = bx + 27;
-        boolean hd = TdpUi.in(mx, my, dx, y - 1, 24, 14);
-        TdpUi.button(g, font, dx, y - 1, 24, 14, Component.translatable("gui.elixir.tdp.preset.del"), true, hd);
-        int cx0 = dx + 30;
-        var names = TdpPresets.names("pill");
-        int chipW = 44;
-        for (int i = 0; i < names.size(); i++) {
-            int chipX = cx0 + i * (chipW + 2);
-            if (chipX + chipW > px + TdpScreen.CW - 2) break;
-            boolean h = TdpUi.in(mx, my, chipX, y - 1, chipW, 14);
-            TdpUi.button(g, font, chipX, y - 1, chipW, 14, Component.literal(TdpUi.clip(font, names.get(i), chipW - 8)), true, h);
-        }
     }
 
     private void drawButtons(GuiGraphics g, Font font, int px, int py, int mx, int my) {
@@ -239,136 +212,56 @@ public class PillGenPage implements TdpPage {
         TdpUi.button(g, font, px + 246, by, 50, 18, Component.translatable("gui.elixir.tdp.clear"), hasSelection(), h3);
     }
 
-    private void drawHover(TdpScreen host, GuiGraphics g, int mouseX, int mouseY) {
-        int px = host.ox() + TdpScreen.CX;
-        int py = host.oy() + TdpScreen.CY;
-        int y0 = py + BODY_Y;
-        if (view == 0) {
-            var m = mainGrid.hoveredItem();
-            if (m != null) TdpData.hoverMaterial(host, g, m, mouseX, mouseY);
-        } else if (view == 1) {
-            var m = offGrid.hoveredItem();
-            if (m != null) TdpData.hoverMaterial(host, g, m, mouseX, mouseY);
-        } else {
-            var rows = currentRows();
-            int row = (int) ((mouseY - y0) / ROW_H);
-            if (row >= 0 && row < LIST_ROWS) {
-                int idx = selScroll + row;
-                if (idx >= 0 && idx < rows.size()) TdpData.hoverMaterial(host, g, rows.get(idx).m(), mouseX, mouseY);
-            }
-        }
-    }
-
     @Override
-    public boolean mouseClicked(TdpScreen host, double mouseX, double mouseY, int button) {
-        if (button != 0) return false;
-        int px = host.ox() + TdpScreen.CX;
-        int py = host.oy() + TdpScreen.CY;
-        int hit = TdpUi.tabAt(mouseX, mouseY, px, py + TAB_Y, TdpScreen.CW, VIEWS.length);
-        if (hit >= 0) {
-            view = hit;
-            return true;
-        }
-        if (view == 0) {
-            int idx = mainGrid.indexAt(mouseX, mouseY, px + 1, py + BODY_Y);
-            if (idx >= 0) {
-                toggleMain(mains.get(idx));
-                return true;
-            }
-        } else if (view == 1) {
-            int idx = offGrid.indexAt(mouseX, mouseY, px + 1, py + BODY_Y);
-            if (idx >= 0) {
-                offId = TdpData.id(offs.get(idx));
-                return true;
-            }
-        } else {
-            var rows = currentRows();
-            int r = (int) ((mouseY - py - BODY_Y) / ROW_H);
-            if (r >= 0 && r < LIST_ROWS) {
-                int idx = selScroll + r;
-                if (idx >= 0 && idx < rows.size()) {
-                    if (mouseX >= px + TdpScreen.CW - 14) {
-                        var row = rows.get(idx);
-                        if (row.isOff()) offId = "";
-                        else selectedMains.remove(TdpData.id(row.m()));
-                        if (!pharmManual) pharm.setText(String.valueOf(sumPharm()));
-                    }
-                    return true;
-                }
-            }
-        }
-        int by = py + BUTTONS_Y;
+    protected boolean fixedClick(TdpScreen host, double mx, double my, int px, int py) {
         boolean ok = hasSelection() && selectedOff() != null && count.intValue(0) >= 1;
-        if (ok && TdpUi.in(mouseX, mouseY, px + 2, by, 118, 18)) {
+        int by = py + BUTTONS_Y;
+        if (ok && TdpUi.in(mx, my, px + 2, by, 118, 18)) {
             sendGenerate();
             return true;
         }
-        if (ok && TdpUi.in(mouseX, mouseY, px + 124, by, 118, 18)) {
+        if (ok && TdpUi.in(mx, my, px + 124, by, 118, 18)) {
             host.copyToClipboard(serialize());
-            status = Component.translatable("gui.elixir.tdp.copied").getString();
-            statusAge = 80;
+            flash(Component.translatable("gui.elixir.tdp.copied").getString());
             return true;
         }
-        if (hasSelection() && TdpUi.in(mouseX, mouseY, px + 246, by, 50, 18)) {
+        if (hasSelection() && TdpUi.in(mx, my, px + 246, by, 50, 18)) {
             selectedMains.clear();
             if (!pharmManual) pharm.setText("0");
             return true;
         }
-        blurFields();
-        if (pharm.click(mouseX, mouseY)) return true;
-        if (count.click(mouseX, mouseY)) return true;
-        if (pillName.click(mouseX, mouseY)) return true;
-        if (presetName.click(mouseX, mouseY)) return true;
-        handlePresetButtons(host, mouseX, mouseY);
-        return true;
+        return false;
     }
 
-    private void blurFields() {
+    @Override
+    protected void blurFields() {
         pharm.clearFocus();
         count.clearFocus();
         pillName.clearFocus();
-        presetName.clearFocus();
     }
 
-    private void handlePresetButtons(TdpScreen host, double mouseX, double mouseY) {
-        int px = host.ox() + TdpScreen.CX;
-        int py = host.oy() + TdpScreen.CY;
-        int y = py + PRESET_Y;
-        int x = px + 2 + host.font().width(Component.translatable("gui.elixir.tdp.preset"));
-        int bx = x + presetName.w() + 3;
-        if (TdpUi.in(mouseX, mouseY, bx, y - 1, 24, 14)) {
-            savePreset();
-            return;
-        }
-        int dx = bx + 27;
-        if (TdpUi.in(mouseX, mouseY, dx, y - 1, 24, 14)) {
-            if (!presetName.text().isEmpty()) {
-                TdpPresets.remove("pill", presetName.text());
-                presetName.setText("");
-                status = Component.translatable("gui.elixir.tdp.preset.deleted").getString();
-                statusAge = 80;
-            }
-            return;
-        }
-        int cx0 = dx + 30;
-        var names = TdpPresets.names("pill");
-        int chipW = 44;
-        for (int i = 0; i < names.size(); i++) {
-            int chipX = cx0 + i * (chipW + 2);
-            if (chipX + chipW > px + TdpScreen.CW - 2) break;
-            if (TdpUi.in(mouseX, mouseY, chipX, y - 1, chipW, 14)) {
-                applyPreset(names.get(i));
-                return;
-            }
-        }
+    @Override
+    protected boolean clickField(double mouseX, double mouseY) {
+        if (pharm.click(mouseX, mouseY)) return true;
+        if (count.click(mouseX, mouseY)) return true;
+        return pillName.click(mouseX, mouseY);
     }
 
-    private void toggleMain(Holder<Material> m) {
-        String id = TdpData.id(m);
-        if (!selectedMains.remove(id) && selectedMains.size() < MAX_MAIN) {
-            selectedMains.add(id);
+    @Override
+    protected boolean charField(char codePoint, int modifiers) {
+        if (pharm.charTyped(codePoint, modifiers)) {
+            pharmManual = true;
+            return true;
         }
-        if (!pharmManual) pharm.setText(String.valueOf(sumPharm()));
+        if (count.charTyped(codePoint, modifiers)) return true;
+        return pillName.charTyped(codePoint, modifiers);
+    }
+
+    @Override
+    protected boolean keyField(int keyCode, int scanCode, int modifiers) {
+        if (pharm.keyPressed(keyCode, scanCode, modifiers)) return true;
+        if (count.keyPressed(keyCode, scanCode, modifiers)) return true;
+        return pillName.keyPressed(keyCode, scanCode, modifiers);
     }
 
     private void sendGenerate() {
@@ -395,9 +288,8 @@ public class PillGenPage implements TdpPage {
         return sb.toString();
     }
 
-    private void savePreset() {
-        String name = presetName.text();
-        if (name.isEmpty()) return;
+    @Override
+    protected void savePreset(String name) {
         var o = new JsonObject();
         o.addProperty("name", name);
         o.addProperty("pharm", pharm.intValue(0));
@@ -409,65 +301,24 @@ public class PillGenPage implements TdpPage {
         for (var id : selectedMains) main.add(id);
         o.add("main", main);
         TdpPresets.put("pill", o);
-        status = Component.translatable("gui.elixir.tdp.preset.saved", name).getString();
-        statusAge = 80;
+        flash(Component.translatable("gui.elixir.tdp.preset.saved", name).getString());
     }
 
-    private void applyPreset(String name) {
+    @Override
+    protected void applyPreset(String name) {
         var o = TdpPresets.get("pill", name);
         if (o == null) return;
-        presetName.setText(name);
         selectedMains.clear();
         var main = o.getAsJsonArray("main");
         if (main != null) {
             for (var e : main) {
                 String id = e.getAsString();
-                if (selectedMains.size() < MAX_MAIN && TdpData.byId(id) != null) selectedMains.add(id);
+                if (TdpData.byId(id) != null) selectedMains.add(id);
             }
         }
         if (o.has("off")) offId = o.get("off").getAsString();
         if (o.has("pharm")) pharm.setText(String.valueOf(o.get("pharm").getAsInt()));
         if (o.has("count")) count.setText(String.valueOf(o.get("count").getAsInt()));
         if (o.has("pillName")) pillName.setText(o.get("pillName").getAsString());
-    }
-
-    @Override
-    public boolean mouseScrolled(TdpScreen host, double mouseX, double mouseY, double amount) {
-        int px = host.ox() + TdpScreen.CX;
-        int py = host.oy() + TdpScreen.CY;
-        int dir = amount > 0 ? 1 : -1;
-        int y0 = py + BODY_Y;
-        if (view == 0 && mainGrid.contains(mouseX, mouseY, px + 1, y0)) {
-            mainGrid.scroll(dir);
-            return true;
-        }
-        if (view == 1 && offGrid.contains(mouseX, mouseY, px + 1, y0)) {
-            offGrid.scroll(dir);
-            return true;
-        }
-        if (view == 2 && TdpUi.in(mouseX, mouseY, px + 1, y0, TdpScreen.CW, LIST_ROWS * ROW_H)) {
-            selScroll -= dir;
-            return true;
-        }
-        return false;
-    }
-
-    @Override
-    public boolean charTyped(TdpScreen host, char codePoint, int modifiers) {
-        if (pharm.charTyped(codePoint, modifiers)) {
-            pharmManual = true;
-            return true;
-        }
-        return count.charTyped(codePoint, modifiers)
-                || pillName.charTyped(codePoint, modifiers)
-                || presetName.charTyped(codePoint, modifiers);
-    }
-
-    @Override
-    public boolean keyPressed(TdpScreen host, int keyCode, int scanCode, int modifiers) {
-        return pharm.keyPressed(keyCode, scanCode, modifiers)
-                || count.keyPressed(keyCode, scanCode, modifiers)
-                || pillName.keyPressed(keyCode, scanCode, modifiers)
-                || presetName.keyPressed(keyCode, scanCode, modifiers);
     }
 }

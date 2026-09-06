@@ -70,10 +70,6 @@ public record TdpCraftFormulaPayload(String name, int count, List<Content> main,
     public static void handle(TdpCraftFormulaPayload payload, IPayloadContext context) {
         context.enqueueWork(() -> {
             if (!context.flow().isServerbound() || !(context.player() instanceof ServerPlayer sp)) return;
-            if (!sp.getAbilities().instabuild) {
-                sp.displayClientMessage(Component.translatable("message.elixir.tdp.need.creative"), true);
-                return;
-            }
             int n = Math.max(1, Math.min(64, payload.count));
             var registry = sp.serverLevel().registryAccess().lookupOrThrow(ElixirRegistries.MATERIAL);
             var main = resolve(registry, payload.main);

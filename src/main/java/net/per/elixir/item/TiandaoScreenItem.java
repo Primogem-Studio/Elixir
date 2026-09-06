@@ -29,6 +29,5 @@ public class TiandaoScreenItem extends Item {
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> list, TooltipFlag tooltipFlag) {
         list.add(Component.translatable("item.elixir.tiandao_screen.tag"));
         list.add(Component.translatable("item.elixir.tiandao_screen.usage.1"));
-        list.add(Component.translatable("item.elixir.tiandao_screen.usage.2"));
     }
 }

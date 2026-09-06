@@ -193,7 +193,25 @@ public final class TdpUi {
         fill(g, x, y + off, 3, thumb, 0xCCCDD3DA);
     }
 
+    public static void trackH(GuiGraphics g, int x, int y, int w, int scroll, int max, int contentW) {
+        if (max <= 0) return;
+        fill(g, x, y, w, 3, 0x55FFFFFF);
+        int thumb = Math.max(8, (int) (w * (float) w / Math.max(1, contentW)));
+        if (thumb > w) thumb = w;
+        int usable = w - thumb;
+        int off = usable <= 0 ? 0 : (int) (scroll * (float) usable / max);
+        fill(g, x + off, y, thumb, 3, 0xCCCDD3DA);
+    }
+
     public static int fieldRow(GuiGraphics g, Font font, TdpTextField field, Component label, int x, int y, int mx, int my) {
+        int lw = font.width(label);
+        text(g, font, label, x, y + 2, TdpUi.TEXT);
+        field.setPos(x + 2 + lw, y);
+        field.render(g, font, mx, my);
+        return x + 2 + lw + field.w() + 10;
+    }
+
+    public static int fieldRow(GuiGraphics g, Font font, TdpEditField field, Component label, int x, int y, int mx, int my) {
         int lw = font.width(label);
         text(g, font, label, x, y + 2, TdpUi.TEXT);
         field.setPos(x + 2 + lw, y);

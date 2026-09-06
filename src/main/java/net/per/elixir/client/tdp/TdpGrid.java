@@ -84,6 +84,7 @@ public class TdpGrid<T> {
     }
 
     public int indexAt(double mouseX, double mouseY, int x0, int y0) {
+        if (mouseX < x0 || mouseY < y0) return -1;
         int col = (int) ((mouseX - x0) / cellW);
         int row = (int) ((mouseY - y0) / cellH);
         if (col < 0 || col >= cols || row < 0 || row >= rowsVisible) return -1;
