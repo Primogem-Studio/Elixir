@@ -32,7 +32,7 @@ public class TdpPickState {
         allMains.addAll(TdpData.materials(true));
         allOffs.clear();
         for (var m : TdpData.materials(false)) {
-            if (!TdpData.isEmpty(m)) allOffs.add(m);
+            if (keepEmptyOff || TdpData.isEmpty(m)) allOffs.add(m);
         }
         query = null;
         apply();
