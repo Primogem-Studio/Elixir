@@ -4,12 +4,12 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.entity.player.Player;
+import net.per.elixir.entity.ServantZombie;
 
 import java.util.UUID;
 
@@ -40,7 +40,8 @@ public final class ElixirSummon {
     }
 
     public static void tickServant(Zombie zombie) {
-        if (zombie.level().isClientSide || zombie.tickCount % 10 != 0 || !isServant(zombie) || isHostile(zombie)) return;
+        if (zombie.level().isClientSide || zombie.tickCount % 10 != 0 || !isServant(zombie) || isHostile(zombie))
+            return;
         var current = zombie.getTarget();
         if (current != null && current.isAlive()) return;
         if (!(zombie.level() instanceof ServerLevel level)) return;
@@ -80,23 +81,24 @@ public final class ElixirSummon {
         String batch = summoner instanceof Player p ? "p_" + p.getStringUUID() : "t_" + key;
         var olds = new java.util.ArrayList<Zombie>();
         for (var e : level.getAllEntities()) {
-            if (e instanceof Zombie z && isServant(z) && batch.equals(z.getPersistentData().getString(BATCH))) olds.add(z);
+            if (e instanceof Zombie z && isServant(z) && batch.equals(z.getPersistentData().getString(BATCH)))
+                olds.add(z);
         }
         for (var z : olds) z.discard();
         int spawned = 0;
         var r = level.random;
         for (int i = 0; i < amount; i++) {
-            var z = new Zombie(EntityType.ZOMBIE, level);
+            var z = new ServantZombie(level);
             var tag = z.getPersistentData();
             tag.putBoolean(SERVANT, true);
             tag.putBoolean(HOSTILE, hostile);
             tag.putString(OWNER, summoner.getUUID().toString());
             tag.putString(BATCH, batch);
             z.setPersistenceRequired();
-            z.addEffect(new MobEffectInstance(MobEffects.FIRE_RESISTANCE, MobEffectInstance.INFINITE_DURATION, 0));
-            z.addEffect(new MobEffectInstance(MobEffects.GLOWING, MobEffectInstance.INFINITE_DURATION, 0));
+            z.addEffect(new MobEffectInstance(MobEffects.GLOWING, MobEffectInstance.INFINITE_DURATION, 0, false, false));
             z.moveTo(summoner.getX() + (r.nextDouble() - 0.5) * 4, summoner.getY(), summoner.getZ() + (r.nextDouble() - 0.5) * 4);
-            for (int k = 0; k < 6 && !level.noCollision(z.getBoundingBox()); k++) z.moveTo(z.getX(), z.getY() + 1, z.getZ());
+            for (int k = 0; k < 6 && !level.noCollision(z.getBoundingBox()); k++)
+                z.moveTo(z.getX(), z.getY() + 1, z.getZ());
             if (foe != null) {
                 tag.putString(FOE, foe.getUUID().toString());
                 z.setTarget(foe);
