@@ -20,6 +20,8 @@ public class ElixirNetwork {
         registrar.playToServer(SetFurnaceSkinPayload.TYPE, SetFurnaceSkinPayload.STREAM_CODEC, SetFurnaceSkinPayload::handle);
         registrar.playToServer(OpenPouchPayload.TYPE, OpenPouchPayload.STREAM_CODEC, OpenPouchPayload::handle);
         registrar.playToServer(SelectPillPayload.TYPE, SelectPillPayload.STREAM_CODEC, SelectPillPayload::handle);
+        registrar.playToServer(TdpCraftPillPayload.TYPE, TdpCraftPillPayload.STREAM_CODEC, TdpCraftPillPayload::handle);
+        registrar.playToServer(TdpCraftFormulaPayload.TYPE, TdpCraftFormulaPayload.STREAM_CODEC, TdpCraftFormulaPayload::handle);
     }
 
     public static void syncFurnaceConfigTo(ServerPlayer player) {

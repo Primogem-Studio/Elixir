@@ -8,6 +8,7 @@ import net.per.elixir.item.DanFormSealItem;
 import net.per.elixir.item.DanPouchItem;
 import net.per.elixir.item.ElixirItem;
 import net.per.elixir.item.HandheldFanItem;
+import net.per.elixir.item.TiandaoScreenItem;
 
 import static net.per.elixir.Elixir.MOD_ID;
 
@@ -17,6 +18,7 @@ public class ElixirItems {
     public static final DeferredItem<Item> handheld_fan = ITEMS.register("handheld_fan", HandheldFanItem::new);
     public static final DeferredItem<Item> dan_pouch = ITEMS.register("dan_pouch", DanPouchItem::new);
     public static final DeferredItem<Item> dan_form_seal = ITEMS.register("dan_form_seal", DanFormSealItem::new);
+    public static final DeferredItem<Item> tiandao_screen = ITEMS.register("tiandao_screen", TiandaoScreenItem::new);
 
     public static final DeferredItem<BlockItem> elixir_furnace = ITEMS.registerSimpleBlockItem(ElixirBlocks.elixir_furnace);
     public static final DeferredItem<BlockItem> elixir_furnace_cover = ITEMS.registerSimpleBlockItem(ElixirBlocks.elixir_furnace_cover);

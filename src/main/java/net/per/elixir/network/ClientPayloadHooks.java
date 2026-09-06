@@ -21,4 +21,6 @@ public final class ClientPayloadHooks {
     };
     public static SkinSyncer syncSkin = (core, visual) -> {
     };
+    public static Runnable openTdpScreen = () -> {
+    };
 }

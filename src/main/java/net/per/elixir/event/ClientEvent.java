@@ -72,6 +72,12 @@ public class ClientEvent {
                 be.acceptPinnedVisualClient(visual);
             }
         };
+        ClientPayloadHooks.openTdpScreen = () -> {
+            var mc = Minecraft.getInstance();
+            if (mc.player != null && mc.level != null) {
+                mc.setScreen(new net.per.elixir.client.tdp.TdpScreen());
+            }
+        };
     }
 
     @SubscribeEvent

@@ -41,6 +41,7 @@ public class ElixirTabs {
                 output.accept(alchemical_vessel);
                 output.accept(dan_pouch);
                 output.accept(dan_form_seal);
+                output.accept(tiandao_screen);
                 output.accept(handheld_fan);
             })
             .build());
