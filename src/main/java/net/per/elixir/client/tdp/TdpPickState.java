@@ -32,7 +32,7 @@ public class TdpPickState {
         allMains.addAll(TdpData.materials(true));
         allOffs.clear();
         for (var m : TdpData.materials(false)) {
-            if (keepEmptyOff || !TdpData.isEmpty(m)) allOffs.add(m);
+            if (!TdpData.isEmpty(m)) allOffs.add(m);
         }
         query = null;
         apply();
@@ -47,6 +47,7 @@ public class TdpPickState {
             if (matches(m, q)) mains.add(m);
         }
         offs.clear();
+        if (keepEmptyOff) offs.add(TdpData.byId("elixir:off/empty"));
         for (var m : allOffs) {
             if (matches(m, q)) offs.add(m);
         }
