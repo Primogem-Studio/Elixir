@@ -114,6 +114,6 @@ public class LargeFurnaceMenu extends AbstractContainerMenu {
     @Override
     public boolean stillValid(Player player) {
         return access.evaluate((level, pos) -> level.getBlockEntity(pos) instanceof LargeFurnaceBlockEntity be
-                && player.canInteractWithBlock(pos, 4 + be.size()), true);
+                && player.canInteractWithBlock(pos, 4 + be.size() / 2f), true);
     }
 }

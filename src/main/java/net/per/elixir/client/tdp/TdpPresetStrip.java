@@ -61,7 +61,7 @@ public class TdpPresetStrip {
         var names = handler.names();
         int content = names.size() * (CHIP_W + CHIP_GAP) - CHIP_GAP;
         int max = Math.max(0, content - (right - cx0));
-        scroll = TdpUi.clamped(scroll, 0, max);
+        scroll = Math.clamp(scroll, 0, max);
         if (max > 0) {
             TdpUi.fill(g, cx0, y - 2, right - cx0, 20, 0xFF212328);
             TdpUi.frame(g, cx0, y - 2, right - cx0, 20, 0xFF4C5057);
@@ -111,7 +111,7 @@ public class TdpPresetStrip {
         if (!dragging) return false;
         var t = track(px, font);
         if (t == null || t.max <= 0) return true;
-        scroll = TdpUi.clamped(pressScroll + (int) ((mouseX - pressX) * t.max / Math.max(1, t.usable)), 0, t.max);
+        scroll = Math.clamp(pressScroll + (int) ((mouseX - pressX) * t.max / Math.max(1, t.usable)), 0, t.max);
         return true;
     }
 
@@ -122,7 +122,7 @@ public class TdpPresetStrip {
     public boolean mouseScrolled(double mx, double my, int px, int y, Font font, int dir) {
         var t = track(px, font);
         if (t == null || t.max <= 0 || !TdpUi.in(mx, my, t.cx0, y - 2, t.w, 20)) return false;
-        scroll = TdpUi.clamped(scroll - dir * (CHIP_W + CHIP_GAP), 0, t.max);
+        scroll = Math.clamp(scroll - dir * (CHIP_W + CHIP_GAP), 0, t.max);
         return true;
     }
 
@@ -143,7 +143,7 @@ public class TdpPresetStrip {
         pressScroll = scroll;
         if (t.usable > 0) {
             double target = (mx - t.cx0 - t.thumb / 2.0) / t.usable;
-            scroll = TdpUi.clamped((int) (target * t.max), 0, t.max);
+            scroll = Math.clamp((int) (target * t.max), 0, t.max);
         }
         return true;
     }

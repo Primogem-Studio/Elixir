@@ -15,6 +15,10 @@ public class ElixirServantEvents {
     @SubscribeEvent
     public static void onLivingChangeTarget(LivingChangeTargetEvent event) {
         if (!(event.getEntity() instanceof Zombie zombie) || !ElixirSummon.isServant(zombie)) return;
+        if (ElixirSummon.isHostile(zombie)) {
+            event.setNewAboutToBeSetTarget(ElixirSummon.getOwnerTarget(zombie));
+            return;
+        }
         var target = event.getNewAboutToBeSetTarget();
         if (target == null) return;
         if (target.getUUID().toString().equals(ElixirSummon.ownerId(zombie))) {
@@ -25,7 +29,6 @@ public class ElixirServantEvents {
             event.setNewAboutToBeSetTarget(null);
             return;
         }
-        if (ElixirSummon.isHostile(zombie)) return;
         if (target instanceof Enemy || target == zombie.getLastHurtByMob()) return;
         String foe = ElixirSummon.foeId(zombie);
         if (!foe.isEmpty() && foe.equals(target.getUUID().toString())) return;

@@ -1,6 +1,5 @@
 package net.per.elixir.client;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -12,14 +11,15 @@ import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.neoforged.neoforge.network.PacketDistributor;
 import net.per.elixir.block.ElixirFurnaceBlock;
 import net.per.elixir.block.entity.LargeFurnaceBlockEntity;
+import net.per.elixir.client.tdp.TdpUi;
 import net.per.elixir.network.SetFurnaceSkinPayload;
 import net.per.elixir.registry.ElixirBlocks;
 import net.per.elixir.registry.ElixirRegistries;
 import net.per.elixir.registry.data.FurnaceVisual;
 import net.per.elixir.render.entity.block.LargeFurnaceRenderer;
-import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -289,10 +289,7 @@ public class FurnaceSkinScreen extends Screen {
     }
 
     private void frame(GuiGraphics g, int x, int y, int w, int h, int color) {
-        g.fill(x, y, x + w, y + 1, color);
-        g.fill(x, y + h - 1, x + w, y + h, color);
-        g.fill(x, y, x + 1, y + h, color);
-        g.fill(x + w - 1, y, x + w, y + h, color);
+        TdpUi.renderFrame(g, x, y, w, h, color);
     }
 
     private int gridX0() {
@@ -348,12 +345,12 @@ public class FurnaceSkinScreen extends Screen {
 
     private void drawActions(GuiGraphics g, int ox, int oy, int mouseX, int mouseY) {
         boolean canPin = selected >= 0;
-        drawButton(g, ox + CONTENT_X, oy + ACTIONS_Y, 118, 20,
+        drawButton(g, ox + CONTENT_X - 2, oy + ACTIONS_Y, 118, 20,
                 Component.translatable("gui.elixir.seal.pin_button"),
-                canPin, in(mouseX, mouseY, ox + CONTENT_X, oy + ACTIONS_Y, 118, 20));
-        drawButton(g, ox + PANEL_W - CONTENT_X - 118, oy + ACTIONS_Y, 118, 20,
+                canPin, in(mouseX, mouseY, ox + CONTENT_X - 2, oy + ACTIONS_Y, 118, 20));
+        drawButton(g, ox + PANEL_W - CONTENT_X - 116, oy + ACTIONS_Y, 118, 20,
                 Component.translatable("gui.elixir.seal.reset_button"),
-                true, in(mouseX, mouseY, ox + PANEL_W - CONTENT_X - 118, oy + ACTIONS_Y, 118, 20));
+                true, in(mouseX, mouseY, ox + PANEL_W - CONTENT_X - 116, oy + ACTIONS_Y, 118, 20));
     }
 
     private void drawButton(GuiGraphics g, int x, int y, int w, int h, Component text, boolean enabled, boolean hover) {

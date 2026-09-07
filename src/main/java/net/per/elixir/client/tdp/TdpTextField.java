@@ -5,7 +5,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import org.lwjgl.glfw.GLFW;
 
-public class TdpTextField {
+public class TdpTextField implements TdpBoxField {
     public enum Mode {
         TEXT, INT, DECIMAL
     }
@@ -28,6 +28,7 @@ public class TdpTextField {
         this.mode = mode;
     }
 
+    @Override
     public int w() {
         return w;
     }
@@ -36,6 +37,7 @@ public class TdpTextField {
         return h;
     }
 
+    @Override
     public void setPos(int x, int y) {
         this.x = x;
         this.y = y;
@@ -65,6 +67,7 @@ public class TdpTextField {
         return focused;
     }
 
+    @Override
     public void render(GuiGraphics g, Font font, int mouseX, int mouseY) {
         hovered = TdpUi.in(mouseX, mouseY, x, y, w, h);
         TdpUi.fieldBox(g, x, y, w, h, focused, hovered);
