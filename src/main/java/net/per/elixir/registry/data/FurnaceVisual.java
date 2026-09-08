@@ -2,10 +2,13 @@ package net.per.elixir.registry.data;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 import net.per.elixir.registry.ElixirRegistries;
 
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -25,6 +28,7 @@ public record FurnaceVisual(
         List<FurnaceVisual> options
 ) {
     public static final ResourceLocation DEFAULT_ID = ResourceLocation.fromNamespaceAndPath(MOD_ID, "default");
+    public static final ResourceLocation FALLBACK_ID = ResourceLocation.fromNamespaceAndPath(MOD_ID, "elixir");
     public static final ResourceLocation DEFAULT_ACTIVE_TEXTURE = ResourceLocation.withDefaultNamespace("block/lava_flow");
 
     public static final Codec<Integer> COLOR = Codec.withAlternative(
@@ -57,12 +61,21 @@ public record FurnaceVisual(
     public FurnaceVisual select(int size, long seed) {
         var part = this;
         if (!options.isEmpty()) {
-            var index = random ? (int) Math.floorMod(seed, options.size()) : Math.clamp(fixed, 0, options.size() - 1);
+            var index = random ? (int) Math.floorMod(mix(seed), options.size()) : Math.clamp(fixed, 0, options.size() - 1);
             part = part.merge(options.get(index));
         }
         var tier = tiers.get(size);
         if (tier != null) part = part.merge(tier);
         return part;
+    }
+
+    private static long mix(long x) {
+        x ^= x >>> 33;
+        x *= 0xff51afd7ed558ccdL;
+        x ^= x >>> 33;
+        x *= 0xc4ceb9fe1a85ec53L;
+        x ^= x >>> 33;
+        return x;
     }
 
     public FurnaceVisual merge(FurnaceVisual other) {
@@ -82,8 +95,30 @@ public record FurnaceVisual(
     }
 
     public static FurnaceVisual getDefault(Level level) {
-        return level.registryAccess().registry(ElixirRegistries.FURNACE_VISUAL)
-                .map(registry -> registry.get(DEFAULT_ID))
-                .orElse(null);
+        var registry = level.registryAccess().registry(ElixirRegistries.FURNACE_VISUAL).orElse(null);
+        if (registry == null) return null;
+        var base = registry.get(DEFAULT_ID);
+        if (base == null) base = registry.get(FALLBACK_ID);
+        if (base == null) for (var entry : registry) {
+            base = entry;
+            break;
+        }
+        return aggregate(base, registry);
+    }
+
+    private static FurnaceVisual aggregate(FurnaceVisual base, Registry<FurnaceVisual> registry) {
+        var baseFields = base == null ? new FurnaceVisual(
+                Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(),
+                Optional.empty(), Optional.empty(), Map.of(), false, 0, List.of()) : base;
+        var options = new LinkedHashSet<>(baseFields.options());
+        var tiers = new LinkedHashMap<>(baseFields.tiers());
+        for (var entry : registry) {
+            if (entry.random()) options.addAll(entry.options());
+            for (var tier : entry.tiers().entrySet()) tiers.putIfAbsent(tier.getKey(), tier.getValue());
+        }
+        return new FurnaceVisual(
+                baseFields.model(), baseFields.texture(), baseFields.coverModel(), baseFields.coverTexture(),
+                baseFields.activeTexture(), baseFields.activeColor(),
+                tiers, true, 0, List.copyOf(options));
     }
 }
