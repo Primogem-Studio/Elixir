@@ -31,3 +31,10 @@ type = "optional"
 versionRange = "[1.5.3,)"
 ordering = "NONE"
 side = "BOTH"
+
+[[dependencies.elixir]]
+modId="genshincraft"
+type="optional"
+versionRange="[3.1.0,)"
+ordering="NONE"
+side="BOTH"

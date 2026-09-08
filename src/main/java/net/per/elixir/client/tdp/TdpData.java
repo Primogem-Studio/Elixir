@@ -148,8 +148,6 @@ public final class TdpData {
         int tint = tint(m);
         if (tint == 0xFFFFFF) tint = 0xFFB8C6FF;
         else tint |= 0xFF000000;
-        var title = name(m).copy().withColor(tint);
-        title = title.copy().append(Component.literal("  " + id(m)).withStyle(style -> style.withColor(0xFF7A828C)));
-        host.queueHover(mouseX, mouseY, 160, tint, title, statLines(m), description(m));
+        host.queueHover(mouseX, mouseY, 160, tint, name(m).copy().withColor(tint).append(Component.literal("  " + id(m))), statLines(m), description(m));
     }
 }

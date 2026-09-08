@@ -26,6 +26,7 @@ import net.per.elixir.util.ModifierUtil;
 import static net.per.elixir.Elixir.MOD_ID;
 import static net.per.elixir.ElixirConfig.attributeModifierDilute;
 import static net.per.elixir.ElixirConfig.effectDilute;
+import static net.per.elixir.compat.ModSet.GenshinCraft;
 
 public class ElixirActions {
     public static final DeferredRegister<IElixirAction> ACTIONS = DeferredRegister.create(ElixirRegistries.ACTION, MOD_ID);
@@ -178,7 +179,7 @@ public class ElixirActions {
             if (level.isClientSide) return;
             boolean outward = pharm > 0;
             int a = Math.abs(pharm);
-            float dmg = (float) Math.min(4.0 + a / 8.0, 12.0);
+            float dmg = GenshinCraft ? (float) Math.min(4.0 + a * 10 / 4f, 388.0) * 2 : (float) Math.min(4.0 + a / 8.0, 12.0);
             double range = Math.min(8.0 + a / 4.0, 20.0);
             int rings = Math.clamp(a / 30 + 1, 2, 3);
             for (int i = 0; i < rings; i++) {

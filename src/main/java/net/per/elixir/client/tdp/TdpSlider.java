@@ -2,7 +2,6 @@ package net.per.elixir.client.tdp;
 
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.network.chat.Component;
 
 public class TdpSlider {
     private int x;
@@ -21,7 +20,7 @@ public class TdpSlider {
         this.min = min;
         this.max = max;
         this.step = step;
-        this.value = TdpUi.clamped(value, min, max);
+        this.value = Math.clamp(value, min, max);
     }
 
     public int w() {
@@ -43,14 +42,14 @@ public class TdpSlider {
     }
 
     public void value(int v) {
-        value = TdpUi.clamped(v, min, max);
+        value = Math.clamp(v, min, max);
     }
 
     public void setFromMouse(double mouseX) {
         float t = (float) ((mouseX - x) / w);
         t = Math.max(0, Math.min(1, t));
         value = min + Math.round(t * (max - min) / (float) step) * step;
-        value = TdpUi.clamped(value, min, max);
+        value = Math.clamp(value, min, max);
     }
 
     public boolean over(double mouseX, double mouseY) {

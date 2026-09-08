@@ -83,7 +83,7 @@ public class PillGenPage extends TdpPickerPage {
             if (TdpData.isEmpty(o)) return o;
         }
         var all = TdpData.materials(false);
-        return all.isEmpty() ? null : all.get(0);
+        return all.isEmpty() ? null : all.getFirst();
     }
 
     private boolean hasSelection() {
@@ -133,7 +133,7 @@ public class PillGenPage extends TdpPickerPage {
         int y0 = py + BODY_Y;
         var rows = currentRows();
         int max = Math.max(0, rows.size() - LIST_ROWS);
-        listScroll = TdpUi.clamped(listScroll, 0, max);
+        listScroll = Math.clamp(listScroll, 0, max);
         for (int i = 0; i < LIST_ROWS; i++) {
             int idx = listScroll + i;
             if (idx >= rows.size()) break;
@@ -146,7 +146,7 @@ public class PillGenPage extends TdpPickerPage {
                 TdpUi.fill(g, x0 + 2, y + 3, 12, 12, 0xAA2C2E33);
                 TdpUi.frame(g, x0 + 2, y + 3, 12, 12, 0xFF55585D);
             }
-            g.drawString(font, off ? "\u8F85" : "\u4E3B", x0 + 20, y + 5, off ? TdpUi.GREEN : TdpUi.CYAN);
+            g.drawString(font, off ? "辅" : "主", x0 + 20, y + 5, off ? TdpUi.GREEN : TdpUi.CYAN);
             String name = TdpUi.clip(font, TdpData.name(m).getString(), 220);
             g.drawString(font, name, x0 + 32, y + 5, 0xFFC9CFD6);
             boolean hx = TdpUi.in(mx, my, px + TdpScreen.CW - 13, y, 13, ROW_H);
@@ -176,7 +176,7 @@ public class PillGenPage extends TdpPickerPage {
 
     @Override
     protected void hoverList(TdpScreen host, GuiGraphics g, int px, int py, int mouseX, int mouseY) {
-        int row = (int) ((mouseY - py - BODY_Y) / ROW_H);
+        int row = (mouseY - py - BODY_Y) / ROW_H;
         if (row < 0 || row >= LIST_ROWS) return;
         var rows = currentRows();
         int idx = listScroll + row;
@@ -267,7 +267,7 @@ public class PillGenPage extends TdpPickerPage {
     private void sendGenerate() {
         var off = selectedOff();
         if (off == null) return;
-        int n = Math.max(1, Math.min(512, count.intValue(1)));
+        int n = Math.clamp(count.intValue(1), 1, 512);
         String name = pillName.text().trim();
         PacketDistributor.sendToServer(new TdpCraftPillPayload(n, pharm.intValue(0), TdpData.id(off),
                 new ArrayList<>(selectedMains), name.isEmpty() ? null : name));

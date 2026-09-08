@@ -11,6 +11,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
+import net.per.elixir.client.tdp.TdpUi;
 import net.per.elixir.data.AlchemicalFormulaComponent;
 import net.per.elixir.data.ElixirComponent;
 import net.per.elixir.registry.data.Material;
@@ -160,10 +161,7 @@ public class AlchemicalFormulaDetailTooltip implements TooltipComponent, ClientT
         var boxY = mouseY;
         var boxH = BOX_PAD + lines.size() * LINE_H + BOX_PAD;
         var border = 0x66000000 | (color & 0xFFFFFF);
-        graphics.fill(boxX, boxY, boxX + BOX_W, boxY + 1, border);
-        graphics.fill(boxX, boxY + boxH - 1, boxX + BOX_W, boxY + boxH, border);
-        graphics.fill(boxX, boxY, boxX + 1, boxY + boxH, border);
-        graphics.fill(boxX + BOX_W - 1, boxY, boxX + BOX_W, boxY + boxH, border);
+        TdpUi.renderFrame(graphics, boxX, boxY, BOX_W, boxH, border);
         graphics.fill(boxX + 1, boxY + 1, boxX + BOX_W - 1, boxY + boxH - 1, 0x40000000);
         for (var j = 0; j < lines.size(); j++) {
             graphics.drawString(font, lines.get(j), boxX + BOX_PAD, boxY + BOX_PAD + j * LINE_H, color);

@@ -104,7 +104,7 @@ public class FormulaGenPage extends TdpPickerPage {
     protected void drawListPane(GuiGraphics g, Font font, int px, int py, int mx, int my) {
         int y0 = py + BODY_Y;
         int max = Math.max(0, rows.size() - LIST_ROWS);
-        listScroll = TdpUi.clamped(listScroll, 0, max);
+        listScroll = Math.clamp(listScroll, 0, max);
         for (int i = 0; i < LIST_ROWS; i++) {
             int idx = listScroll + i;
             if (idx >= rows.size()) break;

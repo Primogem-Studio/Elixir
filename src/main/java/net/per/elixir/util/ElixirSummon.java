@@ -6,6 +6,7 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.entity.player.Player;
@@ -35,6 +36,11 @@ public final class ElixirSummon {
         return zombie.getPersistentData().getString(OWNER);
     }
 
+    public static LivingEntity getOwnerTarget(Zombie zombie) {
+        if (!(zombie.level() instanceof ServerLevel level)) return null;
+        return level.getEntity(UUID.fromString(ownerId(zombie))) instanceof LivingEntity le ? le : null;
+    }
+
     public static String foeId(Zombie zombie) {
         return zombie.getPersistentData().getString(FOE);
     }
@@ -47,24 +53,29 @@ public final class ElixirSummon {
         if (!(zombie.level() instanceof ServerLevel level)) return;
         var owner = level.getEntity(UUID.fromString(ownerId(zombie)));
         if (!(owner instanceof LivingEntity lo) || !lo.isAlive()) return;
-        LivingEntity foe = null;
+        var foe = lo.getLastHurtMob();
         double best = Double.MAX_VALUE;
-        for (var m : level.getEntitiesOfClass(Mob.class, lo.getBoundingBox().inflate(24))) {
-            if (!m.isAlive() || isServant(m) || m == lo || m == zombie) continue;
-            if (m.getTarget() != lo && !(lo instanceof Mob om && om.getTarget() == m)) continue;
-            double d = zombie.distanceToSqr(m);
-            if (d < best) {
-                best = d;
-                foe = m;
+        if (foe == null) {
+            for (var e : level.getEntitiesOfClass(LivingEntity.class, lo.getBoundingBox().inflate(24))) {
+                if (e == owner || e instanceof ArmorStand) continue;
+                if (!e.isAlive() || isServant(e) || e == zombie) continue;
+                if (e instanceof Mob m && m.getTarget() != lo && !(lo instanceof Mob om && om.getTarget() == e))
+                    continue;
+                double d = zombie.distanceToSqr(e);
+                if (d < best) {
+                    best = d;
+                    foe = e;
+                }
             }
         }
         if (foe == null) {
-            for (var m : level.getEntitiesOfClass(Mob.class, zombie.getBoundingBox().inflate(16))) {
-                if (!m.isAlive() || isServant(m) || !(m instanceof Enemy)) continue;
-                double d = zombie.distanceToSqr(m);
+            for (var e : level.getEntitiesOfClass(LivingEntity.class, zombie.getBoundingBox().inflate(16))) {
+                if (e == owner) continue;
+                if (!e.isAlive() || isServant(e) || !(e instanceof Enemy || e instanceof Player)) continue;
+                double d = zombie.distanceToSqr(e);
                 if (d < best) {
                     best = d;
-                    foe = m;
+                    foe = e;
                 }
             }
         }

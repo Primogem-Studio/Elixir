@@ -61,12 +61,14 @@ public class TdpGrid<T> {
 
     public void scroll(int delta) {
         scrollRows -= delta;
-        scrollRows = TdpUi.clamped(scrollRows, 0, maxScroll());
+        int max = maxScroll();
+        scrollRows = Math.clamp(scrollRows, 0, max);
     }
 
     public void render(GuiGraphics g, Font font, int x0, int y0, int mouseX, int mouseY,
                        Predicate<T> selected, CellRenderer<T> renderer) {
-        scrollRows = TdpUi.clamped(scrollRows, 0, maxScroll());
+        int max = maxScroll();
+        scrollRows = Math.clamp(scrollRows, 0, max);
         hovered = -1;
         for (int r = 0; r < rowsVisible; r++) {
             int row = scrollRows + r;
@@ -88,7 +90,8 @@ public class TdpGrid<T> {
         int col = (int) ((mouseX - x0) / cellW);
         int row = (int) ((mouseY - y0) / cellH);
         if (col < 0 || col >= cols || row < 0 || row >= rowsVisible) return -1;
-        int idx = (TdpUi.clamped(scrollRows, 0, maxScroll()) + row) * cols + col;
+        int max = maxScroll();
+        int idx = (Math.clamp(scrollRows, 0, max) + row) * cols + col;
         return idx >= 0 && idx < items.size() ? idx : -1;
     }
 

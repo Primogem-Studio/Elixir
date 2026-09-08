@@ -6,7 +6,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.network.chat.Component;
 
-public class TdpEditField {
+public class TdpEditField implements TdpBoxField {
     private final int w;
     private final int h;
     private Component placeholder;
@@ -27,6 +27,7 @@ public class TdpEditField {
         return box;
     }
 
+    @Override
     public int w() {
         return w;
     }
@@ -35,6 +36,7 @@ public class TdpEditField {
         return h;
     }
 
+    @Override
     public void setPos(int x, int y) {
         box().setX(x);
         box().setY(y);
@@ -56,6 +58,7 @@ public class TdpEditField {
         if (box != null) box.setFocused(false);
     }
 
+    @Override
     public void render(GuiGraphics g, Font font, int mouseX, int mouseY) {
         var b = box();
         boolean hover = TdpUi.in(mouseX, mouseY, b.getX(), b.getY(), w, h);

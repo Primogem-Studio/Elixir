@@ -4,18 +4,17 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
+import net.per.elixir.client.TextHelper;
 
 import java.util.List;
 
 public final class TdpUi {
-    public static final int TITLE = 0xFFE9E9E9;
     public static final int TEXT = 0xFFC9CFD6;
     public static final int DIM = 0xFF8A8A8A;
     public static final int HINT = 0xFF7A828C;
     public static final int GOLD = 0xFFFFD982;
     public static final int CYAN = 0xFF54D9FF;
     public static final int GREEN = 0xFF7BFF2E;
-    public static final int PURPLE = 0xFFE09EFF;
 
     private static final int PANEL_BG = 0xE21C1E21;
     private static final int PANEL_EDGE = 0xFF585B60;
@@ -34,6 +33,10 @@ public final class TdpUi {
     }
 
     public static void frame(GuiGraphics g, int x, int y, int w, int h, int color) {
+        renderFrame(g, x, y, w, h, color);
+    }
+
+    public static void renderFrame(GuiGraphics g, int x, int y, int w, int h, int color) {
         g.fill(x, y, x + w, y + 1, color);
         g.fill(x, y + h - 1, x + w, y + h, color);
         g.fill(x, y, x + 1, y + h, color);
@@ -85,32 +88,23 @@ public final class TdpUi {
         return font.width(s) <= maxW ? s : font.plainSubstrByWidth(s, maxW);
     }
 
-    public static String clip(Font font, Component c, int maxW) {
-        return clip(font, c.getString(), maxW);
-    }
-
-    public static int clamped(int v, int min, int max) {
-        return Math.max(min, Math.min(max, v));
-    }
-
-    public static void hoverCard(GuiGraphics g, Font font, int mouseX, int mouseY, int w, int tint,
-                                 Component title, List<Component> props, Component desc) {
+    public static void hoverCard(GuiGraphics g, Font font, int mouseX, int mouseY, int w, int tint, Component title, List<Component> props, Component desc) {
         hoverCard(g, font, mouseX, mouseY, w, tint, title, props, desc, 4);
     }
 
-    public static void hoverCard(GuiGraphics g, Font font, int mouseX, int mouseY, int w, int tint,
-                                 Component title, List<Component> props, Component desc, int maxLines) {
+    public static void hoverCard(GuiGraphics g, Font font, int mouseX, int mouseY, int w, int tint, Component title, List<Component> props, Component desc, int maxLines) {
         List<String> lines = wrap(font, desc == null ? null : desc.getString(), w - 14, maxLines);
+        var titleText = TextHelper.splitLines(font, title, w - 12);
         int pad = 4;
         int lineH = 9;
-        int titleH = title == null ? 0 : lineH;
+        int titleH = lineH * titleText.size();
         int h = pad + titleH + props.size() * lineH + lines.size() * lineH + pad + 2;
         var mc = Minecraft.getInstance();
         int x = mouseX + 10;
         int y = mouseY + 8;
         if (mc.screen != null) {
-            x = TdpUi.clamped(x, 2, mc.screen.width - w - 2);
-            y = TdpUi.clamped(y, 2, mc.screen.height - h - 2);
+            x = Math.clamp(x, 2, mc.screen.width - w - 2);
+            y = Math.clamp(y, 2, mc.screen.height - h - 2);
         }
         var pose = g.pose();
         pose.pushPose();
@@ -119,11 +113,8 @@ public final class TdpUi {
         frame(g, x, y, w, h, tint);
         fill(g, x + 1, y + 1, 1, h - 2, 0x40FFFFFF);
         int ty = y + pad;
-        if (title != null) {
-            String t = TdpUi.clip(font, title.getString(), w - 12);
-            g.drawString(font, Component.literal(t), x + pad + 2, ty, tint);
-            ty += titleH;
-        }
+        TextHelper.drawWrap(font, g, titleText, x + pad + 2, ty, tint);
+        ty += titleH;
         for (var p : props) {
             String pt = TdpUi.clip(font, p.getString(), w - 14);
             g.drawString(font, Component.literal(pt), x + pad + 2, ty, 0xFFD9DEE5);
@@ -147,9 +138,9 @@ public final class TdpUi {
             rest = rest.substring(fit.length());
         }
         if (!rest.isEmpty() && !out.isEmpty()) {
-            String last = out.remove(out.size() - 1);
+            String last = out.removeLast();
             String tail = last.length() > 2 ? last.substring(0, last.length() - 2) : "";
-            out.add(tail + "\u2026");
+            out.add(tail + "…");
         }
         return out;
     }
@@ -203,15 +194,7 @@ public final class TdpUi {
         fill(g, x + off, y, thumb, 3, 0xCCCDD3DA);
     }
 
-    public static int fieldRow(GuiGraphics g, Font font, TdpTextField field, Component label, int x, int y, int mx, int my) {
-        int lw = font.width(label);
-        text(g, font, label, x, y + 2, TdpUi.TEXT);
-        field.setPos(x + 2 + lw, y);
-        field.render(g, font, mx, my);
-        return x + 2 + lw + field.w() + 10;
-    }
-
-    public static int fieldRow(GuiGraphics g, Font font, TdpEditField field, Component label, int x, int y, int mx, int my) {
+    public static int fieldRow(GuiGraphics g, Font font, TdpBoxField field, Component label, int x, int y, int mx, int my) {
         int lw = font.width(label);
         text(g, font, label, x, y + 2, TdpUi.TEXT);
         field.setPos(x + 2 + lw, y);
