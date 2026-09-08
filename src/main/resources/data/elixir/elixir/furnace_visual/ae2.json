@@ -1,0 +1,15 @@
+{
+  "random": true,
+  "options": [
+    {
+      "texture": "ae2:block/elixir_furnace_appliedenergistics2",
+      "cover_texture": "ae2:block/elixir_furnace_cover_appliedenergistics2",
+      "active_texture": "ae2:block/controller_lights"
+    },
+    {
+      "texture": "ae2:block/elixir_furnace_appliedenergistics2",
+      "cover_texture": "ae2:block/elixir_furnace_cover_appliedenergistics2_2",
+      "active_texture": "ae2:block/controller_lights"
+    }
+  ]
+}

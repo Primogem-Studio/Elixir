@@ -1,0 +1,9 @@
+{
+  "random": true,
+  "options": [
+    {
+      "texture": "create:block/elixir_furnace_create",
+      "cover_texture": "create:block/elixir_furnace_cover_create"
+    }
+  ]
+}
