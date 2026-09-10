@@ -21,7 +21,9 @@ public class TdpPresetStrip {
     private static final int FIELD_W = 60;
     private static final int FIELD_H = 12;
     private static final int CHIP_W = 44;
+    private static final int CHIP_H = 18;
     private static final int CHIP_GAP = 2;
+    private static final int TRACK_H = 3;
 
     private final TdpEditField field = new TdpEditField(FIELD_W, FIELD_H);
     private final Handler handler;
@@ -47,15 +49,16 @@ public class TdpPresetStrip {
     }
 
     public void render(GuiGraphics g, Font font, int px, int y, int mx, int my) {
+        int ry = rowY(y);
         int x = px + 2 + font.width(LABEL);
         field.setPos(x, y);
         field.render(g, font, mx, my);
         int bx = x + FIELD_W + 3;
-        boolean hs = TdpUi.in(mx, my, bx, y - 1, 24, 14);
-        TdpUi.button(g, font, bx, y - 1, 24, 14, Component.translatable("gui.elixir.tdp.preset.save"), true, hs);
+        boolean hs = TdpUi.in(mx, my, bx, ry, 24, CHIP_H);
+        TdpUi.button(g, font, bx, ry, 24, CHIP_H, Component.translatable("gui.elixir.tdp.preset.save"), true, hs);
         int dx = bx + 27;
-        boolean hd = TdpUi.in(mx, my, dx, y - 1, 24, 14);
-        TdpUi.button(g, font, dx, y - 1, 24, 14, Component.translatable("gui.elixir.tdp.preset.del"), true, hd);
+        boolean hd = TdpUi.in(mx, my, dx, ry, 24, CHIP_H);
+        TdpUi.button(g, font, dx, ry, 24, CHIP_H, Component.translatable("gui.elixir.tdp.preset.del"), true, hd);
         int cx0 = chipsX(px, font);
         int right = px + TdpScreen.CW - 2;
         var names = handler.names();
@@ -63,33 +66,38 @@ public class TdpPresetStrip {
         int max = Math.max(0, content - (right - cx0));
         scroll = Math.clamp(scroll, 0, max);
         if (max > 0) {
-            TdpUi.fill(g, cx0, y - 2, right - cx0, 20, 0xFF212328);
-            TdpUi.frame(g, cx0, y - 2, right - cx0, 20, 0xFF4C5057);
-            g.enableScissor(cx0, y - 1, right, y + 13);
+            TdpUi.fill(g, cx0, ry - 1, right - cx0, CHIP_H + 5, 0xFF212328);
+            TdpUi.frame(g, cx0, ry - 1, right - cx0, CHIP_H + 5, 0xFF4C5057);
+            g.enableScissor(cx0, ry, right, ry + CHIP_H);
         }
         for (int i = 0; i < names.size(); i++) {
             int chipX = cx0 + i * (CHIP_W + CHIP_GAP) - scroll;
             if (chipX + CHIP_W <= cx0 || chipX >= right) continue;
-            boolean h = TdpUi.in(mx, my, chipX, y - 1, CHIP_W, 14);
-            TdpUi.button(g, font, chipX, y - 1, CHIP_W, 14,
+            boolean h = TdpUi.in(mx, my, chipX, ry, CHIP_W, CHIP_H);
+            TdpUi.button(g, font, chipX, ry, CHIP_W, CHIP_H,
                     Component.literal(TdpUi.clip(font, names.get(i), CHIP_W - 8)), true, h);
         }
         if (max > 0) {
             g.disableScissor();
-            TdpUi.trackH(g, cx0, y + 14, right - cx0, scroll, max, content);
+            TdpUi.trackH(g, cx0, ry + CHIP_H + 1, right - cx0, scroll, max, content);
         }
     }
 
+    private static int rowY(int y) {
+        return y - (CHIP_H - FIELD_H) / 2;
+    }
+
     public boolean click(double mx, double my, int px, int y, Font font) {
+        int ry = rowY(y);
         if (onTrack(mx, my, px, y, font)) return true;
         int x = px + 2 + font.width(LABEL);
         int bx = x + FIELD_W + 3;
-        if (TdpUi.in(mx, my, bx, y - 1, 24, 14)) {
+        if (TdpUi.in(mx, my, bx, ry, 24, CHIP_H)) {
             handler.save(field.text());
             return true;
         }
         int dx = bx + 27;
-        if (TdpUi.in(mx, my, dx, y - 1, 24, 14)) {
+        if (TdpUi.in(mx, my, dx, ry, 24, CHIP_H)) {
             handler.delete(field.text());
             return true;
         }
@@ -99,7 +107,7 @@ public class TdpPresetStrip {
         for (int i = 0; i < names.size(); i++) {
             int chipX = cx0 + i * (CHIP_W + CHIP_GAP) - scroll;
             if (chipX + CHIP_W <= cx0 || chipX >= right) continue;
-            if (mx >= cx0 && mx < right && TdpUi.in(mx, my, chipX, y - 1, CHIP_W, 14)) {
+            if (mx >= cx0 && mx < right && TdpUi.in(mx, my, chipX, ry, CHIP_W, CHIP_H)) {
                 handler.apply(names.get(i));
                 return true;
             }
@@ -121,7 +129,7 @@ public class TdpPresetStrip {
 
     public boolean mouseScrolled(double mx, double my, int px, int y, Font font, int dir) {
         var t = track(px, font);
-        if (t == null || t.max <= 0 || !TdpUi.in(mx, my, t.cx0, y - 2, t.w, 20)) return false;
+        if (t == null || t.max <= 0 || !TdpUi.in(mx, my, t.cx0, rowY(y) - 1, t.w, CHIP_H + 5)) return false;
         scroll = Math.clamp(scroll - dir * (CHIP_W + CHIP_GAP), 0, t.max);
         return true;
     }
@@ -137,7 +145,7 @@ public class TdpPresetStrip {
     private boolean onTrack(double mx, double my, int px, int y, Font font) {
         var t = track(px, font);
         if (t == null || t.max <= 0) return false;
-        if (!TdpUi.in(mx, my, t.cx0 - 4, y + 13, t.w + 8, 5)) return false;
+        if (!TdpUi.in(mx, my, t.cx0 - 4, rowY(y) + CHIP_H, t.w + 8, TRACK_H + 2)) return false;
         dragging = true;
         pressX = mx;
         pressScroll = scroll;

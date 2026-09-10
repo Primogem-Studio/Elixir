@@ -17,6 +17,7 @@ public class TdpScreen extends Screen {
     public static final int CY = 40;
     public static final int CW = PANEL_W - CX * 2;
     public static final int CH = PANEL_H - CY - 6;
+    public static final int TAB_H = 18;
 
     private final List<TdpPage> pages = new ArrayList<>();
     private int selected;
@@ -106,8 +107,8 @@ public class TdpScreen extends Screen {
         int tabW = (CW - gap * (pages.size() - 1)) / pages.size();
         for (int i = 0; i < pages.size(); i++) {
             int x = ox + CX + i * (tabW + gap);
-            boolean hover = TdpUi.in(mouseX, mouseY, x, tabY, tabW, 15);
-            TdpUi.segButton(g, font, x, tabY, tabW, 15, Component.translatable(pages.get(i).titleKey()), i == selected, hover);
+            boolean hover = TdpUi.in(mouseX, mouseY, x, tabY, tabW, TAB_H);
+            TdpUi.segButton(g, font, x, tabY, tabW, TAB_H, Component.translatable(pages.get(i).titleKey()), i == selected, hover);
         }
     }
 
@@ -118,7 +119,7 @@ public class TdpScreen extends Screen {
             int tabW = (CW - 2 * (pages.size() - 1)) / pages.size();
             for (int i = 0; i < pages.size(); i++) {
                 int x = ox() + CX + i * (tabW + 2);
-                if (TdpUi.in(mouseX, mouseY, x, tabY, tabW, 15)) {
+                if (TdpUi.in(mouseX, mouseY, x, tabY, tabW, TAB_H)) {
                     showPage(i);
                     return true;
                 }

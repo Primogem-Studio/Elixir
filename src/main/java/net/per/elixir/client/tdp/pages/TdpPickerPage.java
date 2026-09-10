@@ -18,13 +18,13 @@ import java.util.List;
 
 public abstract class TdpPickerPage implements TdpPage {
     protected static final int TAB_Y = 0;
-    protected static final int BODY_Y = 17;
-    protected static final int SEARCH_Y = 16;
+    protected static final int BODY_Y = 19;
+    protected static final int SEARCH_Y = 19;
     protected static final int GRID_Y = 36;
     protected static final int PREVIEW_Y = 124;
     protected static final int FIELDS_Y = 136;
-    protected static final int PRESET_Y = 152;
-    protected static final int BUTTONS_Y = 171;
+    protected static final int PRESET_Y = 154;
+    protected static final int BUTTONS_Y = 175;
     protected static final int STATUS_Y = 196;
     protected static final int CELL = 21;
     protected static final int COLS = 14;

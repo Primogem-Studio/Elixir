@@ -15,6 +15,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.per.elixir.block.ElixirFurnaceBlock;
 import net.per.elixir.block.entity.LargeFurnaceBlockEntity;
 import net.per.elixir.client.tdp.TdpUi;
+import net.per.elixir.client.widget.NineSliceButton;
 import net.per.elixir.network.SetFurnaceSkinPayload;
 import net.per.elixir.registry.ElixirBlocks;
 import net.per.elixir.registry.ElixirRegistries;
@@ -354,12 +355,7 @@ public class FurnaceSkinScreen extends Screen {
     }
 
     private void drawButton(GuiGraphics g, int x, int y, int w, int h, Component text, boolean enabled, boolean hover) {
-        int base = enabled ? 0xFF41444A : 0xFF2C2E32;
-        int edge = enabled ? (hover ? 0xFF9AB39F : 0xFF66696F) : 0xFF484A4F;
-        g.fill(x, y, x + w, y + h, base);
-        frame(g, x, y, w, h, edge);
-        int color = enabled ? (hover ? 0xFFFFFFFF : 0xFFE0E2E5) : 0xFF7C7F84;
-        g.drawString(font, text, x + (w - font.width(text)) / 2, y + (h - font.lineHeight) / 2 + 1, color);
+        NineSliceButton.draw(g, font, x, y, w, h, text, enabled, hover);
     }
 
     private void updateHover(double mouseX, double mouseY) {

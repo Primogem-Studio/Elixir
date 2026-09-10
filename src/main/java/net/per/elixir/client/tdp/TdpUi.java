@@ -5,6 +5,7 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.per.elixir.client.TextHelper;
+import net.per.elixir.client.widget.NineSliceButton;
 
 import java.util.List;
 
@@ -18,11 +19,6 @@ public final class TdpUi {
 
     private static final int PANEL_BG = 0xE21C1E21;
     private static final int PANEL_EDGE = 0xFF585B60;
-    private static final int BTN_BASE = 0xFF41444A;
-    private static final int BTN_DISABLED = 0xFF2C2E32;
-    private static final int BTN_EDGE = 0xFF66696F;
-    private static final int BTN_EDGE_HOVER = 0xFF9AB39F;
-    private static final int BTN_EDGE_DISABLED = 0xFF484A4F;
     private static final int FIELD_BG = 0xFF2A2C31;
 
     private TdpUi() {
@@ -49,18 +45,11 @@ public final class TdpUi {
     }
 
     public static void button(GuiGraphics g, Font font, int x, int y, int w, int h, Component text, boolean enabled, boolean hover) {
-        fill(g, x, y, w, h, enabled ? BTN_BASE : BTN_DISABLED);
-        int edge = enabled ? (hover ? BTN_EDGE_HOVER : BTN_EDGE) : BTN_EDGE_DISABLED;
-        frame(g, x, y, w, h, edge);
-        int color = enabled ? (hover ? 0xFFFFFFFF : 0xFFE0E2E5) : 0xFF7C7F84;
-        drawCentered(g, font, text, x + w / 2, y + (h - font.lineHeight) / 2 + 1, color);
+        NineSliceButton.draw(g, font, x, y, w, h, text, enabled, hover);
     }
 
     public static void segButton(GuiGraphics g, Font font, int x, int y, int w, int h, Component text, boolean selected, boolean hover) {
-        fill(g, x, y, w, h, selected ? 0xFF35404F : BTN_BASE);
-        frame(g, x, y, w, h, selected ? CYAN : (hover ? BTN_EDGE_HOVER : BTN_EDGE));
-        int color = selected ? 0xFFDDF4FF : (hover ? 0xFFFFFFFF : 0xFFD4D8DC);
-        drawCentered(g, font, text, x + w / 2, y + (h - font.lineHeight) / 2 + 1, color);
+        NineSliceButton.draw(g, font, x, y, w, h, text, true, hover, selected);
     }
 
     public static void fieldBox(GuiGraphics g, int x, int y, int w, int h, boolean focused, boolean hover) {
@@ -151,8 +140,8 @@ public final class TdpUi {
         int w = (totalW - gap * (n - 1)) / n;
         for (int i = 0; i < n; i++) {
             int cx = x + i * (w + gap);
-            boolean hover = in(mouseX, mouseY, cx, y, w, 15);
-            segButton(g, font, cx, y, w, 15, Component.translatable(keys[i]), i == selected, hover);
+            boolean hover = in(mouseX, mouseY, cx, y, w, TdpScreen.TAB_H);
+            segButton(g, font, cx, y, w, TdpScreen.TAB_H, Component.translatable(keys[i]), i == selected, hover);
         }
     }
 
@@ -165,7 +154,7 @@ public final class TdpUi {
     }
 
     public static boolean tabHit(double mouseX, double mouseY, int x, int y, int totalW, int n, int i) {
-        return in(mouseX, mouseY, tabX(totalW, x, n, i), y, tabWidth(totalW, n), 15);
+        return in(mouseX, mouseY, tabX(totalW, x, n, i), y, tabWidth(totalW, n), TdpScreen.TAB_H);
     }
 
     public static int tabAt(double mouseX, double mouseY, int x, int y, int totalW, int n) {
