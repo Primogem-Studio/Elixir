@@ -5,8 +5,6 @@ import net.minecraft.core.Holder;
 import net.minecraft.world.level.Level;
 import net.per.elixir.registry.data.Material;
 
-import java.util.Set;
-
 public interface IFurnaceView {
     float temperature();
 
@@ -26,7 +24,7 @@ public interface IFurnaceView {
 
     double tempStability();
 
-    Set<Holder<Material>> offs();
+    Holder<Material> offMaterial();
 
     int pharma();
 

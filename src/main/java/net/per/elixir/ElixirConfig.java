@@ -39,6 +39,7 @@ public class ElixirConfig {
     public static int failedDelayBase;
     public static int failedDelayGain;
     public static double hudScale;
+    public static boolean hudStabilityNumber;
     public static double maidExpSuccessGain;
     public static double maidExpFailureGain;
     public static double maidNegligenceChance;
@@ -91,6 +92,7 @@ public class ElixirConfig {
         map.put("failed_delay_base", failedDelayBase);
         map.put("failed_delay_gain", failedDelayGain);
         map.put("hud_scale", hudScale);
+        map.put("hud_stability_number", hudStabilityNumber);
         map.put("maid_exp_success_gain", maidExpSuccessGain);
         map.put("maid_exp_failure_gain", maidExpFailureGain);
         map.put("maid_negligence_chance", maidNegligenceChance);
@@ -131,7 +133,8 @@ public class ElixirConfig {
         explodeDelayGain = Math.max(0, c.getOrElse("explode_delay_gain", 100));
         failedDelayBase = Math.max(1, c.getOrElse("failed_delay_base", 140));
         failedDelayGain = Math.max(0, c.getOrElse("failed_delay_gain", 60));
-        hudScale = Math.clamp(c.getOrElse("hud_scale", 1.5), 1.0, 4.0);
+        hudScale = Math.clamp(c.getOrElse("hud_scale", 1.8), 1.0, 4.0);
+        hudStabilityNumber = c.getOrElse("hud_stability_number", false);
         maidExpSuccessGain = Math.max(0, c.getOrElse("maid_exp_success_gain", 0.1));
         maidExpFailureGain = Math.max(0, c.getOrElse("maid_exp_failure_gain", 0.1));
         maidNegligenceChance = Math.clamp(c.getOrElse("maid_negligence_chance", 0.25), 0.0, 1.0);

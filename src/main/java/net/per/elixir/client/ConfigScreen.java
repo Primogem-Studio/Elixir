@@ -51,11 +51,16 @@ public class ConfigScreen {
                 .setSaveConsumer(v -> refineTicks = v)
                 .build());
         general.addEntry(entryBuilder.startDoubleField(Component.translatable("config.elixir.option.hud_scale"), hudScale)
-                .setDefaultValue(1.5)
+                .setDefaultValue(1.8)
                 .setMin(1.0)
                 .setMax(4.0)
                 .setTooltip(Component.translatable("config.elixir.option.hud_scale.tooltip"))
                 .setSaveConsumer(v -> hudScale = v)
+                .build());
+        general.addEntry(entryBuilder.startBooleanToggle(Component.translatable("config.elixir.option.hud_stability_number"), hudStabilityNumber)
+                .setDefaultValue(false)
+                .setTooltip(Component.translatable("config.elixir.option.hud_stability_number.tooltip"))
+                .setSaveConsumer(v -> hudStabilityNumber = v)
                 .build());
         var pharma = builder.getOrCreateCategory(Component.translatable("config.elixir.category.pharma"));
         pharma.addEntry(entryBuilder.startIntField(Component.translatable("config.elixir.option.highest_pharma_limited"), highestPharmaLimited)

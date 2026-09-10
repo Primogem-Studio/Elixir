@@ -73,6 +73,7 @@ public abstract class AbstractAlchemyFurnaceBlockEntity extends BaseContainerBlo
     protected double stability, tempStability;
     protected int explodeProgress, failedProgress;
     protected Set<Holder<Material>> main, off;
+    protected Holder<Material> offMaterial;
     protected int pharma;
     protected boolean empty;
     protected Object2IntMap<Holder<Material>> counter;
@@ -131,6 +132,8 @@ public abstract class AbstractAlchemyFurnaceBlockEntity extends BaseContainerBlo
         tag.putBoolean("empty", empty);
         tag.put("mains", saveMaterials(main));
         tag.put("offs", saveMaterials(off));
+        if (offMaterial != null)
+            offMaterial.unwrapKey().ifPresent(k -> tag.putString("offMaterial", k.location().toString()));
         if (counter != null && !counter.isEmpty()) {
             var counters = new ListTag();
             for (var e : counter.object2IntEntrySet()) {
@@ -187,6 +190,12 @@ public abstract class AbstractAlchemyFurnaceBlockEntity extends BaseContainerBlo
         empty = tag.getBoolean("empty");
         main = loadMaterials(tag, "mains", provider);
         off = loadMaterials(tag, "offs", provider);
+        if (tag.contains("offMaterial", Tag.TAG_STRING)) {
+            provider.lookupOrThrow(ElixirRegistries.MATERIAL)
+                    .get(ResourceKey.create(ElixirRegistries.MATERIAL, ResourceLocation.parse(tag.getString("offMaterial"))))
+                    .ifPresent(h -> offMaterial = h);
+        }
+        if (offMaterial == null && started && off != null && !off.isEmpty()) offMaterial = off.iterator().next();
         if (tag.contains("counter", Tag.TAG_LIST)) {
             var c = new Object2IntOpenHashMap<Holder<Material>>();
             var reg = provider.lookupOrThrow(ElixirRegistries.MATERIAL);
@@ -213,10 +222,8 @@ public abstract class AbstractAlchemyFurnaceBlockEntity extends BaseContainerBlo
         tag.putBoolean("started", started);
         tag.putDouble("stability", stability);
         tag.putDouble("tempStability", tempStability);
-        var offs = new ListTag();
-        if (off != null)
-            for (var h : off) h.unwrapKey().ifPresent(k -> offs.add(StringTag.valueOf(k.location().toString())));
-        if (!offs.isEmpty()) tag.put("offs", offs);
+        if (offMaterial != null)
+            offMaterial.unwrapKey().ifPresent(k -> tag.putString("offMaterial", k.location().toString()));
         return tag;
     }
 
@@ -301,17 +308,13 @@ public abstract class AbstractAlchemyFurnaceBlockEntity extends BaseContainerBlo
 
     private void process(Level level, BlockPos pos) {
         if (main == null) main = new HashSet<>();
-        if (off == null || off.isEmpty()) {
-            if (off == null) off = new HashSet<>();
-            off.add(level.registryAccess().holderOrThrow(ResourceKey.create(ElixirRegistries.MATERIAL, ResourceLocation.fromNamespaceAndPath(MOD_ID, "off/empty"))));
-        }
         var elixir = new ItemStack(ElixirItems.elixir.get());
         var s = (extraStability(level, pos) + stability) * (1 + tempStability / (Math.abs(tempStability) + 50));
         if (!isCovered(level)) s /= 2;
         var exp = trigger != null ? trigger.getData(ELIXIR_EXP) : this.exp;
         Elixir.LOGGER.debug("[E]稳定性 {} 药理 {} 经验{} ", s, pharma, exp);
         if (s > -pharmaLimited) {
-            elixir.set(ElixirDataComponents.Elixir, new ElixirComponent(List.copyOf(off).get(level.random.nextInt(off.size())), ElixirMath.rawPharm(pharma, exp, s), List.copyOf(main)));
+            elixir.set(ElixirDataComponents.Elixir, new ElixirComponent(resolveOffMaterial(level), ElixirMath.rawPharm(pharma, exp, s), List.copyOf(main)));
             applyFormulaName(elixir);
             items.set(outputSlot(), elixir);
             outputRecipe();
@@ -499,6 +502,8 @@ public abstract class AbstractAlchemyFurnaceBlockEntity extends BaseContainerBlo
         exp = trigger.getData(ELIXIR_EXP);
         if (!items.get(formulaSlot()).has(ElixirDataComponents.AlchemicalFormula)) startWithoutRecipe(level);
         else startWithRecipe(level);
+        offMaterial = null;
+        resolveOffMaterial(level);
         expFactor = exp / (exp + expGrowthRate);
         tempRange = (int) Math.clamp(tempRangeBase + (tempRangeMax - tempRangeBase) * expFactor, 6, tempRangeMax);
         targetTemp = calcTargetTemp(pharma);
@@ -577,8 +582,16 @@ public abstract class AbstractAlchemyFurnaceBlockEntity extends BaseContainerBlo
     }
 
     @Override
-    public Set<Holder<Material>> offs() {
-        return off;
+    public Holder<Material> offMaterial() {
+        return offMaterial;
+    }
+
+    private Holder<Material> resolveOffMaterial(Level level) {
+        if (offMaterial != null) return offMaterial;
+        offMaterial = off == null || off.isEmpty()
+                ? level.registryAccess().holderOrThrow(ResourceKey.create(ElixirRegistries.MATERIAL, ResourceLocation.fromNamespaceAndPath(MOD_ID, "off/empty")))
+                : List.copyOf(off).get(level.random.nextInt(off.size()));
+        return offMaterial;
     }
 
     @Override

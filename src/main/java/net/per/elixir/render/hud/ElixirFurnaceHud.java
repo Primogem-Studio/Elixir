@@ -24,18 +24,23 @@ import net.per.elixir.util.ElixirMath;
 import net.per.elixir.util.MultiFurnaceStructure;
 import org.lwjgl.glfw.GLFW;
 
-import java.util.Comparator;
-
 import static net.per.elixir.Elixir.MOD_ID;
 
 @EventBusSubscriber(modid = MOD_ID, value = Dist.CLIENT)
 public class ElixirFurnaceHud {
     private static final ResourceLocation DAN_HUD = ResourceLocation.fromNamespaceAndPath(MOD_ID, "textures/screens/dan_hud.png");
+    private static final ResourceLocation THERMOMETER = ResourceLocation.fromNamespaceAndPath(MOD_ID, "textures/screens/thermometer.png");
     private static final int TEX_W = 51;
     private static final int TEX_H = 89;
+    private static final int THERMO_W = 23;
+    private static final int THERMO_H = 80;
     private static final SpriteRect TEMP_BAR = new SpriteRect(0, 0, 20, 88);
+    private static final SpriteRect TEMP_WINDOW = new SpriteRect(3, 3, 14, 80);
+    private static final SpriteRect THERMO_TEMP = new SpriteRect(0, 0, 14, 80);
     private static final SpriteRect STABILITY_BAR = new SpriteRect(26, 0, 12, 40);
-    private static final SpriteRect TIME_BAR = new SpriteRect(23, 43, 20, 4);
+    private static final SpriteRect STABILITY_WINDOW = new SpriteRect(3, 3, 6, 33);
+    private static final SpriteRect THERMO_STABILITY = new SpriteRect(17, 0, 6, 33);
+    private static final SpriteRect TIME_BAR = new SpriteRect(23, 43, 20, 5);
     private static final SpriteRect MARKER = new SpriteRect(22, 49, 4, 5);
     private static final SpriteRect TRI_TIP = new SpriteRect(28, 49, 1, 3);
     private static final SpriteRect STATIC_LINE = new SpriteRect(23, 57, 15, 3);
@@ -43,6 +48,8 @@ public class ElixirFurnaceHud {
     private static final int COLOR_YELLOW = 0xFFFFD60A;
     private static final int COLOR_GREEN = 0xFF59D60A;
     private static final int COLOR_BLUE = 0xFF30A7FF;
+    private static final int COLOR_PURPLE = 0xFFB44DFF;
+    private static final int STABILITY_BAND_LIFT = 5;
     private static final float SPRING_STIFFNESS = 324f;
     private static final float[] tempState = {Float.NaN, 0f};
     private static final float[] stabilityState = {Float.NaN, 0f};
@@ -112,15 +119,10 @@ public class ElixirFurnaceHud {
         var ly = top + (int) ((upperTemp - low) * scale);
         var tyf = Mth.clamp(top + (upperTemp - temp) * scale, top + 2f, top + ph - 5f);
         var ty = Mth.floor(tyf);
-        var tyFrac = tyf - ty;
         blitSprite(g, TEMP_BAR, left, top);
-        blitScaled(g, left + 2, ey, 16, 2);
-        blitScaled(g, left + 2, ly, 16, 2);
-        pose.pushPose();
-        pose.translate(0, tyFrac, 0);
-        blitScaledTinted(g, left + 2, ty + 1, 12, 1, COLOR_YELLOW);
-        blitMarker(g, left + 14, ty - 1, COLOR_YELLOW);
-        pose.popPose();
+        blitReveal(g, THERMO_TEMP, TEMP_WINDOW, left, top, tyf - top);
+        blitScaled(g, left + TEMP_WINDOW.u(), ey, TEMP_WINDOW.w(), 2);
+        blitScaled(g, left + TEMP_WINDOW.u(), ly, TEMP_WINDOW.w(), 2);
         var font = mc.font;
         var explodeLabelY = ey - 8;
         if (explodeLabelY < top + 2) explodeLabelY = ey + 4;
@@ -146,41 +148,56 @@ public class ElixirFurnaceHud {
             var barH = STABILITY_BAR.h();
             var barLeft = left - barW - 10;
             var barTop = top + (ph - barH) / 2;
-            var rawS = (furnace.stabilityBonus(level) + furnace.stability())
-                    * (1 + furnace.tempStability() / (Math.abs(furnace.tempStability()) + 50));
-            var s = spring(dt, stabilityState, (float) rawS);
             var lim = Math.max(1, furnace.pharmaLimit());
             var covered = furnace.isCovered(level);
             var threshold = covered ? -lim : -lim * 2f;
-            var offs = furnace.offs();
-            var offMat = offs == null || offs.isEmpty() ? null
-                    : offs.stream().min(Comparator.comparing(o -> o.unwrapKey().map(k -> k.location().toString()).orElse(""))).orElseThrow();
-            var pharmZero = offMat == null
-                    ? covered ? -(100 + furnace.exp()) : -2 * (100 + furnace.exp())
-                    : ElixirMath.findPharmZero(offMat, Math.max(1, furnace.pharma()), furnace.exp(), threshold - lim * 3f - 100f, threshold + lim * 3f + 100f, covered);
-            var minS = Math.min(threshold - lim * 1.5f, pharmZero - lim * 0.5f);
-            var maxS = Math.max(threshold + lim * 1.5f, pharmZero + lim * 0.5f);
-            var ok = rawS > threshold;
-            var ratio = Mth.clamp((float) ((s - minS) / (maxS - minS)), 0, 1);
-            var syf = Mth.clamp(barTop + barH * (1 - ratio), barTop + 2f, barTop + barH - 5f);
+            var rawS = (furnace.stabilityBonus(level) + furnace.stability())
+                    * (1 + furnace.tempStability() / (Math.abs(furnace.tempStability()) + 50));
+            var s = spring(dt, stabilityState, (float) rawS);
+            var off = furnace.offMaterial();
+            var winTop = barTop + STABILITY_WINDOW.v();
+            var warnY = winTop + STABILITY_WINDOW.h() / 3 - STABILITY_BAND_LIFT;
+            var failY = winTop + STABILITY_WINDOW.h() * 2 / 3 - STABILITY_BAND_LIFT;
+            var failS = (double) threshold;
+            var pharma = furnace.pharma();
+            var exp = furnace.exp();
+            var pharmS = covered ? s : s * 0.5f;
+            var predicted = off == null
+                    ? Mth.clamp(ElixirMath.rawPharm(pharma, exp, pharmS), -ElixirConfig.pharmaLimited, ElixirConfig.pharmaLimited)
+                    : ElixirMath.predictPharm(off, pharma, exp, pharmS);
+            var warnS = off == null ? -(100d + exp)
+                    : ElixirMath.findPharmZero(off, pharma, exp, failS - lim * 3f - 100f, failS + lim * 3f + 100f, covered);
+            var gap = (float) (warnS - failS);
+            var merged = gap <= lim * 0.25f;
+            var span = merged ? (float) lim : gap;
+            var warnLine = merged ? failY : warnY;
+            var warnTint = merged ? COLOR_PURPLE : COLOR_YELLOW;
+            var failTint = merged ? COLOR_PURPLE : COLOR_RED;
+            var band = (float) ((s - failS) / span);
+            var syf = Mth.clamp(failY - band * (failY - warnY), (float) winTop, (float) (winTop + STABILITY_WINDOW.h()));
             var sy = Mth.floor(syf);
             var syFrac = syf - sy;
-            var thY = Mth.clamp(barTop + (int) (barH * (1 - (threshold - minS) / (maxS - minS))), barTop + 1, barTop + barH - 1);
+            var sColor = s <= threshold ? COLOR_RED : predicted > 0 ? COLOR_GREEN : COLOR_YELLOW;
+            var stateText = Component.translatable(s <= threshold ? "hud.elixir.doomed"
+                    : predicted > 0 ? "hud.elixir.stable" : "hud.elixir.unstable");
             blitSprite(g, STABILITY_BAR, barLeft, barTop);
-            blitScaled(g, barLeft + 1, thY, 10, 1);
-            blitScaledTinted(g, barLeft + 5, thY, 2, 1, COLOR_RED);
-            var pzRatio = Mth.clamp((float) ((pharmZero - minS) / (maxS - minS)), 0, 1);
-            var pzY = Mth.clamp(barTop + (int) (barH * (1 - pzRatio)), barTop + 1, barTop + barH - 1);
-            blitScaled(g, barLeft + 1, pzY, 10, 1);
-            blitScaledTinted(g, barLeft + 5, pzY, 2, 1, COLOR_YELLOW);
-            var sColor = ok ? COLOR_GREEN : COLOR_RED;
+            blitReveal(g, THERMO_STABILITY, STABILITY_WINDOW, barLeft, barTop, syf - barTop);
+            blitScaled(g, barLeft + STABILITY_WINDOW.u(), warnLine, STABILITY_WINDOW.w(), 1);
+            blitScaledTinted(g, barLeft + STABILITY_WINDOW.u() + 2, warnLine, 2, 1, warnTint);
+            blitScaled(g, barLeft + STABILITY_WINDOW.u(), failY, STABILITY_WINDOW.w(), 1);
+            blitScaledTinted(g, barLeft + STABILITY_WINDOW.u() + 2, failY, 2, 1, failTint);
             pose.pushPose();
             pose.translate(0, syFrac, 0);
-            blitScaledTinted(g, barLeft + 1, sy + 1, 7, 1, sColor);
-            blitMarker(g, barLeft + 8, sy - 1, sColor);
+            blitScaledTinted(g, barLeft + STABILITY_WINDOW.u(), sy, STABILITY_WINDOW.w(), 1, sColor);
+            blitMarker(g, barLeft + 8, sy - (MARKER.h() - 1) / 2, sColor);
             pose.popPose();
-            var stateText = ok ? Component.translatable("hud.elixir.stable") : Component.translatable("hud.elixir.unstable");
-            drawSmall(g, font, stateText, barLeft + barW - font.width(stateText) / 2, barTop + barH + 2, ok ? COLOR_GREEN : COLOR_RED);
+            var stateWidth = font.width(stateText);
+            var stateCenter = barLeft + barW - stateWidth / 4;
+            drawSmall(g, font, stateText, stateCenter - stateWidth / 4, barTop + barH + 2, sColor);
+            if (ElixirConfig.hudStabilityNumber) {
+                var valueText = Integer.toString(predicted);
+                drawSmall(g, font, valueText, stateCenter - font.width(valueText) / 4, barTop + barH + 10, sColor);
+            }
             var barY = top + ph + 6;
             var totalTicks = furnace.totalTicks();
             var fill = Mth.clamp((float) furnace.progress() / Math.max(1, totalTicks), 0, 1);
@@ -235,12 +252,38 @@ public class ElixirFurnaceHud {
         g.blit(DAN_HUD, x, y, dw, dh, STATIC_LINE.u(), STATIC_LINE.v(), STATIC_LINE.w(), STATIC_LINE.h(), TEX_W, TEX_H);
     }
 
+    private static void blitReveal(GuiGraphics g, SpriteRect texture, SpriteRect window, int originX, int originY, float edge) {
+        var head = Mth.clamp(edge - window.v(), 0f, window.h());
+        var row = Mth.floor(head);
+        if (row >= window.h()) return;
+        var body = window.h() - row - 1;
+        if (body > 0) {
+            g.blit(THERMOMETER,
+                    originX + window.u(), originY + window.v() + row + 1,
+                    texture.u(), texture.v() + row + 1,
+                    window.w(), body, THERMO_W, THERMO_H);
+        }
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
+        tintAlpha(row + 1f - head);
+        g.blit(THERMOMETER,
+                originX + window.u(), originY + window.v() + row,
+                texture.u(), texture.v() + row,
+                window.w(), 1, THERMO_W, THERMO_H);
+        RenderSystem.disableBlend();
+        resetTint();
+    }
+
     private static void tint(int color) {
         RenderSystem.setShaderColor(
                 (color >> 16 & 0xFF) / 255f,
                 (color >> 8 & 0xFF) / 255f,
                 (color & 0xFF) / 255f,
                 (color >> 24 & 0xFF) / 255f);
+    }
+
+    private static void tintAlpha(float alpha) {
+        RenderSystem.setShaderColor(1f, 1f, 1f, alpha);
     }
 
     private static void resetTint() {
