@@ -287,7 +287,7 @@ public abstract class AbstractAlchemyFurnaceBlockEntity extends BaseContainerBlo
     private void failed(Level level) {
         var pharma = (int) (this.pharma * (level.random.nextFloat() - 0.5f) * 2 * badElixirCompensation);
         pharma = (int) Math.min(pharma, pharmaLimited * badElixirCompensation);
-        items.clear();
+        clearSpentMaterialSlots();
         var reg = level.registryAccess().registryOrThrow(ElixirRegistries.MATERIAL);
         var main = new HashSet<Holder<Material>>();
         var off = new HashSet<Holder<Material>>();
@@ -301,9 +301,16 @@ public abstract class AbstractAlchemyFurnaceBlockEntity extends BaseContainerBlo
         elixir.set(ElixirDataComponents.Elixir, new ElixirComponent(off.iterator().next(), pharma, List.copyOf(main)));
         elixir.set(DataComponents.ITEM_NAME, Component.translatable("item.elixir.failed").withColor(ElixirItem.getColor(elixir.get(ElixirDataComponents.Elixir))));
         items.set(outputSlot(), elixir);
+        setChanged();
         if (trigger instanceof Player) trigger.setData(ELIXIR_EXP, trigger.getData(ELIXIR_EXP) + expFailureGain);
         else if (trigger != null) trigger.setData(ELIXIR_EXP, trigger.getData(ELIXIR_EXP) + (float) maidExpFailureGain);
         level.playSound(null, worldPosition, SoundEvents.GLASS_BREAK, SoundSource.BLOCKS, 1.0f, 1.0f);
+    }
+
+    private void clearSpentMaterialSlots() {
+        for (var i = 0; i < materialSlotCount(); i++) {
+            if (items.get(i).isEmpty()) items.set(i, ItemStack.EMPTY);
+        }
     }
 
     private void process(Level level, BlockPos pos) {
