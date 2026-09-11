@@ -519,7 +519,7 @@ public abstract class AbstractAlchemyFurnaceBlockEntity extends BaseContainerBlo
         started = true;
         setActiveVisual(level, worldPosition, level.getBlockState(worldPosition), true);
         if (!empty && level instanceof ServerLevel sl) {
-            sl.playSound(null, worldPosition, SoundEvents.WITHER_SPAWN, SoundSource.BLOCKS, 1.0f, 1.0f);
+            sl.playSound(null, worldPosition, SoundEvents.WITHER_SPAWN, SoundSource.BLOCKS, 0.4f, 1.0f);
         }
         return true;
     }
