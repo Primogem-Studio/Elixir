@@ -1,0 +1,21 @@
+{
+  "loader": "neoforge:obj",
+  "model": "elixir:models/obj/xuanyang_furnace.obj",
+  "flip_v": true,
+  "emissive_ambient": false,
+  "textures": {
+    "particle": "elixir:block/xuanyang/basalt"
+  },
+  "transform": {
+    "translation": [
+      -0.625,
+      -1.125,
+      -0.625
+    ],
+    "scale": [
+      0.25,
+      0.25,
+      0.25
+    ]
+  }
+}

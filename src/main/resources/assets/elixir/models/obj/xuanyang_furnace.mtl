@@ -1,0 +1,22 @@
+# Made in Blockbench 5.1.6
+newmtl m_169078c1-1e63-694c-4d35-d86f092002ba
+map_Kd elixir:block/xuanyang/soot
+newmtl m_9a54a874-e3c6-0e95-6e96-7ba29ec79a57
+map_Kd elixir:block/xuanyang/edge
+newmtl m_afe678bf-96a9-6e22-6d92-6b72be384622
+map_Kd elixir:block/xuanyang/basalt
+newmtl m_af0b87a2-bbbe-0de2-7fc5-789a1e5cfc7e
+map_Kd elixir:block/xuanyang/bronze
+newmtl m_125e8de9-e796-6267-16b9-3d86b321b026
+map_Kd elixir:block/xuanyang/ember
+newmtl m_ba253f5f-91a0-7ab4-6f83-564d247bfaf0
+map_Kd elixir:block/xuanyang/flame
+newmtl m_45332e90-f4f8-cbce-38de-2b44c48a3aed
+map_Kd elixir:block/xuanyang/hot
+newmtl m_4d06d99a-25e3-7824-1d27-5b6387a35401
+map_Kd elixir:block/xuanyang/gold
+newmtl m_0299113c-0bfd-6705-1bcf-6b5090398d1d
+map_Kd elixir:block/xuanyang/gold_light
+newmtl m_47caa2d3-d7ad-0490-be79-0c8a354d0192
+map_Kd elixir:block/xuanyang/ivory
+newmtl none
