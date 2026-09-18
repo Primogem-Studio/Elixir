@@ -6,6 +6,7 @@ import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -31,7 +32,6 @@ public class AlchemicalFormulaDetailTooltip implements TooltipComponent, ClientT
     private static final int BOX_W = 96;
     private static final int BOX_PAD = 6;
     private static final int LINE_H = 10;
-    private static final int CHARS_PER_LINE = 14;
 
     private static Object active;
     private static int activeSize;
@@ -39,6 +39,7 @@ public class AlchemicalFormulaDetailTooltip implements TooltipComponent, ClientT
     private static boolean drawn;
 
     private final List<Content> rows;
+    private List<FormattedCharSequence> descriptionLines = List.of();
 
     public record Content(Holder<Material> material, int count) {
     }
@@ -102,11 +103,14 @@ public class AlchemicalFormulaDetailTooltip implements TooltipComponent, ClientT
 
     @Override
     public int getHeight() {
-        return Math.max(12 + visibleRows() * ROW_H + 1, boxEstimate());
+        return Math.max(12 + visibleRows() * ROW_H + 1, boxHeight());
     }
 
     @Override
     public int getWidth(Font font) {
+        // Vanilla measures width before height; reuse these exact lines when drawing.
+        descriptionLines = rows.isEmpty() ? List.of()
+                : font.split(description(selectedMaterial()), BOX_W - BOX_PAD * 2);
         return leftWidth(font) + GAP + BOX_W;
     }
 
@@ -116,10 +120,8 @@ public class AlchemicalFormulaDetailTooltip implements TooltipComponent, ClientT
         return w;
     }
 
-    private int boxEstimate() {
-        if (rows.isEmpty()) return BOX_PAD * 2 + LINE_H;
-        var len = description(selectedMaterial()).getString().length();
-        return BOX_PAD * 2 + Math.max(1, Math.ceilDiv(len, CHARS_PER_LINE)) * LINE_H;
+    private int boxHeight() {
+        return BOX_PAD * 2 + Math.max(1, descriptionLines.size()) * LINE_H;
     }
 
     private Material selectedMaterial() {
@@ -155,16 +157,14 @@ public class AlchemicalFormulaDetailTooltip implements TooltipComponent, ClientT
         if (rows.isEmpty()) return;
         var mat = selectedMaterial();
         var color = color(mat, true);
-        var desc = description(mat);
-        var lines = font.split(desc, BOX_W - BOX_PAD * 2);
         var boxX = mouseX + leftWidth(font) + GAP;
         var boxY = mouseY;
-        var boxH = BOX_PAD + lines.size() * LINE_H + BOX_PAD;
+        var boxH = boxHeight();
         var border = 0x66000000 | (color & 0xFFFFFF);
         TdpUi.renderFrame(graphics, boxX, boxY, BOX_W, boxH, border);
         graphics.fill(boxX + 1, boxY + 1, boxX + BOX_W - 1, boxY + boxH - 1, 0x40000000);
-        for (var j = 0; j < lines.size(); j++) {
-            graphics.drawString(font, lines.get(j), boxX + BOX_PAD, boxY + BOX_PAD + j * LINE_H, color);
+        for (var j = 0; j < descriptionLines.size(); j++) {
+            graphics.drawString(font, descriptionLines.get(j), boxX + BOX_PAD, boxY + BOX_PAD + j * LINE_H, color);
         }
     }
 
