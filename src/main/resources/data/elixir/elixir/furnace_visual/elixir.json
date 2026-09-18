@@ -12,10 +12,6 @@
       "texture": "elixir:block/elixir_furnace_tealx1",
       "cover_texture": "elixir:block/elixir_furnace_cover_tealx1",
       "active_texture": "minecraft:block/nether_portal"
-    },
-    {
-      "model": "elixir:block/xuanyang",
-      "cover_model": "elixir:block/empty"
     }
   ],
   "tiers": {
